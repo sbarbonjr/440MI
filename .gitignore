@@ -1,3 +1,27 @@
 /.ipynb_checkpoints
 /venv
 .DS_Store
+delete/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# LaTeX / Beamer build artifacts
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb
+
+# AI / editor support files
+.agents/
+.codex/
+.claude/
+.cursor/
+.roo/
+.aider*

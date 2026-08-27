@@ -1,0 +1,199 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usetheme{Boadilla}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{headline}{}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage[strings]{underscore}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,shapes.geometric}
+\usepackage{xcolor}
+
+\definecolor{courseblue}{HTML}{12355B}
+\definecolor{coursegold}{HTML}{C98A2E}
+\definecolor{courseice}{HTML}{EEF3F8}
+\definecolor{coursegreen}{HTML}{2F6B4F}
+\definecolor{coursegray}{HTML}{4B5563}
+\definecolor{codebg}{HTML}{F7F9FC}
+\definecolor{codecomment}{HTML}{5E6C84}
+\definecolor{codestring}{HTML}{0B6E4F}
+
+\setbeamercolor{palette primary}{bg=courseblue,fg=white}
+\setbeamercolor{palette secondary}{bg=coursegold,fg=white}
+\setbeamercolor{palette tertiary}{bg=courseblue,fg=white}
+\setbeamercolor{palette quaternary}{bg=coursegold,fg=white}
+\setbeamercolor{structure}{fg=courseblue}
+\setbeamercolor{frametitle}{bg=courseice,fg=courseblue}
+\setbeamercolor{title}{fg=courseblue}
+\setbeamercolor{block title}{bg=courseblue,fg=white}
+\setbeamercolor{block body}{bg=courseice,fg=black}
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{alerted text}{fg=coursegold}
+
+\setbeamerfont{footline}{size=\scriptsize}
+
+\setbeamertemplate{footline}{
+  \leavevmode
+  \hbox{
+    \begin{beamercolorbox}[wd=.33\paperwidth,ht=2.8ex,dp=1.2ex,leftskip=0.8em]{palette primary}%
+      University of Trieste
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.49\paperwidth,ht=2.8ex,dp=1.2ex,center]{palette tertiary}%
+      \coursename{} \textbar{} \coursecode
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.18\paperwidth,ht=2.8ex,dp=1.2ex,rightskip=0.8em plus1fil]{palette secondary}%
+      \insertframenumber{} / \inserttotalframenumber
+    \end{beamercolorbox}%
+  }
+}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=courseblue,
+  urlcolor=coursegreen
+}
+
+\lstdefinestyle{coursepython}{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{courseblue}\bfseries,
+  commentstyle=\color{codecomment}\itshape,
+  stringstyle=\color{codestring},
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,
+  frame=single,
+  framerule=0.6pt,
+  rulecolor=\color{courseblue},
+  backgroundcolor=\color{codebg},
+  xleftmargin=0.4em,
+  xrightmargin=0.4em,
+  aboveskip=0.4em,
+  belowskip=0.2em
+}
+
+\newcommand{\coursename}{Data-driven Systems Engineering}
+\newcommand{\coursecode}{440MI / 305SM}
+\newcommand{\coursefooter}{}
+
+\newcommand{\learninggoals}[1]{
+  \begin{block}{Learning goals}
+  #1
+  \end{block}
+}
+
+\newcommand{\repoactivity}[1]{
+  \begin{block}{Repo activity}
+  #1
+  \end{block}
+}
+
+\newcommand{\readinglist}[1]{
+  \begin{block}{Papers and materials}
+  {\footnotesize #1}
+  \end{block}
+}
+
+\newcommand{\coursecontextframe}[5]{
+  \begin{frame}{Course Map and Running Cases}
+  \centering
+  \begin{tikzpicture}[node distance=0.28cm]
+  \node[flowbox, minimum width=1.45cm, minimum height=0.8cm] (problem) {\scriptsize Problem};
+  \node[flowbox, minimum width=1.45cm, minimum height=0.8cm, right=of problem] (data) {\scriptsize Data};
+  \node[flowbox, minimum width=1.45cm, minimum height=0.8cm, right=of data] (features) {\scriptsize Features};
+  \node[flowbox, minimum width=1.45cm, minimum height=0.8cm, right=of features] (model) {\scriptsize Model};
+  \node[flowbox, minimum width=1.45cm, minimum height=0.8cm, right=of model] (interface) {\scriptsize Interface};
+  \node[flowbox, minimum width=1.45cm, minimum height=0.8cm, right=of interface] (delivery) {\scriptsize Delivery};
+  \node[flowbox, minimum width=1.45cm, minimum height=0.8cm, right=of delivery] (monitor) {\scriptsize Monitor};
+  \node[accentbox, minimum width=1.6cm, minimum height=0.8cm, right=of monitor] (evolution) {\scriptsize Evolution};
+  \foreach \a/\b in {problem/data,data/features,features/model,model/interface,interface/delivery,delivery/monitor,monitor/evolution} {
+    \draw[arrow] (\a) -- (\b);
+  }
+  \end{tikzpicture}
+
+  \vspace{0.5em}
+  \begin{block}{Today in the course}
+  \textbf{Focus:} #1
+
+  \textbf{Bridge:} #2
+  \end{block}
+
+  \begin{columns}[T]
+  \column{0.48\textwidth}
+  \begin{block}{Fraud case}
+  {\footnotesize #3}
+  \end{block}
+  \column{0.48\textwidth}
+  \begin{block}{Pasteurization case}
+  {\footnotesize #4}
+  \end{block}
+  \end{columns}
+
+  \vspace{0.3em}
+  {\footnotesize \textbf{Course thread:} #5}
+  \coursefooter
+  \end{frame}
+}
+
+\newcommand{\classclosingframe}[4]{
+  \begin{frame}{From This Class to the Next}
+  \begin{block}{What stays with us}
+  #1
+  \end{block}
+
+  \begin{columns}[T]
+  \column{0.48\textwidth}
+  \begin{block}{Project use}
+  {\footnotesize #2}
+  \end{block}
+  \column{0.48\textwidth}
+  \begin{block}{Next connection}
+  {\footnotesize #3}
+  \end{block}
+  \end{columns}
+
+  \vspace{0.3em}
+  {\footnotesize \textbf{Course thread:} #4}
+  \coursefooter
+  \end{frame}
+}
+
+\tikzset{
+  flowbox/.style={
+    rounded corners=3pt,
+    draw=courseblue,
+    fill=courseice,
+    very thick,
+    minimum width=2.2cm,
+    minimum height=0.9cm,
+    align=center,
+    font=\small
+  },
+  accentbox/.style={
+    rounded corners=3pt,
+    draw=coursegold,
+    fill=coursegold!15,
+    very thick,
+    minimum width=2.2cm,
+    minimum height=0.9cm,
+    align=center,
+    font=\small
+  },
+  arrow/.style={
+    -{Latex[length=2.5mm,width=2mm]},
+    thick,
+    draw=courseblue
+  }
+}
