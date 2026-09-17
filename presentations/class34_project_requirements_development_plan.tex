@@ -1,6 +1,7 @@
 \input{common}
 
-\title{Class 14: Project Proposal and Delivery Planning}
+\title{Class 34: Project Requirements and Development Plan}
+\subtitle{Session 34 of 36 -- MLOps Block}
 \author{\coursename}
 \date{}
 
@@ -10,12 +11,12 @@
 
 \begin{frame}{Agenda}
 \begin{itemize}
-\item Why planning matters in ML projects
-\item Project summary and scope
-\item Deliverables and milestones
-\item Work Breakdown Structure and sprint or Gantt planning
+\item From pitch to requirements: reconnecting to Class 25's practice
+\item Deliverables mapped to the full lifecycle
+\item Work Breakdown Structure and milestone sequencing
+\item Sprint and timeline thinking
 \item Definition of Ready and Definition of Done
-\item Risks and governance for ML projects
+\item Risk register for ML projects
 \end{itemize}
 \coursefooter
 \end{frame}
@@ -23,10 +24,10 @@
 \begin{frame}{Planning is part of the engineering work}
 \learninggoals{
 \begin{itemize}
-\item Turn a project idea into scope, milestones, and deliverables.
-\item Define what will be built first and what can wait.
-\item Make project status visible through artifacts, not only verbal updates.
-\item Connect proposal quality to later testing, deployment, and monitoring work.
+\item Turn a scoped project pitch into a milestone sequence and Work Breakdown Structure.
+\item Map deliverables onto the full lifecycle: data, model, interface, delivery, and monitoring.
+\item Write Definition of Ready and Definition of Done criteria the team will actually use.
+\item Build a lightweight risk register with concrete responses.
 \end{itemize}
 }
 \coursefooter
@@ -34,54 +35,16 @@
 
 \coursecontextframe
 {Project planning as lifecycle design.}
-{This class turns the course concepts into an executable project plan with milestones, deliverables, and evidence of progress.}
+{Class 32's pitch becomes a real project only once it has milestones, deliverables, and a way to tell whether work is ready or done; Class 33's guest session is a reminder that real engagements run on exactly this kind of plan.}
 {In the fraud case, planning means sequencing data work, baseline modeling, service exposure, deployment checks, and monitoring criteria.}
 {In the pasteurization case, planning means sequencing sensor understanding, forecasting or alerting logic, dashboard integration, and drift response design.}
-{The course thread is that a coherent project proposal should already reflect the full lifecycle, not only the modeling step.}
+{The course thread is that a coherent project plan should already reflect the full lifecycle, not only the modeling step.}
 
-\begin{frame}{Why planning matters in ML projects}
+\begin{frame}{From your Class 32 pitch to this plan}
 \begin{itemize}
-\item ML systems evolve through data, code, models, interfaces, validation, and operations.
-\item More roles means more handoffs, which means more need for shared artifacts.
-\item A weak proposal creates downstream confusion in requirements, evaluation, and release planning.
-\end{itemize}
-\begin{block}{Practical claim}
-Planning does not remove uncertainty, but it makes uncertainty visible enough to manage.
-\end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}{A project summary defines boundaries}
-\begin{itemize}
-\item What problem is being solved?
-\item Who uses or is affected by the result?
-\item What is in scope for this project?
-\item What is intentionally out of scope?
-\item What evidence will convince stakeholders that the project is useful?
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{What a strong project summary should contain}
-\begin{itemize}
-\item Problem statement and target users.
-\item Data sources and expected constraints.
-\item Expected system output: prediction, forecast, alert, or recommendation.
-\item Success criteria tied to technical and user outcomes.
-\item Risks, assumptions, and dependencies.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Objectives should be specific enough to evaluate}
-\begin{block}{Weak objective}
-Build an ML system for quality control.
-\end{block}
-\begin{block}{Stronger objective}
-Detect abnormal process trajectories from synthetic pasteurization sensor data and expose alerts through a dashboard with traceable event logs.
-\end{block}
-\begin{itemize}
-\item Strong objectives are specific, measurable, relevant, and bounded enough to review.
+\item Your MVP becomes the first few milestones; your stretch goal becomes a later, optional milestone.
+\item Your two named risks become the first two rows of today's risk register.
+\item Your success criterion becomes the definition of done for the final milestone.
 \end{itemize}
 \coursefooter
 \end{frame}
@@ -157,32 +120,6 @@ Monitoring plan & Shows how the system remains trustworthy after release. \\
 \coursefooter
 \end{frame}
 
-\begin{frame}{A more suitable proposal example}
-\begin{block}{Project}
-Forecast temperature and detect abnormal state transitions in a synthetic pasteurization line.
-\end{block}
-\begin{itemize}
-\item Data source: Flask stream from `pasteurization/serving.py`.
-\item MVP: predict next temperature value and visualize drift alerts.
-\item Stretch goal: state-aware forecasting and alert triage.
-\item Main risks: synthetic realism, label scarcity, and operator-facing thresholds.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Another project pattern students can defend}
-\begin{block}{Project}
-Fraud scoring as a service for transaction review support.
-\end{block}
-\begin{itemize}
-\item Data source: credit-card fraud dataset and engineered features.
-\item MVP: classify transactions and expose a scoring endpoint.
-\item Stretch goal: threshold tuning plus analyst-facing dashboard.
-\item Risks: class imbalance, false-positive cost, and drift after deployment.
-\end{itemize}
-\coursefooter
-\end{frame}
-
 \begin{frame}{DoR and DoD for student teams}
 \begin{columns}[T]
 \column{0.48\textwidth}
@@ -217,36 +154,46 @@ Governance risk & Document assumptions, versions, and monitoring triggers. \\
 \coursefooter
 \end{frame}
 
-\begin{frame}{What a strong proposal presentation should show}
+\begin{frame}{Project framing documents already in this repo}
+\repoactivity{
 \begin{itemize}
-\item The problem and why it matters.
-\item The system boundary and main users.
-\item The data source, constraints, and risks.
-\item The milestone sequence and what each one proves.
-\item The evidence that the project is becoming an engineered system, not only a notebook.
+\item `documents/FraudDetectionAsaService.pdf` and `documents/FraudDetectionAsaService_presentation.pdf` show a fully written project framing for the fraud case.
+\item `documents/Forecasting_and_Drift_Pasteurization.pdf` shows the same for the pasteurization case.
+\item Use their structure, not their content, as a model for your own plan if your project follows a different idea.
 \end{itemize}
+}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Discussion prompt}
+\begin{block}{Question}
+Which single milestone in your plan is actually a decision point, where the project could be redirected or stopped if things go wrong?
+\end{block}
+\begin{itemize}
+\item This distinguishes a real milestone from a calendar date with a label on it.
+\item It also connects planning back to the risk register: a decision point is where a risk gets checked, not just hoped away.
+\end{itemize}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Papers and materials}
+\readinglist{
+\href{https://proceedings.neurips.cc/paper_files/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf}{Sculley et al. (2015), Hidden Technical Debt};\
+\href{https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/}{Designing Machine Learning Systems};\
+\href{https://www.atlassian.com/agile/project-management/epics-stories-themes}{Project planning with epics and stories};\
+\href{https://www.smartsheet.com/critical-path-method}{Critical path and schedule planning basics}.
+}
 \coursefooter
 \end{frame}
 
 \classclosingframe
 {\begin{itemize}
-\item A strong proposal defines the problem, the system boundary, the evidence plan, and the main risks.
+\item A strong plan defines outputs, milestones as decision points, and named risks with responses.
 \item Milestones should demonstrate engineering progress, not only analytical activity.
 \item Good project planning anticipates delivery, monitoring, and change from the start.
 \end{itemize}}
-{This helps student teams present a believable path from data and baseline models to interfaces, deployment, and operational follow-up.}
-{Class 15 closes the sequence with monitoring and drift response, showing how project plans must extend beyond first deployment.}
-{Project planning becomes complete only when it includes how the system will be observed, corrected, and improved after release.}
-
-\begin{frame}{Papers and materials}
-\readinglist{
-\href{https://proceedings.neurips.cc/paper_files/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf}{Sculley et al. (2015), Hidden Technical Debt};\ 
-\href{https://www.oreilly.com/library/view/designing-machine-learning/9781098107956/}{Designing Machine Learning Systems};\ 
-\href{https://www.atlassian.com/agile/project-management/epics-stories-themes}{Project planning with epics and stories};\ 
-\href{https://www.productplan.com/glossary/minimum-viable-product/}{Minimum Viable Product guide};\ 
-\href{https://www.smartsheet.com/critical-path-method}{Critical path and schedule planning basics}.
-}
-\coursefooter
-\end{frame}
+{This plan, together with the Class 32 pitch, is what each team brings into the proposal presentations.}
+{Class 35 covers the logistics and rubric for presenting this plan, the first half of the presentation day.}
+{Planning is complete only once it can be defended in front of reviewers, which is exactly what the next two sessions are for.}
 
 \end{document}

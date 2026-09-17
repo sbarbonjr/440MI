@@ -1,6 +1,6 @@
 \input{common}
 
-\title{Class 1: Course Introduction, MLOps, and Agile AI}
+\title{Class 1: Introduction to Course --- MLOps, Agile, Data Mining}
 \author{\coursename}
 \date{}
 
@@ -11,9 +11,10 @@
 \begin{frame}{Agenda}
 \begin{itemize}
 \item Course positioning: what ``data-driven systems engineering'' means in practice.
+\item The three macro-blocks of the 36-session course: Python, Data-Driven, MLOps.
 \item Why ML projects fail when they stop at the notebook.
 \item The course technology stack: Python, Jupyter, pandas, scikit-learn, Flask, Streamlit, River, Docker, Jenkins, GitHub Actions.
-\item Agile AI: how to structure work when data, labels, and requirements all move.
+\item Agile AI and data mining: how to structure work when data, labels, and requirements all move.
 \item Running cases from this repository: fraud detection and pasteurization monitoring.
 \end{itemize}
 \coursefooter
@@ -50,13 +51,13 @@ The course is not about ``how to train one model''. It is about how to design a 
 \coursefooter
 \end{frame}
 
-\begin{frame}{Course arc across the semester}
+\begin{frame}{Course arc: three macro-blocks, 36 sessions}
 \begin{enumerate}
-\item Classes 1--6: Python for EDA, PCA, feature engineering, modeling, and serving.
-\item Classes 7--12: software engineering, requirements, process models, agile methods, and design thinking.
-\item Classes 13--15: MLOps, project planning, monitoring, and drift response.
+\item \textbf{Python block (Classes 1--12):} programming instrumentation --- language basics, data structures, functions, classes, files, pandas mechanics, first contact with scikit-learn, and EDA practice.
+\item \textbf{Data-Driven block (Classes 13--20):} data theory --- deeper EDA, PCA and dimensionality reduction, feature engineering, modeling, evaluation, and serving interfaces.
+\item \textbf{MLOps block (Classes 21--36):} software engineering, requirements, process models, agile methods, experiment tracking, delivery pipelines, and monitoring in production.
 \end{enumerate}
-\vspace{0.7em}
+\vspace{0.5em}
 \begin{block}{Guiding question}
 How do we turn a promising model into a reliable data product that a team can build, operate, and improve?
 \end{block}
@@ -293,8 +294,8 @@ Docker / CI tools & When we want the system to be repeatable across machines and
 \item The running cases will let us revisit the same lifecycle from multiple technical angles.
 \end{itemize}}
 {Use this map to explain where your own project sits today and which lifecycle pieces are still missing.}
-{Class 2 moves into Python, notebooks, pandas, and exploratory data analysis so we can ground decisions in real datasets before changing features or models.}
-{The semester starts with systems thinking so the later technical choices remain connected to a real deployment story.}
+{Class 2 opens the Python block itself: what Python is, why it is the working language of this course, and a first tour of the toolchain (Jupyter, pandas, scikit-learn, Flask, Streamlit) we will use for the next eleven sessions.}
+{The semester starts with systems thinking so that the programming instrumentation taught next always stays connected to a real deployment story.}
 
 \begin{frame}{Foundational readings}
 \readinglist{

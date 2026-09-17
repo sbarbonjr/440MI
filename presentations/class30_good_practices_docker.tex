@@ -1,6 +1,7 @@
 \input{common}
 
-\title{Class 9: Delivery Pipelines, Docker, and CI/CD for ML}
+\title{Class 30: Good Practices with Docker and CI/CD}
+\subtitle{Session 30 of 36 -- MLOps Block}
 \author{\coursename}
 \date{}
 
@@ -11,7 +12,7 @@
 \begin{frame}{Agenda}
 \begin{itemize}
 \item Why delivery pipelines matter for ML systems.
-\item Docker, GitHub Actions, and Jenkins in the course workflow.
+\item Docker and GitHub Actions in the course workflow.
 \item Pipeline stages, gates, and release safety.
 \item What to test before deployment.
 \item Repository examples from the Flask and Streamlit apps.
@@ -20,11 +21,11 @@
 \coursefooter
 \end{frame}
 
-\begin{frame}{Why delivery pipelines deserve their own class}
+\begin{frame}{Why good delivery practice deserves its own class}
 \learninggoals{
 \begin{itemize}
 \item Understand how packaging and automation reduce deployment friction.
-\item Connect notebooks and services to Docker, Jenkins, and GitHub Actions.
+\item Connect notebooks and services to Docker and GitHub Actions.
 \item Learn what should be tested before a model-backed service is released.
 \item Explain why CI/CD in ML must validate both software and artifacts.
 \end{itemize}
@@ -69,16 +70,6 @@
 \coursefooter
 \end{frame}
 
-\begin{frame}{Why packaging is not optional}
-\begin{itemize}
-\item Local environments drift across machines.
-\item Hidden dependencies can break deployments unexpectedly.
-\item Teams need a repeatable way to run the same code with the same artifacts.
-\item Packaging is part of reproducibility, not only part of operations.
-\end{itemize}
-\coursefooter
-\end{frame}
-
 \begin{frame}{Why ML delivery is harder than standard app delivery}
 \begin{itemize}
 \item The build may depend on large artifacts that are not regenerated on every commit.
@@ -92,8 +83,7 @@
 \begin{frame}{Repo materials we should exploit}
 \repoactivity{
 \begin{itemize}
-\item `tutorials/Docker/tutorial.md`
-\item `tutorials/Jenkins/tutorial.md` and `Jenkinsfile`
+\item `tutorials/Docker/tutorial.md`, `node.Dockerfile`, and `docker-compose.yaml`
 \item `tutorials/GitHubActions/tutorial.md`
 \end{itemize}
 These are already present, so the lecture should tie them directly to the Flask and Streamlit apps.
@@ -104,10 +94,13 @@ These are already present, so the lecture should tie them directly to the Flask 
 \begin{frame}{Role of the main technologies}
 \begin{tabularx}{\textwidth}{>{\bfseries}l X}
 Docker & Builds a portable runtime for the app and its dependencies. \\
+Docker Compose & Coordinates several containers, such as a service, an API, and a database, as one stack. \\
 GitHub Actions & Runs repository-native workflows for testing, building, or deployment steps. \\
-Jenkins & Supports more customizable automation and integration patterns. \\
 Git & Triggers the history and events around which automation can run. \\
 \end{tabularx}
+\begin{block}{Note}
+Jenkins remains available in `tutorials/Jenkins` for teams that want a self-hosted alternative, but this class focuses on Docker and GitHub Actions.
+\end{block}
 \coursefooter
 \end{frame}
 
@@ -123,12 +116,43 @@ Git & Triggers the history and events around which automation can run. \\
 \coursefooter
 \end{frame}
 
-\begin{frame}{More suitable examples than generic web apps}
+\begin{frame}[fragile]{Dockerfile layering, annotated in the repo}
+\begin{lstlisting}[style=coursepython]
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN adduser -D appuser && chown -R appuser /app
+USER appuser
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+\end{lstlisting}
 \begin{itemize}
-\item Build a Docker image for the fraud API and run a smoke prediction.
-\item Validate that the scaler artifact exists before starting the service.
-\item Add a GitHub Action that installs dependencies and runs a tiny inference test.
-\item Use Jenkins to rebuild the app when the model artifact changes.
+\item `tutorials/Docker/node.Dockerfile` orders layers so dependency installs are cached separately from source code.
+\item It also shows two good practices worth carrying into a Python service: a non-root user and a HEALTHCHECK.
+\end{itemize}
+\coursefooter
+\end{frame}
+
+\begin{frame}[fragile]{Composing services with Docker Compose}
+\begin{lstlisting}[style=coursepython]
+services:
+  api:
+    build: ./api
+    environment:
+      DATABASE_URL: postgres://user:pass@db:5432/app
+    depends_on:
+      - db
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+\end{lstlisting}
+\begin{itemize}
+\item `tutorials/Docker/docker-compose.yaml` shows a small multi-service stack with explicit dependency ordering.
+\item A fraud API plus a feature store, or a pasteurization stream plus a dashboard, follow the same pattern.
 \end{itemize}
 \coursefooter
 \end{frame}
@@ -147,26 +171,6 @@ jobs:
 \begin{itemize}
 \item `tutorials/GitHubActions/tutorial.md` is useful because it shows that workflows are event-driven.
 \item For this course, the key idea is that pushes and scheduled checks can both guard the service.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}[fragile]{Jenkins example from the repository}
-\begin{lstlisting}[style=coursepython]
-stage('Build') {
-  steps {
-    sh 'docker build -t $IMAGE:$BUILD_NUMBER .'
-  }
-}
-stage('Test') {
-  steps {
-    sh 'docker run --rm $IMAGE:$BUILD_NUMBER npm test'
-  }
-}
-\end{lstlisting}
-\begin{itemize}
-\item `tutorials/Jenkins/Jenkinsfile` makes the pipeline stages explicit.
-\item The exact commands may change for Python services, but the structure of build, test, and release gates remains the same.
 \end{itemize}
 \coursefooter
 \end{frame}
@@ -192,16 +196,6 @@ stage('Test') {
 \coursefooter
 \end{frame}
 
-\begin{frame}{What can go wrong without CI/CD}
-\begin{itemize}
-\item A model artifact is missing or incompatible with the code.
-\item The container starts but the inference route fails.
-\item A dependency update changes prediction behavior silently.
-\item A dashboard works locally but not in the release environment.
-\end{itemize}
-\coursefooter
-\end{frame}
-
 \begin{frame}{Rollback and observability are part of delivery}
 \begin{itemize}
 \item Safe delivery includes a way to revert a bad release quickly.
@@ -209,17 +203,28 @@ stage('Test') {
 \item Logs, metrics, and health endpoints are part of the delivery design, not a postscript.
 \end{itemize}
 \begin{block}{Course connection}
-This is the bridge from software engineering into operational MLOps: the deployment pipeline and the monitoring pipeline eventually meet.
+This is the bridge from software engineering into operational MLOps: the deployment pipeline and the monitoring pipeline eventually meet in Class 31.
 \end{block}
 \coursefooter
 \end{frame}
 
-\begin{frame}{Technology links}
+\begin{frame}{Discussion prompt}
+\begin{block}{Question}
+A container builds, starts, and answers health checks, but it silently serves a stale model. Did the pipeline do its job?
+\end{block}
+\begin{itemize}
+\item This separates ``the service runs'' from ``the service is correct.''
+\item It motivates testing frozen inference samples, not only container startup.
+\end{itemize}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Papers and materials}
 \readinglist{
-\href{https://docs.docker.com/get-started/}{Docker get started};\ 
-\href{https://docs.github.com/en/actions}{GitHub Actions documentation};\ 
-\href{https://www.jenkins.io/doc/}{Jenkins documentation};\ 
-\href{https://docs.docker.com/reference/cli/docker/}{Docker CLI reference}.
+\href{https://docs.docker.com/get-started/}{Docker get started};\
+\href{https://docs.docker.com/reference/cli/docker/}{Docker CLI reference};\
+\href{https://docs.github.com/en/actions}{GitHub Actions documentation};\
+\href{https://martinfowler.com/articles/cd4ml.html}{Continuous Delivery for Machine Learning}.
 }
 \coursefooter
 \end{frame}
@@ -231,17 +236,7 @@ This is the bridge from software engineering into operational MLOps: the deploym
 \item Release quality depends on tests, health checks, rollback paths, and observability.
 \end{itemize}}
 {Teams can now describe how code, dependencies, models, and checks travel from the repository into a running service.}
-{Class 10 steps back to requirements engineering so these technical pipelines are anchored to explicit stakeholder needs and acceptance criteria.}
-{Reliable delivery matters most when the team knows exactly what the system is expected to do and how success will be judged.}
-
-\begin{frame}{Papers and materials}
-\readinglist{
-\href{https://docs.docker.com/}{Docker documentation};\ 
-\href{https://docs.github.com/actions}{GitHub Actions documentation};\ 
-\href{https://www.jenkins.io/doc/}{Jenkins documentation};\ 
-\href{https://martinfowler.com/articles/cd4ml.html}{Continuous Delivery for Machine Learning}.
-}
-\coursefooter
-\end{frame}
+{Class 31 continues past the release moment into continuous monitoring and scalability: what happens to this pipeline's output once it carries real load.}
+{Reliable delivery matters most when the team also knows how the shipped system behaves under sustained use.}
 
 \end{document}

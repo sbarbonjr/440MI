@@ -22,25 +22,54 @@ The course is designed to help students reason about a complete data-driven syst
 
 ## Course Structure
 
-The materials in this repository follow a 15-class sequence:
+The materials in this repository follow a 36-class sequence organized in three macro-blocks: **Python** (instrumental programming) → **Data-Driven** (data types, representation, and modeling) → **MLOps** (software engineering and operations).
 
-1. Introduction to data-driven systems engineering, MLOps, and agile AI
-2. Python, notebooks, and exploratory data analysis
-3. PCA and dimensionality reduction
-4. Feature engineering and preprocessing pipelines
-5. Modeling, metrics, and adaptation
-6. Serving models with APIs and interfaces
-7. Software engineering foundations for ML systems
-8. Experiment tracking and hyperparameter tuning
-9. Delivery pipelines, containers, and CI/CD
-10. Requirements engineering for data-driven systems
-11. Process models and lifecycle choices
-12. Agile toolkit for data and software teams
-13. MLOps foundations and operational maturity
-14. Project proposal and milestone planning
-15. Model monitoring and drift response
+### I. Python (Classes 1-12)
 
-The class slides live in [presentations/](presentations/), with both `.tex` sources and compiled PDFs.
+1. Introduction to the course (MLOps, Agile, Data Mining)
+2. What is Python?
+3. Basic Python programming
+4. Control flow and data structures
+5. Practice 1 (hands-on with the Streamlit demo)
+6. Files and plotting
+7. Functions and good practices
+8. Classes and OOP in Python
+9. Dealing with data (pandas)
+10. Exploratory data analysis
+11. Python programming with machine learning (the scikit-learn API)
+12. EDA practice
+
+### II. Data-Driven (Classes 13-20)
+
+13. Data types — tabular, time series, spectral/signal, image
+14. Structured / semi-structured / unstructured data, encoding, and embeddings
+15. Feature engineering (cleaning, curation, selection)
+16. ML modeling 1 and experiment tracking
+17. ML modeling 2 and decision-making
+18. Online machine learning and concept drift
+19. Streaming sensor practice
+20. Model deployment and prediction serving
+
+### III. MLOps (Classes 21-36)
+
+21. Intervention: Cybertec (guest session)
+22. Introduction to software engineering
+23. Requirements engineering
+24. Intervention: YesAlps (guest session)
+25. Requirements engineering practice
+26. Process models and Agile foundations
+27. Agile toolkit practice
+28. MLOps foundations
+29. MLOps practice and continuous training
+30. Good practices (Docker, CI/CD)
+31. Continuous monitoring and scalability
+32. Practical project — brainstorm and definitions
+33. Intervention: Sbroiavacca (guest session)
+34. Project requirements and development plan
+35. Presentation of proposals, part 1
+36. Presentation of proposals, part 2
+
+The class slides live in [presentations/](presentations/), with both `.tex` sources and compiled PDFs. Classes 21, 24, and 33 are external guest sessions with material provided by the speakers, not slide decks from this repository. Classes 29 and 31 flag a practical component that does not yet have runnable code in this repository (a continuous-training pipeline and a monitoring/scalability exercise, respectively) — good candidates for a separate project or submodule.
 
 ## Repository Map
 
@@ -49,7 +78,7 @@ The class slides live in [presentations/](presentations/), with both `.tex` sour
 ├── documents/         Supporting project documents and case-study material
 ├── notebooks/         Jupyter notebooks for class exercises and demonstrations
 ├── pasteurization/    Streaming and monitoring example for the pasteurization case
-├── presentations/     Beamer slide decks for Classes 1-15
+├── presentations/     Beamer slide decks for Classes 1-36
 ├── streamlit/         Demo apps and model-serving support files
 ├── tutorials/         Docker, GitHub Actions, and Jenkins examples
 ├── Class6_model_api.py Example model API script
@@ -159,7 +188,7 @@ jupyter notebook
 
 ## Suggested Entry Points
 
-- Start with [presentations/class01_intro_mlops_agile.pdf](presentations/class01_intro_mlops_agile.pdf) for the course framing
+- Start with [presentations/class01_intro_course.pdf](presentations/class01_intro_course.pdf) for the course framing
 - Open [notebooks/Class2_EDA.ipynb](notebooks/Class2_EDA.ipynb) for the first hands-on data analysis material
 - Inspect [pasteurization/serving.py](pasteurization/serving.py) and [pasteurization/synth_sensors.py](pasteurization/synth_sensors.py) for the streaming case
 - Explore [streamlit/Main.py](streamlit/Main.py) for the dashboard-facing side of the repository

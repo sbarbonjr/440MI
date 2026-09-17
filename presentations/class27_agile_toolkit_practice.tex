@@ -1,6 +1,7 @@
 \input{common}
 
-\title{Class 12: Agile Toolkit for Data and ML Teams}
+\title{Class 27: Agile Toolkit for Data and ML Teams}
+\subtitle{Session 27 of 36 -- One Integrated Agile Practice Session}
 \author{\coursename}
 \date{}
 
@@ -17,6 +18,9 @@
 \item Feedback and customer involvement
 \item Agile anti-patterns in data and ML teams
 \end{itemize}
+\begin{block}{Note}
+This class now runs as one integrated practice session covering what used to be split across two meetings; sections are grouped into denser frames rather than a slower two-week pace.
+\end{block}
 \coursefooter
 \end{frame}
 
@@ -48,24 +52,14 @@
 \coursefooter
 \end{frame}
 
-\begin{frame}{Which agile tools fit ML projects best?}
-\begin{itemize}
-\item Sprint planning for defining a thin vertical slice.
-\item Backlog refinement for clarifying data dependencies and acceptance criteria.
-\item Daily stand-ups for surfacing blockers such as missing labels or broken environments.
-\item Retrospectives for process improvement, especially around experimentation waste.
-\end{itemize}
-\coursefooter
-\end{frame}
-
 \begin{frame}{Collaboration rituals and what they actually solve}
 \begin{tabularx}{\textwidth}{>{\bfseries}l X}
-Practice & Practical value \\
+Practice & Practical value in an ML project \\
 \toprule
-Sprint planning & Aligns ambition with capacity and dependencies. \\
-Daily stand-up & Surfaces blockers before they become schedule failures. \\
-Backlog refinement & Prevents ambiguous work from entering a sprint. \\
-Retrospective & Improves the way the team works, not only what it built. \\
+Sprint planning & Defines a thin vertical slice and aligns ambition with capacity. \\
+Daily stand-up & Surfaces blockers such as missing labels or broken environments. \\
+Backlog refinement & Clarifies data dependencies and acceptance criteria before work starts. \\
+Retrospective & Improves how the team works, especially around experimentation waste. \\
 Review or demo & Tests whether the increment creates stakeholder value. \\
 \bottomrule
 \end{tabularx}
@@ -123,10 +117,10 @@ As a quality engineer, I want abnormal HeatUp trajectories flagged so that I can
 
 \begin{frame}{Planning and tracking tools}
 \begin{itemize}
-\item Kanban boards for work visibility and WIP control.
-\item User stories with acceptance criteria.
-\item Story points for relative complexity, not exact duration.
+\item Kanban board with columns for data, modeling, integration, and validation.
+\item User stories with acceptance criteria, and story points for relative complexity, not exact duration.
 \item Burndown and velocity as team learning tools, not performance theater.
+\item Definition of Ready and Definition of Done for every deliverable.
 \end{itemize}
 \coursefooter
 \end{frame}
@@ -143,16 +137,6 @@ As a quality engineer, I want abnormal HeatUp trajectories flagged so that I can
 \vspace{0.5em}
 \begin{itemize}
 \item This kind of board makes hidden data work visible instead of pretending every task is pure coding.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Planning tools students can actually use}
-\begin{itemize}
-\item Kanban board with columns for data, modeling, integration, and validation.
-\item Story points only after the team shares a definition of complexity.
-\item Burndown charts for sprint scope, not for pretending uncertainty does not exist.
-\item Definition of Ready and Definition of Done for every deliverable.
 \end{itemize}
 \coursefooter
 \end{frame}
@@ -177,37 +161,25 @@ As a quality engineer, I want abnormal HeatUp trajectories flagged so that I can
 \coursefooter
 \end{frame}
 
-\begin{frame}{Frameworks and their natural use}
+\begin{frame}{Frameworks, their natural use, and their roles}
 \begin{columns}[T]
 \column{0.48\textwidth}
 \textbf{Structured rhythm}
 \begin{itemize}
-\item Scrum for bounded sprint goals
-\item Good for student teams needing cadence
-\item Useful when review moments matter
+\item Scrum: bounded sprint goals, structured events and roles
+\item Good for student teams needing cadence and review moments
 \end{itemize}
 \column{0.48\textwidth}
 \textbf{Flow orientation}
 \begin{itemize}
-\item Kanban for continuous incoming work
-\item Good for ops-heavy or support-heavy teams
-\item Useful when work types vary a lot
+\item Kanban: continuous incoming work, flow-oriented management
+\item Good for ops-heavy teams or highly varied work types
 \end{itemize}
 \end{columns}
 \vspace{0.5em}
 \begin{block}{Bridge}
-DevOps and MLOps extend both by asking how work is built, shipped, observed, and improved after release.
+DevOps shares responsibility across build, release, and operations; MLOps extends DevOps with data, models, drift, and governance concerns.
 \end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Frameworks and roles}
-\begin{itemize}
-\item Scrum: structured events, roles, and sprint rhythm.
-\item Kanban: flow-oriented work management.
-\item DevOps: shared responsibility across build, release, and operations.
-\item MLOps: extends DevOps with data, models, drift, and governance concerns.
-\end{itemize}
 \coursefooter
 \end{frame}
 
@@ -241,7 +213,7 @@ DevOps and MLOps extend both by asking how work is built, shipped, observed, and
 \item Thin vertical slices are stronger than isolated notebook achievements.
 \end{itemize}}
 {Teams should now be able to organize milestones, backlog items, and reviews around deployable progress instead of vague promises to improve the model later.}
-{Class 13 reconnects these practices to MLOps, where experimentation, delivery, ownership, and monitoring become one operational system.}
+{Class 28 reconnects these practices to MLOps, where experimentation, delivery, ownership, and monitoring become one operational system.}
 {Agile coordination gives the team a way to move continuously; MLOps gives that movement technical reliability.}
 
 \begin{frame}{Papers and materials}

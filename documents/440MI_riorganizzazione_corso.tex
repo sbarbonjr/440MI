@@ -1,0 +1,163 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage[strings]{underscore}
+\usepackage{fancyhdr}
+\usepackage{colortbl}
+
+\definecolor{courseblue}{HTML}{12355B}
+\definecolor{coursegold}{HTML}{C98A2E}
+\definecolor{courseice}{HTML}{EEF3F8}
+\definecolor{coursegreen}{HTML}{2F6B4F}
+\definecolor{coursegray}{HTML}{4B5563}
+\definecolor{plum}{HTML}{7A4B6B}
+\definecolor{plumsoft}{HTML}{F3ECF1}
+\definecolor{tealc}{HTML}{3E6E7E}
+\definecolor{tealsoft}{HTML}{E8F1F3}
+
+\hypersetup{colorlinks=true,linkcolor=courseblue,urlcolor=coursegreen}
+
+\titleformat{\section}{\Large\bfseries\color{courseblue}}{\thesection.}{0.5em}{}[{\color{coursegold}\titlerule[1.2pt]}]
+\titleformat{\subsection}{\large\bfseries\color{courseblue}}{}{0em}{}
+\titlespacing{\section}{0pt}{1.4em}{0.8em}
+\titlespacing{\subsection}{0pt}{1.1em}{0.5em}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small\color{coursegray}440MI / 305SM --- Data-driven Systems Engineering}
+\fancyhead[R]{\small\color{coursegray}Riorganizzazione del corso}
+\fancyfoot[C]{\small\color{coursegray}\thepage}
+
+\newcommand{\blockband}[3]{%
+  \begin{center}
+  \colorbox{#1}{\parbox{0.97\textwidth}{\centering\color{white}\bfseries\large #2 \\[2pt] \normalsize\mdseries #3}}
+  \end{center}
+}
+
+\newcommand{\flag}[1]{{\small\color{coursegold}\bfseries \S\ #1}}
+
+\begin{document}
+
+\begin{center}
+{\Huge\bfseries\color{courseblue} Riorganizzazione del corso}\\[4pt]
+{\Large\color{coursegray} 36 incontri in tre blocchi: Python $\to$ Data-Driven $\to$ MLOps}\\[6pt]
+{\small\color{coursegray} Data-driven Systems Engineering --- 440MI / 305SM, Università di Trieste}\\
+{\small\color{coursegray} Appunti per l'incontro con Francesca (consegna del blocco Python) --- 16 settembre 2026}
+\end{center}
+
+\vspace{0.6em}
+
+\section*{Perché tre blocchi}
+\addcontentsline{toc}{section}{Perché tre blocchi}
+Il corso passa da una sequenza compressa a un arco esplicito in tre fasi: prima lo strumento (\textbf{Python}), poi il ragionamento sui dati stessi (\textbf{Data-Driven} --- tipi di dato, rappresentazione, encoding, modellazione), infine l'industrializzazione (\textbf{MLOps} --- software engineering, agile, delivery, monitoraggio). Il totale resta fissato a \textbf{36 incontri}: il blocco Python torna a 12 incontri dedicati (era stato compresso negli anni precedenti), e il costo viene compensato fondendo alcune sessioni ridondanti nel blocco MLOps.
+
+\vspace{0.3em}
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}l c c X@{}}
+\toprule
+\textbf{Blocco} & \textbf{Incontri} & \textbf{Periodo} & \textbf{Contenuto} \\
+\midrule
+\rowcolor{tealsoft} I. Python & 1--12 & 21 set -- 16 ott & Fondamenti di programmazione, pandas, prima EDA \\
+\rowcolor{courseice} II. Data-Driven & 13--20 & 19 ott -- 9 nov & Tipi di dato, encoding, feature engineering, modeling, serving \\
+\rowcolor{plumsoft} III. MLOps & 21--36 & 10 nov -- 18 dic & Software engineering, agile, MLOps, progetto finale \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Blocco I --- Python (incontri 1--12)}
+
+\textit{Questa è la parte che Francesca prenderà in carico.} Sono 12 incontri da 2 ore, pensati come progressione: prima la sintassi e il linguaggio, poi la sua applicazione a dati ed EDA. Il materiale nuovo (2--9, 11) è stato ricostruito a partire dai fondamenti Python del 2024 (\texttt{delete/2024/lessons/DataDriven\_L1--L7.pptx}, oggi archiviati) e riscritto nello stile Beamer attuale del corso, agganciato ai due casi guida del repository (frodi con carte di credito; monitoraggio della pastorizzazione). Tutti i 12 deck sono già compilati (\texttt{.tex} + \texttt{.pdf}) in \texttt{presentations/}.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}c l X l@{}}
+\toprule
+\textbf{\#} & \textbf{Data} & \textbf{Argomento} & \textbf{File (presentations/)} \\
+\midrule
+1 & 21 set, lun & Introduzione al corso (MLOps, Agile, Data Mining) & \texttt{class01\_intro\_course} \\
+2 & 22 set, mar & Cos'è Python? Ecosistema e strumenti & \texttt{class02\_what\_is\_python} \\
+3 & 25 set, ven & Python di base: sintassi, variabili & \texttt{class03\_basic\_python} \\
+4 & 28 set, lun & Controllo di flusso e strutture dati & \texttt{class04\_python\_data\_structures} \\
+5 & 29 set, mar & Pratica 1 --- demo Streamlit del repo & \texttt{class05\_python\_practice1} \\
+6 & 2 ott, ven & File e plotting & \texttt{class06\_files\_and\_plotting} \\
+7 & 5 ott, lun & Funzioni e buone pratiche & \texttt{class07\_functions\_good\_practices} \\
+8 & 6 ott, mar & Classi e OOP in Python & \texttt{class08\_classes\_oop\_python} \\
+9 & 9 ott, ven & Gestione dei dati con pandas & \texttt{class09\_dealing\_with\_data} \\
+10 & 12 ott, lun & Analisi esplorativa dei dati (EDA) & \texttt{class10\_python\_eda} \\
+11 & 13 ott, mar & Programmazione ML: l'API di scikit-learn & \texttt{class11\_python\_ml\_programming} \\
+12 & 16 ott, ven & Pratica EDA (laboratorio guidato) & \texttt{class12\_eda\_practice} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\vspace{0.4em}
+\flag{Nota per Francesca:} la teoria di feature engineering, PCA ed encoding \textbf{non} è più in questo blocco --- è stata spostata al blocco Data-Driven (incontri 13--14) per evitare sovrapposizioni. Il blocco Python resta strumentale: linguaggio, pandas, prima EDA, primo contatto con l'API di scikit-learn (senza teoria di modellazione).
+
+\section{Blocco II --- Data-Driven (incontri 13--20)}
+\textit{Contesto per la consegna, non di sua competenza diretta.}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}c l X@{}}
+\toprule
+\textbf{\#} & \textbf{Data} & \textbf{Argomento} \\
+\midrule
+13 & 19 ott, lun & Tipi di dato: tabellare, serie temporali, spettro/segnale, immagine \\
+14 & 20 ott, mar & Strutturato / semi-strutturato / non-strutturato + encoding \& embedding \\
+15 & 23 ott, ven & Feature engineering (cleaning, curation, selection) \\
+16 & 26 ott, lun & ML Modeling 1 + Experiment Tracking \\
+17 & 27 ott, mar & ML Modeling 2 + Decision-Making \\
+18 & 30 ott, ven & Online Machine Learning + Concept Drift \\
+19 & 6 nov, ven & Pratica streaming con sensori (caso pastorizzazione) \\
+20 & 9 nov, lun & Model Deployment + Prediction Serving \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Blocco III --- MLOps (incontri 21--36)}
+\textit{Contesto per la consegna, non di sua competenza diretta.}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}c l X@{}}
+\toprule
+\textbf{\#} & \textbf{Data} & \textbf{Argomento} \\
+\midrule
+21 & 10 nov, mar & \textit{Intervento esterno: Cybertec} (data fissa) \\
+22 & 13 nov, ven & Introduction to Software Engineering \\
+23 & 16 nov, lun & Requirements Engineering \\
+24 & 17 nov, mar & \textit{Intervento esterno: YesAlps} \\
+25 & 20 nov, ven & Requirements Engineering --- pratica \\
+26 & 23 nov, lun & Process Models \& Agile Foundations \\
+27 & 24 nov, mar & Agile Toolkit --- pratica \\
+28 & 27 nov, ven & MLOps --- fondamenti \\
+29 & 30 nov, lun & MLOps Practice + Continuous Training~\flag{1} \\
+30 & 1 dic, mar & Good Practices (Docker, CI/CD) \\
+31 & 4 dic, ven & Continuous Monitoring + Scalability~\flag{1} \\
+32 & 11 dic, ven & Progetto pratico --- brainstorm e definizione \\
+33 & 14 dic, lun & \textit{Intervento esterno: Sbroiavacca} \\
+34 & 15 dic, mar & Project Requirements and Development Plan \\
+35--36 & 18 dic, ven & Presentazione delle proposte (parte 1 e 2, stesso giorno) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\flag{1} Questi due incontri segnalano una componente pratica che oggi \textbf{non ha ancora codice nel repository} (pipeline di continuous training; dashboard di monitoraggio/scalabilità) --- candidati per un progetto separato (es. submodulo GitHub).
+
+\section{Stato operativo}
+\begin{itemize}[leftmargin=1.4em]
+\item Tutti i 36 deck (\texttt{.tex} + \texttt{.pdf}) sono già in \texttt{presentations/}, compilati e verificati con \texttt{pdflatex}.
+\item Le tre sessioni di intervento esterno (21, 24, 33) sono placeholder minimi: il materiale lo portano gli ospiti.
+\item Nulla è stato ancora committato in git --- tutte le modifiche sono nella working tree, pronte per revisione.
+\item Il blocco Python è pensato per essere autonomo: chi lo insegna non ha bisogno del resto del materiale per seguirlo, ma l'incontro 12 (pratica EDA) è il ponte diretto verso l'incontro 13 (Data Types), quindi vale la pena allinearsi con chi tiene il blocco successivo su cosa gli studenti devono già saper fare.
+\end{itemize}
+
+\end{document}

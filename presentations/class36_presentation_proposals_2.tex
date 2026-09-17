@@ -1,0 +1,134 @@
+\input{common}
+
+\title{Class 36: Proposal Presentations, Part 2}
+\subtitle{Session 36 of 36 -- Second Half, and Closing the Course}
+\author{\coursename}
+\date{18 December}
+
+\begin{document}
+
+\frame{\titlepage \coursefooter}
+
+\begin{frame}{Agenda}
+\begin{itemize}
+\item Logistics for the second half
+\item Quick recap of the rubric
+\item Closing the course: from Class 1 to Class 36
+\item Thanks, and what comes next
+\end{itemize}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Same rubric, remaining teams, then we close}
+\learninggoals{
+\begin{itemize}
+\item Continue today's presentations under the same format and rubric as this morning.
+\item Give and receive feedback consistently across both halves of the day.
+\item Connect today's work back to the full 36-session arc of the course.
+\end{itemize}
+}
+\coursefooter
+\end{frame}
+
+\coursecontextframe
+{Continuing today's presentations and closing the 36-session course.}
+{The rubric and format from Class 35 carry over unchanged; this is the same session split across the day for scheduling, not a new topic.}
+{Fraud-pattern projects and their variations have anchored one half of this course's running examples since Class 1.}
+{Pasteurization-pattern projects and their variations have anchored the other half in the same way.}
+{The Problem, Data, Features, Model, Interface, Delivery, Monitor, Evolution map used since the first class map is the same map every team's project should now fit into.}
+
+\begin{frame}{Logistics for the second half}
+\begin{itemize}
+\item Same format as this morning: 10 minutes presenting, 5 minutes of questions per team.
+\item Remaining teams present in the posted order; be ready 5 minutes before your slot.
+\item The same rubric from Class 35 applies without change.
+\item Written peer feedback is still expected from every non-presenting team.
+\end{itemize}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Rubric, quick recap}
+\begin{tabularx}{\textwidth}{>{\bfseries}l X}
+Criterion & What reviewers look for \\
+\toprule
+Problem clarity & A specific problem and user, not a vague topic area. \\
+Feasibility & Scope matches the time and data actually available. \\
+Lifecycle coverage & Requirements, delivery, and monitoring are at least sketched. \\
+Risk awareness & Real risks are named, with a plausible response. \\
+Communication & The team can explain choices and answer questions clearly. \\
+\bottomrule
+\end{tabularx}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Closing the course: the full arc}
+\centering
+\begin{tikzpicture}[node distance=0.9cm and 1cm]
+\node[flowbox] (py) {Python\\Classes 1--12};
+\node[flowbox, right=of py] (dd) {Data-Driven\\Classes 13--20};
+\node[flowbox, right=of dd] (ml) {MLOps\\Classes 21--36};
+\node[accentbox, below=1.1cm of dd] (systems) {Engineered,\\accountable systems};
+\draw[arrow] (py) -- (dd);
+\draw[arrow] (dd) -- (ml);
+\draw[arrow] (py) -- (systems);
+\draw[arrow] (dd) -- (systems);
+\draw[arrow] (ml) -- (systems);
+\end{tikzpicture}
+\vspace{0.4em}
+\begin{itemize}
+\item Thirty-six sessions, two running cases, and one repeated question: is this a good model, or a good system?
+\end{itemize}
+\coursefooter
+\end{frame}
+
+\begin{frame}{What should stay with you}
+\begin{itemize}
+\item Python and modeling skills are necessary but not sufficient on their own.
+\item Requirements, process, and delivery discipline are what let a model become a system others can trust.
+\item Monitoring and scaling are not afterthoughts; they are where systems actually get tested, in production, over time.
+\item The fraud and pasteurization cases were vehicles for these ideas, not the point of the course.
+\end{itemize}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Discussion prompt}
+\begin{block}{Question}
+What is the one habit from this course you intend to keep using after today, on a project this course never assigned?
+\end{block}
+\begin{itemize}
+\item This closes the course on transfer, not recall.
+\item There is no wrong answer; the point is naming something specific enough to actually keep doing.
+\end{itemize}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Thanks}
+\begin{itemize}
+\item Thank you for thirty-six sessions of work, questions, and projects.
+\item The two running cases, fraud detection and pasteurization monitoring, were teaching tools; your own projects are the real outcome.
+\item Keep the habits: write the requirement down, test before you trust it, watch it after you ship it.
+\end{itemize}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Papers and materials}
+\readinglist{
+For continued reading beyond this course:\
+\href{https://www.oreilly.com/library/view/practical-mlops/9781098103002/}{Practical MLOps};\
+\href{https://neptune.ai/blog/mlops-best-practices}{MLOps best practices overview};\
+\href{https://itrevolution.com/product/accelerate/}{Forsgren, Humble, Kim, Accelerate}.
+}
+\coursefooter
+\end{frame}
+
+\classclosingframe
+{\begin{itemize}
+\item A finished proposal defense is evidence of the full lifecycle habit this course tried to build.
+\item Software engineering, data-driven methods, and MLOps are one integrated way of building systems, not three separate topics.
+\item The systems view from the very first class map is the same view every team just defended.
+\end{itemize}}
+{Your presented plan, and the feedback you received today, are what carry directly into building and delivering the actual project.}
+{There is no Class 37; what comes next is project execution, delivery, and the final evaluation of each team's system.}
+{The course closes with the same question it opened with: not just whether the model works, but whether the system around it can be trusted.}
+
+\end{document}
