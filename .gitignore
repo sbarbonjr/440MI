@@ -28,3 +28,4 @@ __pycache__/
 
 # Runtime logs (e.g. serving/fraud_api.py)
 logs/
+notebooks/.ipynb_checkpoints/Class18_Scikit_Learn_Modeling_Basics_Titanic-checkpoint.ipynb
