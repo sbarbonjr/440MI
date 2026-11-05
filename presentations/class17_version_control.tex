@@ -25,7 +25,7 @@
 \begin{itemize}
 \item Every previous class produced code that changed over time: notebooks, a Streamlit application, feature pipelines.
 \item Without version control, the question ``which version produced this result?'' cannot be answered reliably.
-\item Git gives every experiment, threshold choice, and interface change a traceable history; it complements the experiment tracking of Class 18, which records runs but not the code that produced them.
+\item Git gives every experiment, threshold choice, and interface change a traceable history; it complements the experiment tracking of Class 19, which records runs but not the code that produced them.
 \item The practice must be established now, before the team project (Classes 32--34) makes it indispensable.
 \end{itemize}
 \coursefooter
@@ -159,7 +159,7 @@ git merge experiment/cost-sensitive-threshold
 <<<<<<< HEAD
 THRESHOLD = 0.5   # library default
 =======
-THRESHOLD = 0.06  # cost-based (Class 18)
+THRESHOLD = 0.06  # cost-based (Class 19)
 >>>>>>> experiment/cost-sensitive-threshold
 \end{lstlisting}
 \textbf{\footnotesize Resolution}
@@ -222,7 +222,7 @@ __pycache__/
 \begin{itemize}
 \item Excerpt of this repository's \texttt{.gitignore}: environments, caches, and build artifacts are regenerated and need no history.
 \item Secrets and credentials must never be committed: a later commit does not remove them from the history, so a leaked credential must be revoked.
-\item Large trained artifacts are often better stored outside Git, e.g.\ in a model registry (Class 30).
+\item Large trained artifacts are often better stored outside Git, e.g.\ in a model registry (Class 19).
 \end{itemize}
 \coursefooter
 \end{frame}
@@ -317,7 +317,7 @@ Work in pairs on a shared GitHub repository (about 30 minutes):
 {\Large\bfseries\color{courseblue} Thank you for your attention.}
 
 \vspace{0.4em}
-{\small\color{coursegray} Next: Class 18 --- modeling, experiment tracking, evaluation, and decision-making.}
+{\small\color{coursegray} Next: Class 18 --- ML modeling.}
 \vfill
 \coursefooter
 \end{frame}

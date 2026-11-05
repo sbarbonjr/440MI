@@ -22,7 +22,7 @@ The course is designed to help students reason about a complete data-driven syst
 
 ## Course Structure
 
-The materials in this repository follow a 36-class sequence organized in three macro-blocks: **Python** (instrumental programming) → **Data-Driven** (data types, representation, and modeling) → **MLOps** (software engineering and operations).
+The materials in this repository follow a 36-class sequence organized in three macro-blocks: **Python** (instrumental programming) → **Data-Driven** (data types, representation, modeling, and experiment tracking) → **Software Engineering and MLOps**.
 
 ### I. Python (Classes 1-12)
 
@@ -39,37 +39,37 @@ The materials in this repository follow a 36-class sequence organized in three m
 11. Python programming with machine learning (the scikit-learn API)
 12. EDA practice
 
-### II. Data-Driven (Classes 13-20)
+### II. Data-Driven (Classes 13-19)
 
 13. Data types — tabular, time series, spectral/signal, image
 14. Structured / semi-structured / unstructured data, encoding, and embeddings
 15. Encoding and embedding practice with the prepared Titanic dataset
 16. Feature engineering (cleaning, curation, missing values, construction, and selection)
 17. Version control with Git
-18. ML modeling, experiment tracking, evaluation, and decision-making
-19. Online machine learning and concept drift
-20. Online learning, concept drift, and streaming practice
+18. ML modeling
+19. ML experiment tracking, registry, evaluation, and decision-making
 
-### III. MLOps (Classes 21-36)
+### III. Software Engineering and MLOps (Classes 20-36)
 
-21. Intervention: Cybertec (guest session)
-22. Introduction to software engineering
-23. Requirements engineering
-24. Intervention: YesAlps (guest session)
-25. Requirements engineering practice
-26. Process models and Agile foundations
-27. Agile toolkit practice
-28. MLOps foundations
-29. MLOps practice and continuous training
+20. Introduction to software engineering
+21. Intervention: Cybertec
+22. Requirements engineering
+23. Process models and Agile foundations
+24. Intervention: YesAlps
+25. Agile toolkit practice
+26. MLOps foundations
+27. MLOps practice and continuous training
+28. Online machine learning and concept drift
+29. Online learning, concept drift, and streaming practice
 30. Model deployment and prediction serving
 31. Good practices (Docker, CI/CD)
 32. Continuous monitoring and scalability
 33. Practical project — brainstorm and definitions
-34. Intervention: Sbroiavacca (guest session)
+34. Intervention
 35. Project requirements and development plan
 36. Proposal presentations and course closing (merged session)
 
-The class slides live in [presentations/](presentations/), with both `.tex` sources and compiled PDFs. Classes 21, 24, and 34 are external guest sessions with material provided by the speakers, not slide decks from this repository. Classes 29 and 32 flag practical components that do not yet have runnable exercises in this repository (continuous training and monitoring/scalability, respectively).
+The class slides live in [presentations/](presentations/), with both `.tex` sources and compiled PDFs. Classes 21, 24, and 34 are intervention sessions whose material is provided directly for those sessions, rather than authored as course decks in this repository. Classes 27 and 32 flag practical components that do not yet have runnable exercises in this repository (continuous training and monitoring/scalability, respectively).
 
 Class 15 has a [student activity brief](documents/Class15_Encoding_Embedding_Activity.pdf), a [worked notebook](notebooks/Class15_Encoding_Embedding_Solution.ipynb), and a [prepared Titanic dataset](notebooks/Class15_Titanic_Imputed.csv). The activity uses all 891 rows for encoding and chi-squared/Spearman exploratory diagnostics; it does not evaluate a predictive model. Class 16 returns to imputation and the broader feature-engineering workflow, and Class 18 introduces the train/test split for model evaluation.
 

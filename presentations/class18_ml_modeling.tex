@@ -1,7 +1,14 @@
 \input{common}
 \usepackage{amssymb}
 
-\title{Class 18: Modeling, Experiment Tracking, Evaluation, and Decision-Making}
+\newif\iftrackingdeck
+\ifdefined\trackingdecksource
+  \trackingdecktrue
+  \title{Class 19: ML Experiment Tracking, Registry, Evaluation, and Decision-Making}
+\else
+  \trackingdeckfalse
+  \title{Class 18: ML Modeling}
+\fi
 \author{\coursename}
 \date{}
 
@@ -166,22 +173,47 @@
 
 \begin{document}
 
+\iftrackingdeck
 \frame{\titlepage \coursefooter}
 
 \begin{frame}{Roadmap of the class}
 \centering
 \begin{tikzpicture}
-\roadmaprow{1}{Modeling foundations}{Hypothesis class and loss, model families, the scikit-learn interface, \texttt{Pipeline}.}
-\roadmaprow{2}{Experiment tracking and search}{What to record, fair comparison, hyperparameter search, Weights \& Biases.}
-\roadmaprow{3}{Artifacts, versioning, and registry}{Git versus artifacts, the W\&B Registry, promotion and rollback.}
-\roadmaprow{4}{Evaluation}{Metrics that match the task, class imbalance, error inspection.}
-\roadmaprow{5}{From prediction to decision}{Interfaces, the decision rule, decision support, trust.}
-\roadmaprow{6}{Practice and wrap-up}{Repository connections and take-away.}
+\roadmaprow{1}{Record the experiment}{Runs, configurations, metrics, seeds, data versions, and environments.}
+\roadmaprow{2}{Search fairly}{Baselines, reproducible comparisons, and hyperparameter sweeps.}
+\roadmaprow{3}{Manage artifacts}{The distinct roles of source code, run records, model artifacts, and a registry.}
+\roadmaprow{4}{Evaluate for the task}{Metrics, class imbalance, error inspection, and decision costs.}
+\roadmaprow{5}{Make evidence actionable}{Model interfaces, decision rules, promotion, and rollback.}
+\roadmaprow{6}{Connect to practice}{The wine project, its artifacts, and the hand-off to software engineering.}
+\end{tikzpicture}
+\coursefooter
+\end{frame}
+\else
+\frame{\titlepage \coursefooter}
+
+\begin{frame}{Roadmap of the class}
+\centering
+\begin{tikzpicture}
+\roadmaprow{1}{Frame the modeling problem}{Hypothesis class, loss, target, error costs, and operational constraints.}
+\roadmaprow{2}{Compare model families}{Linear models, trees, probabilistic models, neural networks, and their assumptions.}
+\roadmaprow{3}{Use the scikit-learn interface}{The estimator contract: \texttt{fit}, \texttt{predict}, and \texttt{transform}.}
+\roadmaprow{4}{Build reproducible pipelines}{Column-wise preprocessing and the \texttt{Pipeline} abstraction.}
+\roadmaprow{5}{Select through evidence}{Train/test splits, cross-validation, fair comparisons, and hyperparameter search.}
+\roadmaprow{6}{Close the modeling loop}{A decision-tree case study, references, and the transition to experiment tracking.}
 \end{tikzpicture}
 \coursefooter
 \end{frame}
 
-\partslide{1}{Modeling foundations}{What are we choosing when we choose a model, and how do we train it reproducibly?}{Hypothesis class and loss, model families, the scikit-learn interface, Pipeline}
+\begin{frame}{Roadmap: Class 18}
+\vfill
+\begin{center}
+{\LARGE\bfseries\color{courseblue} ML Modeling}\par\vspace{0.8em}
+{\large\itshape From a modeling decision to a reproducible training pipeline}\par\vspace{0.8em}
+{\footnotesize\color{coursegray} Problem framing \enspace $\rightarrow$ \enspace model families \enspace $\rightarrow$ \enspace scikit-learn \enspace $\rightarrow$ \enspace evidence}
+\end{center}
+\vfill
+\coursefooter
+\end{frame}
 
 \begin{frame}{What is modeling?}
 \begin{itemize}
@@ -278,7 +310,7 @@ where the loss $L$ quantifies the cost of an error; the quantity of interest is 
 {Fast-changing distribution}
 {\begin{itemize}
 \item Example: a sensor stream with seasonal or process drift.
-\item Favor \textbf{online or incremental models} and drift detection (Class 19).
+\item Favor \textbf{online or incremental models} and drift detection (Class 28).
 \item Evaluate on the most recent data, not on a random split of the whole history.
 \end{itemize}}
 
@@ -302,7 +334,7 @@ where the loss $L$ quantifies the cost of an error; the quantity of interest is 
 \famcard{3.8}{0}{9}{Dimension reduction}{Fewer dimensions that preserve variance.}{PCA}{Jolliffe (2002)}
 \famcard{7.6}{0}{10}{Anomaly detection}{Flags samples unlike the normal data.}{Isolation forest}{Liu et al.\ (2008)}
 \famcard{0}{-3.3}{11}{Sequence models}{Temporal dependence in the data.}{Hidden Markov model}{Rabiner (1989)}
-\famcard{3.8}{-3.3}{5}{Online learning}{Any family, updated incrementally (Class 19).}{Hoeffding tree}{Domingos \& Hulten (2000)}
+\famcard{3.8}{-3.3}{5}{Online learning}{Any family, updated incrementally (Class 28).}{Hoeffding tree}{Domingos \& Hulten (2000)}
 \node[accentbox, minimum width=3.65cm, minimum height=3.15cm, text width=3.2cm, font=\footnotesize] at (7.6,-3.3) {\textbf{Start simple.}\\Build a baseline first, then justify each step in complexity.};
 \end{tikzpicture}
 \coursefooter
@@ -471,6 +503,39 @@ Random search & Better coverage when only a few of many hyperparameters matter (
 \coursefooter
 \end{frame}
 
+\begin{frame}{References and materials}
+\readinglist{
+\begin{itemize}
+\item Hastie, Tibshirani, and Friedman. \emph{The Elements of Statistical Learning}, 2nd ed. Springer, 2009: model classes, regularization, and evaluation.
+\item Bishop. \emph{Pattern Recognition and Machine Learning}. Springer, 2006: probabilistic foundations of supervised learning.
+\item Pedregosa et al. ``Scikit-learn: Machine Learning in Python.'' \emph{JMLR}, 2011; and the \href{https://scikit-learn.org/stable/}{scikit-learn user guide}: estimator APIs, preprocessing, and pipelines.
+\item Mantovani et al. ``Better trees: an empirical study on hyperparameter tuning of classification decision tree induction algorithms.'' \emph{Data Mining and Knowledge Discovery}, 2024: the case study discussed here.
+\end{itemize}}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Take-away: modeling is a disciplined choice}
+\begin{center}
+\begin{tikzpicture}
+\node[fill=courseice, draw=courseblue, thick, rounded corners=5pt, inner sep=12pt, text width=0.82\textwidth, align=center, font=\large] {
+Choose a model family because its assumptions fit the problem;\
+train it through a single reproducible pipeline;\
+and compare alternatives with evaluation evidence rather than intuition.};
+\end{tikzpicture}
+\end{center}
+\vspace{0.7em}
+\begin{itemize}
+\item \textbf{The estimator interface} separates fitting, transformation, and prediction while making components composable.
+\item \textbf{Pipelines} prevent training--serving and preprocessing mismatches by treating data preparation as part of the model.
+\item \textbf{The next question} is how to retain the evidence for every run, artifact, and decision.
+\end{itemize}
+\vfill
+{\small\color{coursegray} Next: Class 19 --- ML experiment tracking, registry, evaluation, and decision-making.}
+\coursefooter
+\end{frame}
+
+\fi
+\iftrackingdeck
 \begin{frame}{What is Weights \& Biases (W\&B)?}
 \begingroup\footnotesize
 A platform for \textbf{tracking, comparing, and versioning machine learning work}. A few lines of the \texttt{wandb} Python library send metrics, configuration, and files to a web dashboard, which can be hosted by W\&B or self-hosted. Website: \href{https://wandb.ai}{wandb.ai}.
@@ -851,56 +916,29 @@ We adopt the predicted class as the decision. With unequal error costs, the cut-
 \coursefooter
 \end{frame}
 
-\begin{frame}{Papers and materials}
+\begin{frame}{Papers and materials: experiments and provenance}
 \readinglist{
-\fontsize{6.8}{8.2}\selectfont
-\begin{columns}[T]
-\column{0.5\textwidth}
-\begin{itemize}\setlength{\itemsep}{1pt}
+\fontsize{7.2}{8.6}\selectfont
+\begin{itemize}\setlength{\itemsep}{2pt}
 \item Bergstra, J., Bengio, Y. (2012). Random search for hyper-parameter optimization. \emph{Journal of Machine Learning Research}, 13, 281--305.
-\item Bergstra, J., Yamins, D., Cox, D. (2013). Making a science of model search: Hyperparameter optimization in hundreds of dimensions for vision architectures. \emph{Proceedings of ICML}, PMLR 28(1), 115--123.
-\item Bishop, C. M. (2006). \emph{Pattern Recognition and Machine Learning}. Springer.
-\item Saito, T., Rehmsmeier, M. (2015). The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets. \emph{PLoS ONE}, 10(3), e0118432.
-\item Mantovani, R. G., Horv\'ath, T., Rossi, A. L. D., Cerri, R., Barbon Junior, S., Vanschoren, J., de Carvalho, A. C. P. L. F. (2024). Better trees: an empirical study on hyperparameter tuning of classification decision tree induction algorithms. \emph{Data Mining and Knowledge Discovery}, 38(3), 1364--1416.
-\item Niculescu-Mizil, A., Caruana, R. (2005). Predicting good probabilities with supervised learning. \emph{Proceedings of ICML}, 625--632.
-\end{itemize}
-\column{0.5\textwidth}
-\begin{itemize}\setlength{\itemsep}{1pt}
-\item Domingos, P. (2012). A few useful things to know about machine learning. \emph{Communications of the ACM}, 55(10), 78--87.
-\item Hastie, T., Tibshirani, R., Friedman, J. (2009). \emph{The Elements of Statistical Learning} (2nd ed.). Springer.
-\item Huyen, C. (2022). \emph{Designing Machine Learning Systems}. O'Reilly.
-\item scikit-learn User Guide: \href{https://scikit-learn.org/stable/modules/grid_search.html}{tuning hyperparameters}; \href{https://scikit-learn.org/stable/modules/model_evaluation.html}{model evaluation}.
-\item Tool documentation: \href{https://docs.wandb.ai/}{Weights \& Biases}; \href{https://mlflow.org/docs/latest/index.html}{MLflow}.
-\end{itemize}
-\end{columns}
-}
+\item Zaharia et al. (2018). Accelerating the machine learning lifecycle with MLflow. \emph{IEEE Data Engineering Bulletin}, 41(4), 39--45.
+\item Sculley et al. (2015). Hidden technical debt in machine learning systems. \emph{Advances in Neural Information Processing Systems}, 28.
+\item scikit-learn User Guide: \href{https://scikit-learn.org/stable/modules/grid_search.html}{hyperparameter tuning} and \href{https://scikit-learn.org/stable/model_selection.html}{model selection}.
+\item Tool documentation: \href{https://docs.wandb.ai/}{Weights \& Biases} and \href{https://mlflow.org/docs/latest/ml/tracking/}{MLflow Tracking}.
+\end{itemize}}
 \coursefooter
 \end{frame}
 
-\begin{frame}{Papers and materials: model families}
+\begin{frame}{Papers and materials: evaluation and decisions}
 \readinglist{
-\fontsize{6.8}{8.2}\selectfont
-\begin{columns}[T]
-\column{0.5\textwidth}
-\begin{itemize}\setlength{\itemsep}{1pt}
-\item Bishop, C. M. (2006). \emph{Pattern Recognition and Machine Learning}. Springer. (Logistic regression: \S4.3.)
-\item Breiman, L. (2001). Random forests. \emph{Machine Learning}, 45(1), 5--32.
-\item Cortes, C., Vapnik, V. (1995). Support-vector networks. \emph{Machine Learning}, 20(3), 273--297.
-\item Cover, T., Hart, P. (1967). Nearest neighbor pattern classification. \emph{IEEE Transactions on Information Theory}, 13(1), 21--27.
-\item Domingos, P., Pazzani, M. (1997). On the optimality of the simple Bayesian classifier under zero-one loss. \emph{Machine Learning}, 29, 103--130.
-\item Friedman, J. H. (2001). Greedy function approximation: a gradient boosting machine. \emph{Annals of Statistics}, 29(5), 1189--1232.
-\end{itemize}
-\column{0.5\textwidth}
-\begin{itemize}\setlength{\itemsep}{1pt}
-\item Jolliffe, I. T. (2002). \emph{Principal Component Analysis} (2nd ed.). Springer.
-\item Liu, F. T., Ting, K. M., Zhou, Z.-H. (2008). Isolation forest. \emph{Proceedings of ICDM}, 413--422.
-\item Lloyd, S. P. (1982). Least squares quantization in PCM. \emph{IEEE Transactions on Information Theory}, 28(2), 129--137.
-\item Rabiner, L. R. (1989). A tutorial on hidden Markov models and selected applications in speech recognition. \emph{Proceedings of the IEEE}, 77(2), 257--286.
-\item Domingos, P., Hulten, G. (2000). Mining high-speed data streams. \emph{Proceedings of KDD}, 71--80.
-\item Rumelhart, D. E., Hinton, G. E., Williams, R. J. (1986). Learning representations by back-propagating errors. \emph{Nature}, 323, 533--536.
-\end{itemize}
-\end{columns}
-}
+\fontsize{7.2}{8.6}\selectfont
+\begin{itemize}\setlength{\itemsep}{2pt}
+\item Saito, T., Rehmsmeier, M. (2015). The precision-recall plot is more informative than the ROC plot for imbalanced binary classifiers. \emph{PLoS ONE}, 10(3), e0118432.
+\item Niculescu-Mizil, A., Caruana, R. (2005). Predicting good probabilities with supervised learning. \emph{Proceedings of ICML}, 625--632.
+\item Mitchell et al. (2019). Model cards for model reporting. \emph{Proceedings of FAT*}, 220--229.
+\item scikit-learn User Guide: \href{https://scikit-learn.org/stable/modules/model_evaluation.html}{model evaluation}, including metrics, calibration, and threshold-based decisions.
+\item Tool documentation: \href{https://docs.wandb.ai/models/registry/}{W\&B Model Registry} and \href{https://mlflow.org/docs/latest/ml/model-registry}{MLflow Model Registry}.
+\end{itemize}}
 \coursefooter
 \end{frame}
 
@@ -915,9 +953,10 @@ We adopt the predicted class as the decision. With unequal error costs, the cut-
 {\Large\bfseries\color{courseblue} Thank you for your attention.}
 
 \vspace{0.4em}
-{\small\color{coursegray} Next: Class 19 --- online machine learning and concept drift.}
+{\small\color{coursegray} Next: Class 20 --- introduction to software engineering for data products.}
 \vfill
 \coursefooter
 \end{frame}
 
+\fi
 \end{document}

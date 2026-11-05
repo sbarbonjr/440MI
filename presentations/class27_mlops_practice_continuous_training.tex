@@ -1,7 +1,7 @@
 \input{common}
 
-\title{Class 29: MLOps Practice -- Continuous Training}
-\subtitle{Session 29 of 36 -- MLOps Block}
+\title{Class 27: MLOps Practice -- Continuous Training}
+\subtitle{Session 27 of 36 -- MLOps Block}
 \author{\coursename}
 \date{}
 
@@ -35,7 +35,7 @@
 
 \coursecontextframe
 {Operationalizing ML development and training as a repeatable, automatable pipeline.}
-{Class 28 introduced MLOps as coordination across the whole lifecycle; this class zooms into one box of that diagram, train and retrain, and asks what it takes to run it without a human kicking it off by hand every time.}
+{Class 26 introduced MLOps as coordination across the whole lifecycle; this class zooms into one box of that diagram, train and retrain, and asks what it takes to run it without a human kicking it off by hand every time.}
 {A continuous training pipeline for fraud scoring would retrain on a schedule or when score drift is detected, then gate promotion on a held-out evaluation before replacing the serving model.}
 {A continuous training pipeline for the pasteurization forecaster would retrain as new batches complete, gated by a check that the new model does not regress on known abnormal trajectories.}
 {Automation without validation just moves risk faster; a training pipeline needs the same gates as any other release.}
@@ -202,7 +202,7 @@ If a retraining pipeline ran fully unattended, which single gate would you refus
 \item Automating a bad process just produces bad models faster; the gates matter more than the automation.
 \end{itemize}}
 {Teams should now be able to describe, even without building it, what a retraining pipeline for their own project would trigger on and what would stop a bad candidate.}
-{Class 31 returns to the delivery side of the pipeline: Docker and GitHub Actions for packaging and shipping what Class 28 and Class 29 have described.}
+{Class 28 returns to online learning and concept drift; Class 30 resumes the delivery side of the pipeline with model deployment and prediction serving.}
 {Training and delivery are two automatable paths that both need the same discipline: gates, versioning, and observability.}
 
 \end{document}
