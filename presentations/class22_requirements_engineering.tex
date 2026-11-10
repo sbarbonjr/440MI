@@ -1,230 +1,386 @@
 \input{common}
 
 \title{Class 22: Requirements Engineering for ML Systems}
-\subtitle{Session 22 of 36 -- Theory and Practice: What to Build and Why}
+\subtitle{Session 22 of 36 -- From Stakeholder Need to Verifiable System Behaviour}
 \author{\coursename}
 \date{}
 
-\begin{document}
 
+% Ragged-right flexible column for tables
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+% Roadmap and transition slides
+\newcommand{\partstrip}[1]{%
+\begin{center}
+\begin{tikzpicture}
+\foreach \i/\l in {1/Accountability,2/Writing,3/Specification,4/Workshop,5/Wrap-up}{%
+  \def\sty{flowbox}\ifnum\i=#1 \def\sty{accentbox}\fi
+  \node[\sty, minimum width=2.25cm, minimum height=0.7cm, font=\scriptsize] at ({(\i-1)*2.45},0) {\i.\ \l};
+}
+\end{tikzpicture}
+\end{center}}
+
+\newcommand{\roadmaprow}[3]{%
+\node[flowbox, minimum width=0.8cm, minimum height=0.8cm] (n#1) at (0,{-(#1-1)*1.1}) {\textbf{#1}};
+\node[flowbox, anchor=west, text width=0.78\textwidth, align=left, minimum height=0.8cm] at ([xshift=0.15cm]n#1.east) {\textbf{#2}\\[-0.1em]{\scriptsize\color{coursegray}#3}};}
+
+\newcommand{\partslide}[4]{%
+\begin{frame}{Roadmap: part #1 of 5}
+\vfill
+\begin{center}
+{\LARGE\bfseries\color{courseblue} #2}\\[0.8em]
+{\large\itshape #3}\\[0.8em]
+{\footnotesize\color{coursegray} #4}
+\end{center}
+\vfill
+\partstrip{#1}
+\coursefooter
+\end{frame}}
+
+
+% Card with a coloured title band: name, x position, title, question, example
+\newcommand{\typecard}[5]{%
+\node[draw=courseblue, very thick, fill=courseice, rounded corners=3pt, text width=4.1cm, minimum height=3.6cm, anchor=north, align=left, inner sep=6pt] (#1) at (#2,0) {};
+\node[fill=courseblue, text=white, rounded corners=3pt, text width=4.1cm, align=center, inner sep=5pt, anchor=north, font=\bfseries\small] at (#1.north) {#3};
+\node[text width=3.9cm, align=left, anchor=north, font=\footnotesize] at ([yshift=-0.75cm]#1.north) {{\itshape\color{coursegray}#4}\\[0.5em]#5};}
+
+% Quality card of a good SRS: x, y, name, definition
+\newcommand{\qualitycard}[4]{%
+\node[draw=courseblue, very thick, fill=courseice, rounded corners=3pt, text width=2.95cm, minimum height=1.75cm, align=left, anchor=north west, inner sep=5pt, font=\scriptsize] at (#1,#2) {{\small\bfseries\color{courseblue}#3}\\[0.25em]#4};}
+
+% A sheet of paper with a folded corner: name, south-west corner, width, height
+\newcommand{\papersheet}[4]{%
+\fill[coursegray!35, rounded corners=1pt] ($(#2)+(0.08,-0.08)$) rectangle ++(#3,#4);
+\path (#2) coordinate (#1-sw) ++(#3,#4) coordinate (#1-ne);
+\fill[white] (#1-sw) -- (#1-sw |- #1-ne) -- ($(#1-ne)+(-0.45,0)$) -- ($(#1-ne)+(0,-0.45)$) -- (#1-ne |- #1-sw) -- cycle;
+\draw[coursegray!70] (#1-sw) -- (#1-sw |- #1-ne) -- ($(#1-ne)+(-0.45,0)$) -- ($(#1-ne)+(0,-0.45)$) -- (#1-ne |- #1-sw) -- cycle;
+\fill[coursegray!20] ($(#1-ne)+(-0.45,0)$) -- ($(#1-ne)+(-0.45,-0.45)$) -- ($(#1-ne)+(0,-0.45)$) -- cycle;
+\draw[coursegray!70] ($(#1-ne)+(-0.45,0)$) -- ($(#1-ne)+(-0.45,-0.45)$) -- ($(#1-ne)+(0,-0.45)$);}
+
+\begin{document}
 \frame{\titlepage \coursefooter}
 
-\begin{frame}{Agenda}
-\begin{itemize}
-\item Introduction, user/system requirements, and quality constraints
-\item Functional, non-functional, and domain requirements
-\item Specification styles and the requirements document
-\item Traceability, change, and requirement management
-\end{itemize}
-\begin{block}{Note}
-The hands-on practice follows in the second half of this class.
+\begin{frame}{Roadmap of the class}
+\centering
+\begin{tikzpicture}
+\roadmaprow{1}{Requirements and accountability}{Stakeholder need, system requirement, acceptance evidence, operational check.}
+\roadmaprow{2}{Writing verifiable requirements}{Anatomy of a testable statement; functional, quality, and domain requirements.}
+\roadmaprow{3}{Specification and traceability}{The IEEE software requirements specification (SRS) and traceability.}
+\roadmaprow{4}{Workshop}{A one-page requirements brief for the fraud or the pasteurization case.}
+\roadmaprow{5}{Wrap-up}{References and take-away message.}
+\end{tikzpicture}
+\coursefooter
+\end{frame}
+
+
+% ===================== Part 1 =====================
+\partslide{1}{Requirements and accountability}{What exactly does a team commit to when it accepts a requirement?}{Stakeholder needs, system requirements, acceptance criteria}
+
+\begin{frame}{Requirements create a chain of accountability}
+\centering
+\begin{tikzpicture}[node distance=0.55cm]
+\node[flowbox, minimum width=2.6cm] (need) {Stakeholder\\need};
+\node[flowbox, minimum width=2.6cm, right=of need] (req) {System\\requirement};
+\node[accentbox, minimum width=2.6cm, right=of req] (test) {Acceptance\\evidence};
+\node[flowbox, minimum width=2.6cm, right=of test] (ops) {Operational\\check};
+\draw[arrow] (need) -- (req);
+\draw[arrow] (req) -- (test);
+\draw[arrow] (test) -- (ops);
+\foreach \n/\t in {need/{Analysts must prioritise risky transactions.},req/{FR-02: return a score and three reason codes.},test/{API test with a flagged input passes.},ops/{Share of responses with reason codes is monitored.}}{%
+  \node[below=0.25cm of \n, text width=2.6cm, align=center, font=\scriptsize\itshape, text=coursegray] {\t};
+}
+\end{tikzpicture}
+\vspace{1.0em}
+\begin{block}{Why this matters for ML systems}
+A satisfactory offline metric alone does not establish that the data pipeline, interface, decision workflow, and running system are acceptable.
 \end{block}
 \coursefooter
 \end{frame}
 
-\begin{frame}{Why requirements are harder for ML systems}
-\learninggoals{
-\begin{itemize}
-\item Distinguish user, system, functional, and non-functional requirements.
-\item Write testable requirements instead of vague aspirations.
-\item Translate model behavior into system-level acceptance criteria.
-\item Connect requirements to later testing, deployment, and monitoring work.
-\end{itemize}
+\begin{frame}{Three levels, three audiences}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.20\textwidth} Y Y}
+Level & Purpose & Example \\
+\toprule
+Stakeholder need & Outcome desired by a user or sponsor & Analysts need to prioritise risky transactions. \\
+System requirement & Behaviour or constraint imposed on the system & The service shall return a risk score and reason codes for each valid request. \\
+Acceptance criterion & Evidence that demonstrates satisfaction & In the acceptance sample, 95\% of valid requests return within 800 ms with three reason codes. \\
+\bottomrule
+\end{tabularx}
+\vspace{0.6em}
+\begin{block}{Discipline}
+Keep the need independent of a particular model; keep the requirement independent of a particular implementation where possible.
+\end{block}
+\coursefooter
+\end{frame}
+
+
+% ===================== Part 2 =====================
+\partslide{2}{Writing verifiable requirements}{How do we write a statement that an independent reviewer can pass or fail?}{Anatomy of a requirement, types of obligation, ML uncertainty}
+
+\begin{frame}{Anatomy of a testable requirement}
+\centering
+\begin{tikzpicture}[slot/.style={rounded corners=3pt, very thick, text width=1.95cm, minimum height=1.25cm, align=center, font=\scriptsize, inner sep=3pt}]
+\foreach \i/\lab/\ex/\c in {0/Identifier/NFR-03/courseblue, 1/System/The scoring API/courseblue, 2/Obligation/shall return a response/coursegold, 3/Condition/for a valid request/coursegreen, 4/Constraint/{within 800 ms for $\geq 95\%$ of requests}/coursegold, 5/Evidence/{latency is logged per request}/coursegreen}{%
+  \node[slot, draw=\c, fill=\c!12] (s\i) at (\i*2.3,0) {\ex};
+  \node[above=0.05cm of s\i, font=\scriptsize\bfseries, text=\c] {\lab};
 }
-\coursefooter
-\end{frame}
-
-\coursecontextframe
-{Requirements that make later validation possible.}
-{This class connects stakeholder need to technical behavior so that testing, deployment, and monitoring have something concrete to protect.}
-{In the fraud case, requirements include not only prediction quality but latency, logging, explainability, and acceptable false-positive burden.}
-{In the pasteurization case, requirements include state visibility, timely alerts, usable thresholds, and operator trust in the dashboard.}
-{The course thread here is that weak requirements create confusion that no later engineering step can fully repair.}
-
-\begin{frame}{Why requirements engineering matters so much}
+\end{tikzpicture}
+\vspace{0.3em}
+\begin{block}{Reusable pattern}
+\textbf{[Identifier]} The \textbf{[system]} shall \textbf{[observable action]} for \textbf{[condition/input]} within \textbf{[measurable constraint]}, recorded as \textbf{[evidence]}.
+\end{block}
 \begin{itemize}
-\item Requirements define what success means before implementation begins.
-\item Weak requirements create confusion that no amount of modeling skill can repair later.
-\item In ML systems, requirements must cover the software, the data, the model behavior, and the operating context.
+\item Use \emph{shall} for an agreed obligation; avoid ``fast'', ``accurate'', ``user-friendly'', and ``as appropriate'' unless defined.
+\item State the condition and the measurement method as well as the target value.
 \end{itemize}
 \coursefooter
 \end{frame}
 
-\begin{frame}{Types of requirement}
+\begin{frame}{Requirements address different kinds of obligation}
+\centering
+\begin{tikzpicture}
+\typecard{tf}{0}{Functional}{What must the system do?}{Display the current process state and temperature for a selected batch.}
+\typecard{tq}{4.75}{Quality (non-functional)}{How well must it do it?}{Raise a critical alert within 3 seconds of a confirmed abnormal state.}
+\typecard{td}{9.5}{Domain}{Which external rule or fact constrains it?}{Evaluate temperature only against the calibrated sensor range.}
+\end{tikzpicture}
+\vspace{0.6em}
+\begin{block}{Key point}
+Quality and domain requirements are requirements in their own right: reliability, safety, privacy, and trust are frequently decided there. Examples refer to the pasteurization monitoring case.
+\end{block}
+\coursefooter
+\end{frame}
+
+\begin{frame}{ML systems add conditional and operational uncertainty}
 \begin{columns}[T]
 \column{0.48\textwidth}
-\textbf{User requirements}
+\begin{block}{What may vary}
 \begin{itemize}
-\item Natural language
-\item Service-level descriptions
-\item Written for customers and operators
+\item Input distributions and missing data
+\item Label delay and label quality
+\item Decision cost across groups or cases
+\item Latency, load, and service availability
 \end{itemize}
+\end{block}
 \column{0.48\textwidth}
-\textbf{System requirements}
+\begin{block}{What requirements must clarify}
 \begin{itemize}
-\item Structured and testable
-\item Detailed behavior and constraints
-\item Used by developers and reviewers
+\item Population and operating conditions
+\item Metric, threshold, and measurement window
+\item Fallback behaviour and human ownership
+\item Logging, review, and escalation rules
+\end{itemize}
+\end{block}
+\end{columns}
+\vspace{0.5em}
+\begin{alertblock}{Formal caution}
+``The model shall be accurate'' is incomplete until the metric, data slice, threshold, evaluation period, and decision consequence are named.
+\end{alertblock}
+\coursefooter
+\end{frame}
+
+\begin{frame}{From aspiration to acceptance condition}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{>{\itshape\raggedright\arraybackslash}p{0.25\textwidth} c Y}
+\textbf{\upshape Vague statement} & & \textbf{Verifiable requirement} \\
+\toprule
+The dashboard should be reliable. & $\Rightarrow$ & The dashboard shall reconnect automatically after a dropped stream and show a stale-data indicator within 5 seconds. \\
+The fraud model should be accurate. & $\Rightarrow$ & On the locked acceptance dataset, the model shall achieve a recall of at least 0.82 at a false-positive rate no greater than 0.12. \\
+Users need explanations. & $\Rightarrow$ & For every flagged transaction, the API shall return the three highest-ranked contributing features. \\
+\bottomrule
+\end{tabularx}
+\vspace{0.5em}
+\begin{block}{Review question}
+Could an independent reviewer decide whether this statement passed or failed? If not, it is not yet a complete requirement.
+\end{block}
+\coursefooter
+\end{frame}
+
+
+% ===================== Part 3 =====================
+\partslide{3}{Specification and traceability}{Where do the requirements live, and how do they reach tests and monitoring?}{The IEEE software requirements specification, qualities of a good SRS, traceability}
+
+\begin{frame}{The IEEE software requirements specification (SRS)}
+\begin{columns}[c]
+\column{0.46\textwidth}
+\centering
+\begin{tikzpicture}
+\papersheet{p}{0,0}{6.1}{6.6}
+\node[anchor=north west, text width=5.5cm, align=left, font=\fontsize{6.4}{7.5}\selectfont] at (0.3,6.4) {%
+{\scriptsize\bfseries\color{courseblue} Software Requirements Specification}\\
+{\color{coursegray} Fraud Scoring Service -- version 1.0}\\[-0.2em]
+\tikz\draw[courseblue, thick] (0,0) -- (5.3,0);\\[0.2em]
+\textbf{Table of contents}\\[0.15em]
+\textbf{1\quad Introduction}\\
+\quad 1.1 Purpose \quad 1.2 Scope\\
+\quad 1.3 Definitions, acronyms, and abbreviations\\
+\quad 1.4 References \quad 1.5 Overview\\[0.25em]
+\textbf{2\quad Overall description}\\
+\quad 2.1 Product perspective \quad 2.2 Product functions\\
+\quad 2.3 User characteristics \quad 2.4 Constraints\\
+\quad 2.5 Assumptions and dependencies\\[0.25em]
+\colorbox{coursegold!25}{\textbf{3\quad Specific requirements}}\\
+\quad 3.1 External interfaces \quad 3.2 Functions\\
+\quad 3.3 Performance requirements\\
+\quad 3.4 Logical database requirements\\
+\quad 3.5 Design constraints\\
+\quad 3.6 Software system attributes\\[0.25em]
+\textbf{Appendixes} \quad \textbf{Index}};
+\end{tikzpicture}
+\column{0.52\textwidth}
+\begin{itemize}\setlength{\itemsep}{4pt}
+\item \textbf{IEEE Std 830-1998} defines the content and qualities of an SRS; it is superseded by \textbf{ISO/IEC/IEEE 29148:2018}, which retains the same content.
+\item \textbf{Sections 1--2} give the reader context: purpose, scope, users, constraints, and assumptions.
+\item \textbf{Section 3} holds the verifiable statements: the part that is reviewed, tested, and traced.
+\item The outline is a checklist, not a form to fill in mechanically: an absent section should be a decision, not an omission.
 \end{itemize}
 \end{columns}
 \coursefooter
 \end{frame}
 
-\begin{frame}{Why ML systems make requirements harder}
-\begin{itemize}
-\item Behavior is partly learned from data rather than fully hand-coded.
-\item Labels may be delayed, noisy, or disputed.
-\item Model performance depends on future data conditions, not only current test data.
-\item Stakeholders may ask for ``accuracy'' when they really mean trust, fairness, speed, or interpretability.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Bad requirement vs good requirement}
-\begin{block}{Weak}
-The fraud system should be fast, accurate, and easy to use.
-\end{block}
-\begin{block}{Better}
-For a batch of 100 review requests, the API shall return a response within 800 ms for at least 95\% of requests, and the review dashboard shall display the top 3 risk indicators used in scoring.
-\end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Functional, non-functional, and domain requirements}
-\begin{itemize}
-\item Functional: what services the system provides.
-\item Non-functional: timing, reliability, security, usability, maintainability.
-\item Domain: constraints imposed by the operating environment.
-\end{itemize}
-\begin{block}{Example}
-In pasteurization monitoring, "detect abnormal HeatUp behavior" is functional; "alert within 3 seconds" is non-functional; "respect sensor calibration ranges" is domain-specific.
+\begin{frame}{Section 3 of the SRS: specific requirements}
+\renewcommand{\arraystretch}{1.15}
+\begingroup\scriptsize
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{0.22\textwidth} Y Y}
+IEEE 830 subsection & What it specifies & Fraud scoring service \\
+\toprule
+3.1 External interfaces & Inputs, outputs, formats, and other systems & JSON request with validated transaction features; JSON response \\
+3.2 Functions & Actions in response to inputs, including invalid ones & FR-02: score and three ranked reason codes for a high-risk transaction \\
+3.3 Performance & Static and dynamic numerical requirements & NFR-03: 95\% of valid requests answered within 800 ms \\
+3.4 Logical database & Stored information, retention, integrity & Every prediction logged with model version and timestamp \\
+3.5 Design constraints & Standards, regulation, hardware limits & Personal data processed under the General Data Protection Regulation (GDPR) \\
+3.6 System attributes & Reliability, availability, security, maintainability, portability & Fallback to manual review when the model is unavailable \\
+\bottomrule
+\end{tabularx}
+\endgroup
+\vspace{0.3em}
+\begin{block}{ML-specific content}
+\footnotesize Data requirements (source, version, population), performance per data slice, and monitoring obligations belong in 3.3, 3.4, and 3.6.
 \end{block}
 \coursefooter
 \end{frame}
 
-\begin{frame}{Qualities of a good requirement}
-\begin{itemize}
-\item Necessary: it supports a real stakeholder need.
-\item Testable: someone can verify whether it is satisfied.
-\item Unambiguous: it is unlikely to be interpreted in different ways.
-\item Feasible: it fits known technical and organizational constraints.
-\item Traceable: it can be linked to design, tests, and later changes.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Examples tailored to this repository}
-\begin{itemize}
-\item Functional: the Flask service shall expose `POST /predict` and return JSON.
-\item Functional: the pasteurization dashboard shall refresh live sensor plots from the stream endpoint.
-\item Non-functional: model inference shall remain deterministic for a fixed artifact and input.
-\item Non-functional: drift alerts shall be logged with timestamp and monitored variable.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{User stories are not enough by themselves}
-\begin{itemize}
-\item User stories are helpful for conversation, prioritization, and scope.
-\item They still need acceptance criteria to become testable engineering targets.
-\item A story without measurable acceptance can hide major ambiguity.
-\end{itemize}
-\begin{block}{Example}
-``As an analyst, I want a fraud score so that I can review risky transactions'' is useful, but it still leaves latency, explanation, threshold logic, and failure behavior unspecified.
-\end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}{The software requirements document}
-\begin{itemize}
-\item States what the system should do, not how it should be implemented.
-\item Should support communication, traceability, validation, and change control.
-\item Varies with context: student prototypes need less detail than regulated industrial systems.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Traceability links requirements to later work}
-\begin{itemize}
-\item A requirement should connect to design choices, tests, deployment gates, and monitoring rules.
-\item Traceability makes change management easier because teams can see what else is affected when one requirement changes.
-\item It is especially valuable when the model, pipeline, and interface evolve at different speeds.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Ways to write specifications}
-\begin{itemize}
-\item Natural language
-\item Structured natural language
-\item Form-based requirement templates
-\item Graphical models such as use cases and sequence diagrams
-\item Lightweight formal or tabular specifications when risk is high
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Requirements management continues after release}
-\begin{itemize}
-\item Requirements are not frozen forever because systems, users, and regulations change.
-\item Management includes versioning, prioritization, traceability, and impact analysis.
-\item In ML systems, drift and changing labels can indirectly trigger new requirements.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Why requirements change}
-\begin{itemize}
-\item Business priorities shift.
-\item New data sources or interfaces appear.
-\item Regulations or privacy constraints tighten.
-\item Real users expose missing assumptions.
-\item The model itself changes what stakeholders ask for.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Requirements connect this course together}
-\begin{itemize}
-\item Modeling needs evaluation criteria.
-\item Delivery pipelines need release checks and acceptance gates.
-\item Monitoring needs rules about what deviations matter and who should be informed.
-\item MLOps later depends on requirements that were explicit enough to automate.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Discussion prompt}
-\begin{block}{Question}
-``The model should be accurate'' is a common ask from stakeholders. Is it a requirement?
-\end{block}
-\begin{itemize}
-\item This forces the distinction between an aspiration and a testable statement.
-\item It sets up the second half of this class, where teams turn this kind of ask into something they could actually verify.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Papers and materials}
-\readinglist{
-\href{https://ieeexplore.ieee.org/document/720574}{IEEE recommended practice for software requirements specifications};\
-\href{https://www.pearson.com/en-us/subject-catalog/p/software-engineering/P200000003144/9780137035151}{Sommerville, Software Engineering};\
-\href{https://www.oreilly.com/library/view/practical-mlops/9781098103002/}{Practical MLOps, requirements-to-production perspective};\
-\href{https://www.altexsoft.com/blog/functional-and-non-functional-requirements-specification-and-types/}{Practical overview of functional and non-functional requirements};\
-\href{https://www.atlassian.com/agile/project-management/user-stories}{User stories and acceptance criteria guide}.
+\begin{frame}{Demonstration: one page of an SRS}
+\centering
+\begin{tikzpicture}
+% Second page, partly hidden
+\papersheet{q}{-0.3,0.3}{10.3}{5.7}
+% Front page
+\papersheet{p}{0,0}{10.3}{5.7}
+\node[anchor=north west, font=\tiny, text=coursegray] at (0.3,5.55) {SRS -- Fraud Scoring Service -- v1.0};
+\node[anchor=north east, font=\tiny, text=coursegray] at (9.4,5.55) {page 7 of 18};
+\draw[courseblue, thick] (0.3,5.22) -- (9.7,5.22);
+\node[anchor=north west, font=\scriptsize\bfseries, text=courseblue] at (0.3,5.15) {3.2\quad Functions};
+\node[anchor=north west, font=\scriptsize\bfseries, text=courseblue] at (0.3,2.6) {3.3\quad Performance requirements};
+\begin{scope}[font=\tiny]
+\setlength{\tabcolsep}{3pt}
+\node[anchor=north west, inner sep=0pt, align=left] at (0.3,4.72) {%
+\renewcommand{\arraystretch}{1.15}%
+\begin{tabular}{@{}p{0.8cm} p{4.9cm} p{0.95cm} p{1.1cm} p{1.15cm}@{}}
+\colorbox{coursegold!25}{\textbf{ID}} & \textbf{Requirement} & \colorbox{coursegold!25}{\textbf{Priority}} & \colorbox{coursegold!25}{\textbf{Verification}} & \colorbox{coursegold!25}{\textbf{Source}} \\
+\hline
+FR-01 & The service shall reject a request with a missing or out-of-range feature and return an error code that names the feature. & Essential & Test & Analyst lead \\
+FR-02 & When a transaction is classified as high risk, the service shall return the score and three ranked reason codes in the JSON response. & Essential & Test & Analyst lead \\
+\end{tabular}};
+\node[anchor=north west, inner sep=0pt, align=left] at (0.3,2.17) {%
+\renewcommand{\arraystretch}{1.15}%
+\begin{tabular}{@{}p{0.8cm} p{4.9cm} p{0.95cm} p{1.1cm} p{1.15cm}@{}}
+NFR-03 & The service shall respond to a valid request within 800 ms for at least 95\% of requests in the acceptance workload; latency shall be logged. & Essential & Load test & Operations \\
+NFR-04 & On the locked acceptance dataset, recall shall be at least 0.82 at a false-positive rate no greater than 0.12. & Essential & Analysis & Risk office \\
+\end{tabular}};
+\end{scope}
+% Legend of the highlighted fields
+\foreach \y/\t/\d in {5.75/ID/{unique and stable; cited by tests and monitors}, 4.3/Priority/{ranked for importance (essential, conditional, optional)}, 2.85/Verification/{test, analysis, inspection, or demonstration}, 1.4/Source/{the stakeholder or rule the requirement traces to}}{%
+  \node[draw=coursegold, very thick, fill=coursegold!15, rounded corners=3pt, text width=2.5cm, align=left, anchor=north west, inner sep=4pt, font=\tiny] at (10.6,\y) {{\scriptsize\bfseries \t}\\ \d};
 }
+\end{tikzpicture}
+\vspace{0.1em}
+
+{\footnotesize Section 3 is a set of individually identified statements, not continuous prose: each one can be reviewed, tested, and traced on its own.}
 \coursefooter
 \end{frame}
 
-\classclosingframe
-{\begin{itemize}
-\item Requirements make modeling, delivery, and monitoring choices accountable to stakeholder goals.
-\item Functional and non-functional expectations are both essential in ML systems.
-\item Traceable requirements help teams decide what to build, what to measure, and what to automate.
-\end{itemize}}
-{A project proposal becomes stronger when it can connect dataset choices, model metrics, interface behavior, and operational checks back to concrete requirements.}
-{The workshop that follows puts this theory into a written, testable requirements artifact.}
-{Explicit expectations make it possible to choose a realistic development process, which is where the course goes after this class.}
+\begin{frame}{Eight qualities of a good SRS (IEEE 830)}
+\centering
+\begin{tikzpicture}
+\qualitycard{0}{0}{Correct}{Every requirement is one the software shall meet.}
+\qualitycard{3.45}{0}{Unambiguous}{Every requirement has exactly one interpretation.}
+\qualitycard{6.9}{0}{Complete}{All significant requirements and responses to all inputs are stated.}
+\qualitycard{10.35}{0}{Consistent}{No subset of requirements is in conflict.}
+\qualitycard{0}{-2.0}{Ranked}{Each requirement carries its importance and/or stability.}
+\qualitycard{3.45}{-2.0}{Verifiable}{A finite, cost-effective process can check each requirement.}
+\qualitycard{6.9}{-2.0}{Modifiable}{Structure and style allow changes without breaking the document.}
+\qualitycard{10.35}{-2.0}{Traceable}{The origin of each requirement is clear, and it can be referenced later.}
+\end{tikzpicture}
+\vspace{0.4em}
+\begin{block}{Link to the workshop}
+The five peer-review checks used later (necessary, unambiguous, verifiable, feasible, traceable) are a practical subset of these qualities.
+\end{block}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Traceability turns requirements into engineering work}
+\centering
+\begin{tikzpicture}[node distance=0.4cm]
+\node[flowbox, minimum width=2.4cm] (r) {REQ-07\\Alert latency};
+\node[flowbox, minimum width=2.4cm, right=of r] (d) {Design\\stream handler};
+\node[accentbox, minimum width=2.4cm, right=of d] (a) {Acceptance\\latency test};
+\node[flowbox, minimum width=2.4cm, right=of a] (m) {Monitor\\alert delay};
+\draw[arrow] (r) -- (d);
+\draw[arrow] (d) -- (a);
+\draw[arrow] (a) -- (m);
+\end{tikzpicture}
+\vspace{0.6em}
+
+\renewcommand{\arraystretch}{1.2}
+\begingroup\scriptsize
+\begin{tabularx}{\textwidth}{>{\bfseries}l Y Y Y Y}
+Requirement & Source & Design element & Acceptance test & Operational check \\
+\toprule
+REQ-07 & Plant operator & Stream handler & Injected abnormal state, alert $\leq 3$ s & Alert-delay percentile \\
+DR-01 & Calibration record & Input validator & Boundary-value test & Rate of out-of-range values \\
+FR-02 & Analyst lead & Explanation module & API test with flagged input & Responses with reason codes \\
+\bottomrule
+\end{tabularx}
+\endgroup
+\vspace{0.4em}
+\begin{itemize}
+\item A traceability matrix makes impact analysis possible when a threshold, data source, interface, or regulation changes.
+\item Deployment gates and monitoring rules should trace back to a requirement, not be invented after release.
+\end{itemize}
+\coursefooter
+\end{frame}
+
+
+% ===================== Part 4 =====================
+\partslide{4}{Workshop}{Can you write a requirements brief that another team can review?}{Discover, specify, decide, define evidence, review}
+
+\begin{frame}{The workshop deliverable: a one-page requirements brief}
+\begin{columns}[T]
+\column{0.48\textwidth}
+\begin{block}{Required content}
+\begin{itemize}
+\item Decision, stakeholder, and system boundary
+\item Three functional requirements
+\item Two measurable quality requirements
+\item One domain constraint or assumption
+\end{itemize}
+\end{block}
+\column{0.48\textwidth}
+\begin{block}{Evidence of judgement}
+\begin{itemize}
+\item One acceptance method per requirement
+\item One important tension and a decision
+\item A short review record from another team
+\end{itemize}
+\end{block}
+\end{columns}
+\vspace{0.4em}
+\begin{block}{Choice of case}
+Use either the fraud scoring service or the pasteurization monitoring dashboard; do not attempt to specify both. The brief is a condensed Section 3 of an SRS.
+\end{block}
+\coursefooter
+\end{frame}
 
 \def\requirementspracticefragment{1}
 \input{class22_requirements_engineering_practice_content}
