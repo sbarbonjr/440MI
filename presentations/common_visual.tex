@@ -1,0 +1,101 @@
+% Visual layer on top of common.tex: tiles, icons, a progress-strip section divider, and a footer
+% strip that defines the concepts appearing for the first time on each slide.
+% Same look as the Class 20 deck. Load with:  \input{common}  \input{common_visual}
+%
+% Before the first \sectiondivider, a deck must define
+%   \sectioncount   the number of sections, e.g. 4
+%   \sectionlabels  a \foreach list of number/label pairs, e.g. 1/Need,2/Testable,3/Manage,4/Practice
+% Icons come from the fontawesome5 package (Font Awesome 5 Free), e.g. \faIcon{robot}.
+
+\usepackage{colortbl}
+\usepackage{fontawesome5}
+\usetikzlibrary{backgrounds}
+
+% Slides read better without automatic hyphenation.
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+
+\definecolor{coursered}{HTML}{A23B2A}
+\newcommand{\goldink}{\color{coursegold!65!black}}
+
+\tikzset{
+  tile/.style={rounded corners=4pt, fill=courseice, draw=none, align=center, font=\footnotesize, inner sep=5pt},
+  tileblue/.style={tile, fill=white, draw=courseblue!55, thick},
+  tilegold/.style={tile, fill=coursegold!14, draw=coursegold, thick},
+  tilegreen/.style={tile, fill=coursegreen!10, draw=coursegreen!70, thick},
+  tilered/.style={tile, fill=coursered!8, draw=coursered!70, thick},
+  tilegray/.style={tile, fill=white, draw=coursegray!55, thick, dashed},
+  tag/.style={rounded corners=2pt, fill=coursegold, text=white, font=\bfseries\tiny, inner sep=2.5pt},
+  chip/.style={rounded corners=3pt, fill=courseblue, text=white, font=\footnotesize\bfseries, align=center, inner sep=4pt},
+  note/.style={font=\scriptsize, text=coursegray, align=left},
+  arrowgold/.style={-{Latex[length=2.5mm,width=2mm]}, thick, draw=coursegold},
+  arrowred/.style={-{Latex[length=2.5mm,width=2mm]}, thick, draw=coursered},
+  arrowgreen/.style={-{Latex[length=2.5mm,width=2mm]}, thick, draw=coursegreen},
+  arrowgray/.style={-{Latex[length=2mm,width=1.6mm]}, thick, draw=coursegray!70},
+}
+
+% A round icon badge, drawn inside a tikzpicture: x y colour icon
+\newcommand{\badge}[4]{%
+  \node[circle, fill=#3, text=white, minimum size=0.85cm, inner sep=0pt] at (#1,#2) {\large\faIcon{#4}};
+}
+
+% Inline tags for the kind of requirement.
+\newcommand{\Ftag}{\colorbox{courseblue}{\color{white}\bfseries\scriptsize\ \ F\ \ }}
+\newcommand{\NFtag}{\colorbox{coursegold}{\color{white}\bfseries\scriptsize\ NF\ }}
+\newcommand{\Dtag}{\colorbox{coursegreen}{\color{white}\bfseries\scriptsize\ \ D\ \ }}
+\newcommand{\MLtag}{\colorbox{coursered}{\color{white}\bfseries\scriptsize\ ML\ }}
+
+% Footer: a strip with the concepts that appear for the first time on the slide, above the
+% usual bar. The bar total counts only the main lecture; a backup slide is numbered separately.
+\makeatletter
+\def\conceptstext{}
+\def\currentsectionname{}
+\setbeamercolor{conceptbar}{bg=coursegold!12,fg=black}
+\newcommand{\cterm}[2]{{\bfseries\color{courseblue}#1:}\ #2\hspace{0.8em}}
+\newcommand{\newtag}{\colorbox{coursegold}{\color{white}\bfseries\tiny\ NEW\ }\hspace{0.6em}}
+\setbeamertemplate{footline}{
+  \leavevmode
+  \vbox{%
+    \ifx\conceptstext\empty\else
+      \hbox{\color{coursegold}\rule{\paperwidth}{0.8pt}}%
+      \hbox{\begin{beamercolorbox}[wd=\paperwidth,leftskip=0.5cm,rightskip=0.5cm,sep=3pt]{conceptbar}\scriptsize\newtag\conceptstext\end{beamercolorbox}}%
+    \fi
+    \hbox{%
+      \begin{beamercolorbox}[wd=.33\paperwidth,ht=2.8ex,dp=1.2ex,leftskip=0.8em]{palette primary}%
+        \ifbeamer@inappendix Backup\else\ifnum\value{section}>0 \arabic{section}\ \textbar\ \currentsectionname\else University of Trieste\fi\fi
+      \end{beamercolorbox}%
+      \begin{beamercolorbox}[wd=.49\paperwidth,ht=2.8ex,dp=1.2ex,center]{palette tertiary}%
+        \coursename{} \textbar{} \coursecode
+      \end{beamercolorbox}%
+      \begin{beamercolorbox}[wd=.18\paperwidth,ht=2.8ex,dp=1.2ex,right,rightskip=0.8em]{palette secondary}%
+        \ifbeamer@inappendix Backup \insertframenumberinappendix\else\insertframenumber{} / \insertmainframenumber\fi
+      \end{beamercolorbox}%
+    }}}
+\makeatother
+\newenvironment{cframe}[2]{\gdef\conceptstext{#2}\begin{frame}{#1}}{\end{frame}\gdef\conceptstext{}}
+
+% Section divider: progress strip, recap of the previous part, and the roadmap of the next one.
+% Arguments: number, title, icon, previously, items.
+\newcommand{\sectiondivider}[5]{%
+  \section{#2}\gdef\currentsectionname{#2}
+  \begin{frame}
+  \centering
+  \begin{tikzpicture}
+  \pgfmathsetmacro{\chipw}{13.6/\sectioncount}
+  \foreach \i/\lab in \sectionlabels {
+    \ifnum\i<#1 \def\chipfill{courseblue!22}\def\chiptext{courseblue}\else
+    \ifnum\i=#1 \def\chipfill{courseblue}\def\chiptext{white}\else
+    \def\chipfill{courseice}\def\chiptext{coursegray}\fi\fi
+    \node[rounded corners=3pt, minimum width={(\chipw-0.1)*1cm}, minimum height=0.6cm, font=\scriptsize\bfseries, fill=\chipfill, text=\chiptext] at ({\chipw/2+(\i-1)*\chipw},0) {\i\ \lab};
+  }
+  \node[circle, fill=courseblue, text=white, font=\Huge\bfseries, minimum size=1.7cm, inner sep=0] at (1.0,-1.7) {#1};
+  \node[anchor=west, font=\huge\bfseries, text=courseblue, text width=8.8cm, align=left] at (2.2,-1.7) {#2};
+  \node[circle, fill=coursegold!16, draw=coursegold, thick, text=coursegold!75!black, font=\fontsize{26}{26}\selectfont, minimum size=1.9cm, inner sep=0] at (12.6,-1.7) {\faIcon{#3}};
+  \ifx\relax#4\relax\else
+    \node[anchor=north west, font=\small\itshape, text=coursegray, text width=13.2cm, align=left] at (0.1,-2.95) {Previously: #4};
+  \fi
+  \node[anchor=north west, font=\footnotesize\bfseries, text=coursegold!65!black] at (0.1,-3.95) {IN THIS PART};
+  \node[anchor=north west, font=\small, text width=13.2cm, align=left] at (0.1,-4.35) {#5};
+  \end{tikzpicture}
+  \end{frame}
+}

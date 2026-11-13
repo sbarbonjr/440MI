@@ -10,6 +10,8 @@ This directory contains the 36-class lecture sequence for the course `440MI / 30
 ## Files
 
 - `common.tex`: shared Beamer styling and macros
+- `common_visual.tex`: optional visual layer (tiles, Font Awesome icons via `fontawesome5`, progress-strip section dividers, glossary footer strip) used by the Class 22 deck
+- `generate_class20_figures.py`, `generate_class22_figures.py`: regenerate the data figures of those decks into `images/`
 - `class01_intro_course.tex` to `class36_presentation_proposals.tex`: lecture decks, numbered in delivery order
 
 Classes 21, 24, and 34 are intervention sessions. Their material is provided directly for those sessions, rather than authored as course decks in this repository.
