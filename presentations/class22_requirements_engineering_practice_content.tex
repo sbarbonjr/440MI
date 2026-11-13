@@ -1,236 +1,93 @@
 \ifdefined\requirementspracticefragment\else
 \input{common}
-
 \title{Class 22: Requirements Engineering in Practice}
-\subtitle{Session 22 of 36 -- Hands-on Workshop}
 \author{\coursename}
 \date{}
-
 \begin{document}
-
 \frame{\titlepage \coursefooter}
 \fi
 
-\begin{frame}{Agenda}
+\section{4. Put it into practice}
+\begin{frame}[c]
+\centering
+{\usebeamerfont{title}\usebeamercolor[fg]{title}4. Put it into practice\par}
+\vspace{1em}
+Apply the same principles to a hypothetical library assistant.
+\end{frame}
+
+\begin{frame}{Mini-workshop: a hypothetical library assistant}
+\begin{block}{Scenario}
+A library wants an ML assistant that suggests books from a reader	extquotesingle s stated interests. A librarian reviews the suggestions before sharing them.
+\end{block}
 \begin{itemize}
-\item Recap: what makes a requirement good
-\item Workshop structure and case assignment
-\item Elicitation: asking the right questions
-\item Writing functional and non-functional requirements
-\item Surfacing conflicts and trade-offs
-\item Peer review against a validation checklist
+\item Work in pairs for 15 minutes, then discuss for 5 minutes.
+\item Use this fictional scenario; no code or dataset is needed.
+\item Any invented threshold must be marked as an assumption to validate.
 \end{itemize}
 \coursefooter
 \end{frame}
 
-\begin{frame}{From theory to a written specification}
-\learninggoals{
+\begin{frame}{First, clarify the need (3 minutes)}
 \begin{itemize}
-\item Apply elicitation techniques to a concrete case in one working session.
-\item Draft testable functional and non-functional requirements from a vague prompt.
-\item Identify a genuine conflict between requirements and propose an explicit trade-off.
-\item Use a validation checklist to critique a peer team's requirements.
-\end{itemize}
-}
-\coursefooter
-\end{frame}
-
-\coursecontextframe
-{Turning requirements theory into a written, testable specification.}
-{This workshop applies the theory from the first half of Class 22 to a hands-on writing exercise.}
-{Fraud track: write functional and non-functional requirements for the fraud scoring service, from ingestion to analyst review.}
-{Pasteurization track: write functional and non-functional requirements for the abnormal-state alerting dashboard.}
-{Requirements written today should be traceable to the tests, deployment gates, and monitoring rules the course covers later.}
-
-\begin{frame}{Recap: qualities of a good requirement}
-\begin{itemize}
-\item Necessary, testable, unambiguous, feasible, traceable.
-\item A requirement is not a feature wish; it is something a reviewer could check.
-\end{itemize}
-\begin{block}{Weak versus better, one more time}
-``The system should be reliable'' versus ``the stream endpoint shall recover and resume within 5 seconds after a dropped connection.''
+\item Who uses the suggestions, and what decision do they make?
+\item What makes a suggestion useful to a reader?
+\item What happens if no suitable book is available?
+\item What information about readers may be retained?
+\end{itemize}\begin{block}{Output}
+Write two questions for the librarian and two explicit assumptions. Do not invent answers and present them as confirmed requirements.
 \end{block}
 \coursefooter
 \end{frame}
 
-\begin{frame}{Workshop structure}
+\begin{frame}{Write a small specification (7 minutes)}
 \begin{itemize}
-\item Form small groups; each group picks one track: fraud scoring or pasteurization alerting.
-\item Time-box each stage; a rough spec beats an unfinished perfect one.
-\item Every stage below produces a short written artifact the group keeps.
-\end{itemize}
-\begin{enumerate}
-\item Elicit (10 min)
-\item Draft functional requirements (10 min)
-\item Draft non-functional requirements (10 min)
-\item Surface one conflict (5 min)
-\item Peer review with the checklist (10 min)
-\end{enumerate}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Elicitation is structured discovery}
-\begin{itemize}
-\item Elicitation means discovering requirements from users, operators, policies, data constraints, and business goals.
-\item Interviews, observation, document review, and prototype walkthroughs are all useful methods.
-\item The purpose is not only to collect wishes, but to reveal conflicts and hidden assumptions.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Good elicitation prompts for project teams}
-\begin{itemize}
-\item Who acts on the prediction, and what action do they take?
-\item What happens if the model is unavailable for one hour?
-\item Which inputs may arrive late, missing, or malformed?
-\item When do labels appear, and who trusts them?
-\item Which requirement is actually a policy or compliance constraint?
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Exercise 1: Elicitation notes}
-\begin{itemize}
-\item Answer the prompts on the previous slide for your chosen track.
-\item Write raw notes, not polished sentences; contradictions between teammates are useful signal, not noise.
-\item Flag anything that sounds like a policy or domain constraint rather than a feature request.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{From notes to functional requirements}
-\begin{block}{Raw note}
-``The analyst needs to know why a transaction was flagged.''
+\item Write two functional requirements: name the trigger and observable result.
+\item Write one non-functional requirement with clear verification conditions.
+\item Write one ML quality requirement: define how relevance is judged and measured.
+\item For each requirement, add an ID and a concrete acceptance check.
+\end{itemize}\begin{block}{Remember}
+A privacy or access rule can be testable without a numeric threshold. Use numbers when the property calls for them.
 \end{block}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Review and negotiate (5 minutes)}
+\begin{itemize}
+\item Swap your specification with another pair.
+\item Find one ambiguous term and propose a precise replacement.
+\item Identify one conflict, such as recommendation variety versus relevance.
+\item Record which goal takes priority and why.
+\item Check whether another pair could run each acceptance check without asking what you meant.
+\end{itemize}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Worked example: behavior and constraints}
 \begin{block}{Functional requirement}
-The API shall return, alongside the score, the top 3 contributing features for each flagged transaction.
+L1: When a librarian submits at least one interest, the system shall display up to five matching books from the available catalog; if there are no matches, it shall display ``No matching books found.
+\end{block}
+\begin{block}{Non-functional requirement}
+L2: With 10 concurrent librarians and a catalog of 50,000 books, at least 95\% of searches shall complete within 2 seconds during a 15-minute load test.
 \end{block}
 \begin{itemize}
-\item A functional requirement names an observable system behavior, not a feeling.
+\item Check L1 with matching and empty-result fixtures. Check L2 with a load test.
+\item These are proposed requirements with hypothetical conditions and targets.
 \end{itemize}
 \coursefooter
 \end{frame}
 
-\begin{frame}{Exercise 2: Write three functional requirements}
-\begin{itemize}
-\item Using your elicitation notes, write three functional requirements for your track.
-\item Each one should name an input, an action, and an observable output.
-\item Avoid the words ``should'' and ``easy''; prefer ``shall'' plus a concrete behavior.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Non-functional requirements deserve equal weight}
-\begin{tabularx}{\textwidth}{>{\bfseries}l X}
-Category & Question to answer with a number \\
-\toprule
-Latency & How fast must a response or alert be, and for what fraction of cases? \\
-Availability & How much downtime is tolerable, and what happens during it? \\
-Auditability & What must be logged, and for how long? \\
-Privacy & What data can be stored, shown, or shared, and with whom? \\
-\bottomrule
-\end{tabularx}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Exercise 3: Write two non-functional requirements}
-\begin{itemize}
-\item Pick two categories from the table and write one requirement each.
-\item Every requirement must include a number: a time, a percentage, a retention period, or a rate.
-\item If you cannot put a number on it yet, write down what you would need to know to add one.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Conflicts between requirements are normal}
-\begin{itemize}
-\item Fast response may conflict with more detailed explanations.
-\item High recall may conflict with low false positive rates.
-\item Privacy constraints may limit what data can be stored for monitoring or audit.
-\item Requirements engineering helps teams make these trade-offs explicit.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Exercise 4: Name one conflict}
-\begin{itemize}
-\item Look at your functional and non-functional requirements together.
-\item Find one real tension between them, for example explanation detail versus latency.
-\item Write one sentence stating which side you would favor by default, and why.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Validation techniques that fit student projects}
-\begin{itemize}
-\item Requirement reviews with a checklist for ambiguity and measurability.
-\item Use-case walkthroughs for edge cases and operator behavior.
-\item Prototype validation with a minimal dashboard or API client.
-\item Acceptance test drafting before full implementation.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Exercise 5: Peer review}
-\begin{itemize}
-\item Swap your written requirements with another group.
-\item For each requirement, check: necessary, testable, unambiguous, feasible, traceable.
-\item Mark anything that fails a check and suggest a one-line fix.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Ground your requirement in something real}
-\repoactivity{
-\begin{itemize}
-\item Fraud track: anchor requirements to the fields the API already accepts and returns, as seen in `Class6_model_api.py`.
-\item Pasteurization track: anchor requirements to the fields already streamed by `pasteurization/serving.py`, such as state, T, pH, and dTdt.
-\item A requirement that cannot be tied to an existing field or endpoint is either a new feature request or still too vague.
-\end{itemize}
-}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Discussion prompt}
-\begin{block}{Question}
-Which of your non-functional requirements would be hardest to test automatically, and why?
+\begin{frame}{Worked example: ML acceptance and debrief}
+\begin{block}{Proposed quality requirement}
+L3: On a fixed set of 100 reader profiles excluded from tuning, at least 80\% shall receive a relevant book among the top five. Two librarians shall judge relevance using an agreed rubric and resolve disagreements before scoring.
 \end{block}
 \begin{itemize}
-\item This surfaces the gap between writing a requirement and actually verifying it.
-\item It is a preview of the testing and monitoring gates later in the course.
+\item Check L3 with a versioned evaluation report and the agreed relevance labels.
+\item Discuss: does one relevant book make a list of five useful enough?
+\item If few books are relevant, return fewer suggestions rather than fill all five slots.
+\item Before implementation, validate the assumptions and negotiate the targets with the stakeholder.
 \end{itemize}
 \coursefooter
 \end{frame}
-
-\begin{frame}{What a strong requirements artifact looks like}
-\begin{itemize}
-\item A short list of functional requirements naming input, action, and output.
-\item A short list of non-functional requirements, each with a number attached.
-\item At least one documented conflict and the team's default resolution.
-\item Peer-review marks showing the requirements survived a second reading.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Papers and materials}
-\readinglist{
-\href{https://www.pearson.com/en-us/subject-catalog/p/software-engineering/P200000003144/9780137035151}{Sommerville, Software Engineering};\
-\href{https://ieeexplore.ieee.org/document/720574}{IEEE recommended practice for software requirements specifications};\
-\href{https://www.atlassian.com/agile/project-management/user-stories}{User stories and acceptance criteria guide};\
-\href{https://www.altexsoft.com/blog/functional-and-non-functional-requirements-specification-and-types/}{Practical overview of functional and non-functional requirements}.
-}
-\coursefooter
-\end{frame}
-
-\classclosingframe
-{\begin{itemize}
-\item A requirement earns its place only if someone could check whether it was met.
-\item Elicitation, drafting, and peer review are fast enough to run in a single session.
-\item Conflicts between requirements are normal and should be written down, not hidden.
-\end{itemize}}
-{Keep today's written requirements; they are the seed of the project proposal work in Class 33 and Class 35.}
-{Class 23 moves from what the system must do to how the team organizes work to build it, starting with process models and agile foundations.}
-{Today's artifact is the first concrete deliverable in the course thread that eventually becomes each team's own project.}
 
 \ifdefined\requirementspracticefragment\else
 \end{document}
