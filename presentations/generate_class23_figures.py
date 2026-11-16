@@ -9,7 +9,7 @@ Figures
 -------
 class23_uncertainty_vs_control.pdf  Schematic: uncertainty falls as a team learns, the control a system
                                     needs rises as it commits, and operation reopens uncertainty.
-class23_process_positioning.pdf     Schematic: where the course cases sit when uncertainty and
+class23_process_positioning.pdf     Schematic: where four generic kinds of software sit when uncertainty and
                                     governance need are judged by the team (a judgment, not a measurement).
 """
 from pathlib import Path
@@ -85,7 +85,7 @@ def draw_uncertainty_vs_control():
 
 
 # --------------------------------------------------------------------------------------
-# 2. Where the course cases sit (a judgment of the team, not a measurement)
+# 2. Where four generic kinds of software sit (a judgment of the team, not a measurement)
 # --------------------------------------------------------------------------------------
 def draw_positioning():
     fig, ax = plt.subplots(figsize=(3.4, 2.85))
@@ -99,9 +99,10 @@ def draw_positioning():
         ax.add_patch(Rectangle((x0, y0), w, h, facecolor=colour, alpha=0.10, edgecolor="white", lw=1.5))
         ax.text(lx, ly, label, ha="center", va="center", fontsize=7.4, fontweight="bold", color=INK)
     cases = [  # label, uncertainty, governance, text offset, alignment
-        ("Hospital ML tool", 0.58, 0.80, (0.035, 0.0), "left"),
-        ("Pasteurization", 0.56, 0.62, (0.035, 0.0), "left"),
-        ("Fraud API", 0.70, 0.40, (0.0, -0.075), "center"),
+        ("Flight control", 0.20, 0.80, (0.035, 0.0), "left"),
+        ("Driver assistance", 0.70, 0.72, (0.0, -0.075), "center"),
+        ("Consumer app", 0.80, 0.30, (0.0, -0.075), "center"),
+        ("Internal script", 0.25, 0.30, (0.0, -0.075), "center"),
     ]
     for label, cx, cy, (dx, dy), ha in cases:
         ax.plot([cx], [cy], "o", color=INK, markersize=7, markeredgecolor="white", markeredgewidth=1.4, zorder=4)

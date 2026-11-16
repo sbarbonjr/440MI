@@ -45,26 +45,11 @@
 % ------------------------------------------------------------------ title
 \frame{\titlepage \coursefooter}
 
-% ------------------------------------------------------------------ goals
-\begin{cframe}{Process models are decision tools}{\cterm{Process model}{a description of how software work is organized: activities, products, roles, and conditions.}\cterm{Hybrid process}{mixes plan-driven control with agile iteration.}}
-\centering
-\begin{tikzpicture}
-\goalcard{0}{0}{tileblue}{balance-scale}{Compare}{Compare plan-driven, incremental, and hybrid approaches.}
-\goalcard{6.8}{0}{tileblue}{code-branch}{Hybrid for ML}{Understand why ML projects often need hybrid processes.}
-\goalcard{0}{-1.8}{tileblue}{sliders-h}{Match the context}{Match process choice to uncertainty, regulation, and team maturity.}
-\goalcard{6.8}{-1.8}{tilegold}{shield-alt}{Trace the effects}{Explain how process decisions affect documentation, testing, and release risk.}
-\node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=0.85cm, text width=12.6cm, align=left, font=\footnotesize] at (0,-3.7) {{\bfseries\goldink\faIcon{link}\ Bridge from Class 22.} Requirements will change; the process decides how a team absorbs that change without losing control.};
-\node[tilegold, fill=white, anchor=north west, minimum width=13.4cm, minimum height=0.8cm, text width=12.6cm, align=left, font=\footnotesize] at (0,-4.85) {{\color{courseblue}\faIcon{credit-card}}\ fraud scoring API \quad {\color{courseblue}\faIcon{thermometer-half}}\ pasteurization monitoring \quad {\color{courseblue}\faIcon{hospital}}\ hospital ML tool (contrast)};
-\node[tag, anchor=west] at (0.25,-4.85) {RUNNING CASES};
-\end{tikzpicture}
-\coursefooter
-\end{cframe}
-
 % ------------------------------------------------------------------ roadmap
 \begin{cframe}{Roadmap: three questions}{\cterm{Process family}{a group of processes that organize the same activities in a similar way.}}
 \centering
 \begin{tikzpicture}
-\foreach \x/\n/\ico/\ttl/\q/\items in {0/1/sitemap/Process families/What does a process control?/{$\bullet$\ Plan-driven, incremental, agile\\[2pt]$\bullet$\ The same four activities, organized differently\\[2pt]$\bullet$\ The V-model}, 4.55/2/sync-alt/Agile foundations/{What did agile change, and what did it keep?}/{$\bullet$\ History and the manifesto\\[2pt]$\bullet$\ Principles adapted to ML teams\\[2pt]$\bullet$\ Definition of done and failure modes}, 9.1/3/compass/Choosing for ML/{Which process fits an ML system, and why?}/{$\bullet$\ Hybrid delivery and CRISP-DM\\[2pt]$\bullet$\ Gates between exploration and production\\[2pt]$\bullet$\ How to choose; a project checklist}} {
+\foreach \x/\n/\ico/\ttl/\q/\items in {0/1/sitemap/Process families/What does a process control?/{$\bullet$\ Plan-driven, incremental, agile\\[2pt]$\bullet$\ The same four activities, organized differently\\[2pt]$\bullet$\ Waterfall and the V-model}, 4.55/2/sync-alt/Agile foundations/{What did agile change, and what did it keep?}/{$\bullet$\ History and the manifesto\\[2pt]$\bullet$\ Principles adapted to ML teams\\[2pt]$\bullet$\ Definition of done and failure modes}, 9.1/3/compass/Choosing for ML/{Which process fits an ML system, and why?}/{$\bullet$\ Hybrid delivery and CRISP-DM\\[2pt]$\bullet$\ Gates between exploration and production\\[2pt]$\bullet$\ How to choose a process model}} {
   \node[tile, anchor=north west, minimum width=4.3cm, minimum height=4.2cm] at (\x,0) {};
   \node[circle, fill=courseblue, text=white, font=\bfseries, minimum size=0.8cm, inner sep=0] at (\x+0.6,-0.6) {\n};
   \node[anchor=west, text width=2.4cm, align=left, font=\small\bfseries, text=courseblue] at (\x+1.1,-0.6) {\ttl};
@@ -78,7 +63,35 @@
 \end{cframe}
 
 % ================================================================== PART 1
-\sectiondivider{1}{Process families}{sitemap}{class 22 made requirements testable and traceable; the process decides how a team absorbs changes to them.}{$\bullet$\ What a process model controls\\[3pt]$\bullet$\ The same four activities, organized differently\\[3pt]$\bullet$\ Plan-driven, incremental, agile: when does each fit?\\[3pt]$\bullet$\ The V-model: every stage has its check}
+\sectiondivider{1}{Process families}{sitemap}{class 22 made requirements testable and traceable; the process decides how a team absorbs changes to them.}{$\bullet$\ What a process is, and what a process model controls\\[3pt]$\bullet$\ The same four activities, organized differently\\[3pt]$\bullet$\ Plan-driven, incremental, agile: when does each fit?\\[3pt]$\bullet$\ Waterfall and the V-model: plan-driven in detail}
+
+\begin{cframe}{What is a process?}{\cterm{Process}{a set of related activities that turns inputs into a product.}\cterm{Activity}{one kind of work in a process, such as specifying or validating.}\cterm{Process model}{a simplified description of a process.}}
+\centering
+\begin{tikzpicture}
+\node[tileblue, anchor=north west, minimum width=13.4cm, minimum height=0.6cm, text width=12.6cm, align=left, font=\footnotesize] at (0,0) {{\bfseries\color{courseblue}A process is a set of related activities that turns inputs into a product.}};
+% inputs and outputs
+\foreach \x/\ico/\ttl/\txt in {0/inbox/Inputs/{Needs, data, existing code.}, 11.1/box-open/Outputs/{Working system, tests, trained model.}} {
+  \node[tile, anchor=north west, minimum width=2.3cm, minimum height=2.2cm, text width=2.0cm] at (\x,-0.8) {};
+  \node[circle, fill=courseblue, text=white, minimum size=0.7cm, inner sep=0, font=\small] at (\x+1.15,-1.25) {\faIcon{\ico}};
+  \node[font=\small\bfseries, text=courseblue] at (\x+1.15,-1.78) {\ttl};
+  \node[anchor=north west, text width=2.0cm, align=center, font=\scriptsize] at (\x+0.15,-2.0) {\txt};
+}
+\draw[arrowgray] (2.32,-1.9) -- (2.58,-1.9);
+\draw[arrowgray] (10.82,-1.9) -- (11.08,-1.9);
+% the four activities
+\node[tile, anchor=north west, minimum width=8.2cm, minimum height=2.2cm] at (2.6,-0.8) {};
+\node[anchor=west, font=\scriptsize\bfseries, text=courseblue] at (2.75,-1.05) {Four activities, performed by people in roles};
+\foreach \x/\ico/\lab/\sub/\col in {2.85/clipboard-list/Specification/what to build/courseblue, 4.8/code/Development/build it/courseblue!65, 6.75/check-double/Validation/check it is right/coursegreen, 8.7/sync-alt/Evolution/{change it as needs change, also after release}/coursegold} {
+  \node[rounded corners=3pt, fill=\col, text=white, anchor=north west, minimum width=1.85cm, minimum height=0.75cm, font=\scriptsize\bfseries, align=center, inner sep=2pt] at (\x,-1.3) {\faIcon{\ico}\\[-1pt]\lab};
+  \node[anchor=north, text width=1.85cm, align=center, font=\tiny] at (\x+0.925,-2.15) {\sub};
+}
+% process versus process model
+\node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=1.0cm, text width=6.0cm, align=left, font=\scriptsize] at (0,-3.15) {{\bfseries\color{courseblue}\faIcon{users}\ The process} is what a team actually does, written down or not.};
+\node[tilegold, anchor=north west, minimum width=6.6cm, minimum height=1.0cm, text width=6.0cm, align=left, font=\scriptsize] at (6.8,-3.15) {{\bfseries\goldink\faIcon{map}\ The process model} is a simplified description of it: a map of activities and roles.};
+\keyidea{-4.35}{Every team already has a process. The question for a project is whether it was chosen on purpose.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
 
 \begin{cframe}{A process model makes coordination explicit}{\cterm{Handoff}{passing work from one person or step to the next.}\cterm{Pre- and post-condition}{what must be true before an activity starts and after it ends.}}
 \centering
@@ -129,28 +142,45 @@
 \coursefooter
 \end{cframe}
 
-\begin{cframe}{Plan-driven, incremental, agile: when does each fit?}{\cterm{Hybrid process}{mixes plan-driven control with agile iteration.}\cterm{Auditability}{how easily an outside reviewer can check what was done and why.}}
+\begin{cframe}{Plan-driven, incremental, agile: when does each fit?}{\cterm{Waterfall}{one pass through the activities, in sequence.}\cterm{Spiral}{repeated passes, each starting from the riskiest part.}\cterm{RUP}{Rational Unified Process: iterative, organized in phases.}\cterm{Hybrid process}{mixes plan-driven control with agile iteration.}\cterm{Auditability}{how easily an outside reviewer can check what was done and why.}}
 \centering
 \begin{tikzpicture}
-\foreach \x/\col/\ico/\name in {1.8/courseblue/calendar-alt/Plan-driven, 5.85/coursegreen/layer-group/Incremental, 9.9/coursegold/sync-alt/Agile} {
-  \node[rounded corners=4pt, fill=\col, text=white, anchor=north west, minimum width=3.9cm, minimum height=0.7cm, align=center, font=\small\bfseries] at (\x,0) {\faIcon{\ico}\ \name};
+\foreach \x/\col/\ico/\name/\ex in {1.8/courseblue/calendar-alt/Plan-driven/{Waterfall, V-model}, 5.85/coursegreen/layer-group/Incremental/{Spiral, RUP}, 9.9/coursegold/sync-alt/Agile/{Scrum, Extreme Programming}} {
+  \node[rounded corners=4pt, fill=\col, text=white, anchor=north west, minimum width=3.9cm, minimum height=0.95cm, align=center, font=\small\bfseries] at (\x,0) {\faIcon{\ico}\ \name\\[-1pt]{\scriptsize\mdseries e.g.\ \ex}};
 }
-\foreach \y/\lab in {-0.85/IDEA, -1.7/STRENGTH, -2.55/MAIN RISK, -3.4/FITS WHEN} {
+\foreach \y/\lab in {-1.05/IDEA, -1.87/STRENGTH, -2.69/MAIN RISK, -3.51/FITS WHEN} {
   \node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,\y-0.36) {\lab};
 }
-\gridcell{1.8}{-0.85}{courseblue}{3.9}{Plan first; measure progress against the plan.}
-\gridcell{5.85}{-0.85}{coursegreen}{3.9}{Deliver usable increments; learn early.}
-\gridcell{9.9}{-0.85}{coursegold}{3.9}{Customer feedback keeps reshaping priorities.}
-\gridcell{1.8}{-1.7}{courseblue}{3.9}{Control, documentation, auditability.}
-\gridcell{5.85}{-1.7}{coursegreen}{3.9}{Small releases: cheaper to be wrong, easier to roll back.}
-\gridcell{9.9}{-1.7}{coursegold}{3.9}{Fast feedback and iteration.}
-\gridcell{1.8}{-2.55}{courseblue}{3.9}{Adapts poorly to late discoveries.}
-\gridcell{5.85}{-2.55}{coursegreen}{3.9}{Fails without a strong definition of done.}
-\gridcell{9.9}{-2.55}{coursegold}{3.9}{Drifts without disciplined scope control.}
-\gridcell{1.8}{-3.4}{courseblue}{3.9}{Stable scope; regulated or safety-critical.}
-\gridcell{5.85}{-3.4}{coursegreen}{3.9}{Frequent releases; CI/CD in place.}
-\gridcell{9.9}{-3.4}{coursegold}{3.9}{Uncertain requirements or data.}
-\node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=0.9cm, text width=12.6cm, align=left, font=\footnotesize] at (0,-4.4) {{\bfseries\goldink\faIcon{code-branch}\ Hybrid.} Exploration plus governance: agile where uncertainty is high, plan-driven control where risk is high, with explicit handoff rules.};
+\gridcell{1.8}{-1.05}{courseblue}{3.9}{Plan first; measure progress against the plan.}
+\gridcell{5.85}{-1.05}{coursegreen}{3.9}{Deliver usable increments; learn early.}
+\gridcell{9.9}{-1.05}{coursegold}{3.9}{Customer feedback keeps reshaping priorities.}
+\gridcell{1.8}{-1.87}{courseblue}{3.9}{Control, documentation, auditability.}
+\gridcell{5.85}{-1.87}{coursegreen}{3.9}{Small releases: cheap mistakes, easy rollback.}
+\gridcell{9.9}{-1.87}{coursegold}{3.9}{Fast feedback and iteration.}
+\gridcell{1.8}{-2.69}{courseblue}{3.9}{Adapts poorly to late discoveries.}
+\gridcell{5.85}{-2.69}{coursegreen}{3.9}{Fails without a strong definition of done.}
+\gridcell{9.9}{-2.69}{coursegold}{3.9}{Drifts without disciplined scope control.}
+\gridcell{1.8}{-3.51}{courseblue}{3.9}{Stable scope; regulated or safety-critical.}
+\gridcell{5.85}{-3.51}{coursegreen}{3.9}{Frequent releases; CI/CD in place.}
+\gridcell{9.9}{-3.51}{coursegold}{3.9}{Uncertain requirements or data.}
+\node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=0.9cm, text width=12.6cm, align=left, font=\footnotesize] at (0,-4.5) {{\bfseries\goldink\faIcon{code-branch}\ Hybrid.} Exploration plus governance: agile where uncertainty is high, plan-driven control where risk is high, with explicit handoff rules.};
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Waterfall: one pass, each phase signed off}{\cterm{Sign-off}{formal approval that a phase is complete, before the next one starts.}\cterm{Change request}{a formal proposal to change an approved requirement.}}
+\centering
+\begin{tikzpicture}
+\tikzset{wf/.style={rounded corners=3pt, minimum width=2.4cm, minimum height=0.5cm, font=\scriptsize\bfseries, text=white, inner sep=2pt, align=center}}
+\foreach \i/\lab/\out/\col in {0/Requirements/requirements document/courseblue, 1/Design/design document/courseblue!65, 2/Implementation/code and unit tests/courseblue!65, 3/Verification/test report/coursegreen, 4/Maintenance/fixes and change log/coursegold} {
+  \pgfmathsetmacro{\x}{1.2+\i*2.75}
+  \pgfmathsetmacro{\y}{-\i*0.5}
+  \node[wf, fill=\col] (w\i) at (\x,\y) {\lab};
+  \node[font=\tiny, text=coursegray, anchor=north] at (\x,\y-0.27) {\out};
+}
+\foreach \a/\b in {0/1,1/2,2/3,3/4} {\draw[arrow] (w\a.east) -| (w\b.north);}
+\node[tilegold, anchor=north west, minimum width=5.6cm, text width=5.3cm, align=left, font=\scriptsize] at (0,-1.25) {{\bfseries\goldink\faIcon{lightbulb}\ Key idea.} Each phase ends with a sign-off; the next starts only after it. Late discoveries become change requests.};
+\node[tileblue, anchor=north west, minimum width=13.4cm, text width=12.6cm, minimum height=1.9cm, align=left, font=\footnotesize] at (0,-3.0) {{\bfseries\color{courseblue}\faIcon{industry}\ Typically used for}\\[3pt]$\bullet$\ stable requirements, fixed before work starts\\[2pt]$\bullet$\ systems where software is one part of a larger hardware system\\[2pt]$\bullet$\ fixed-price contracts with a formal acceptance\\[2pt]e.g.\ on-board flight software; a payroll rules engine};
 \end{tikzpicture}
 \coursefooter
 \end{cframe}
@@ -175,8 +205,8 @@
 \node[font=\tiny\bfseries, text=coursegold!65!black, fill=white, inner sep=1.5pt] at (6.7,0) {each requirement has a matching acceptance test};
 \node[anchor=west, font=\tiny\bfseries, text=courseblue] at (0,0.62) {SPECIFY AND DESIGN};
 \node[anchor=east, font=\tiny\bfseries, text=coursegreen] at (13.4,0.62) {VERIFY AND VALIDATE};
-\node[tilegold, anchor=north west, minimum width=3.5cm, text width=3.2cm, align=left, font=\scriptsize] at (0,-1.7) {{\bfseries\goldink\faIcon{lightbulb}\ Key idea.} Plan-driven processes plan the check when they write the requirement: each design stage has a matching test level (Class 22).};
-\node[tilegreen, anchor=north west, minimum width=3.9cm, text width=3.6cm, align=left, font=\scriptsize] at (9.5,-1.7) {{\bfseries\color{coursegreen}\faIcon{robot}\ ML twist.} The right side must also validate the data and evaluate the model on held-out data against each requirement's threshold.};
+\node[tilegold, anchor=north west, minimum width=3.5cm, text width=3.2cm, align=left, font=\scriptsize] at (0,-1.7) {{\bfseries\goldink\faIcon{lightbulb}\ Key idea.} The V-model is plan-driven: it plans the check when it writes the requirement, so each design stage has a matching test level (Class 22).};
+\node[tileblue, anchor=north west, minimum width=13.4cm, minimum height=0.8cm, text width=12.6cm, align=left, font=\scriptsize] at (0,-4.4) {{\bfseries\color{courseblue}\faIcon{industry}\ Typically used for} safety-critical and regulated embedded software (automotive under ISO 26262, avionics under DO-178C, medical devices) and public-sector contracts (V-Modell XT in Germany). Regulators expect each requirement to trace to a test.};
 \end{tikzpicture}
 \coursefooter
 \end{cframe}
@@ -272,7 +302,7 @@
 \end{cframe}
 
 % ================================================================== PART 3
-\sectiondivider{3}{Choosing for ML}{compass}{agile foundations: increments, a shared definition of done, and the failure modes to guard against.}{$\bullet$\ Why ML work often needs hybrid delivery\\[3pt]$\bullet$\ CRISP-DM: a process model made for data work\\[3pt]$\bullet$\ A hybrid lifecycle with gates\\[3pt]$\bullet$\ Where do our projects sit, and how to choose a process\\[3pt]$\bullet$\ A project checklist}
+\sectiondivider{3}{Choosing for ML}{compass}{agile foundations: increments, a shared definition of done, and the failure modes to guard against.}{$\bullet$\ Why ML work often needs hybrid delivery\\[3pt]$\bullet$\ CRISP-DM: a process model made for data work\\[3pt]$\bullet$\ A hybrid lifecycle with gates\\[3pt]$\bullet$\ Where does each kind of software sit, and how to choose a process}
 
 \begin{cframe}{Why ML work often needs hybrid delivery}{\cterm{Exploratory work}{work whose goal is to learn what is possible, not to deliver.}\cterm{Governance}{rules, reviews, and approvals that control change.}}
 \begin{columns}[T]
@@ -348,18 +378,18 @@
 \coursefooter
 \end{cframe}
 
-\begin{cframe}{Where do our projects sit?}{\cterm{Criticality}{how much harm a failure can cause.}\cterm{Release cadence}{how often new versions go live.}}
+\begin{cframe}{Where does each kind of software sit?}{\cterm{Criticality}{how much harm a failure can cause.}\cterm{Release cadence}{how often new versions go live.}}
 \begin{columns}[T]
 \column{0.46\textwidth}
 \centering
 \includegraphics[height=5.0cm,keepaspectratio]{images/class23_process_positioning.pdf}
 \column{0.52\textwidth}
 \begin{tikzpicture}
-\foreach \y/\ico/\name/\txt in {0/credit-card/Fraud API project/{Agile for feature and threshold iteration; structured release gates; monitoring after deployment.}, -1.85/thermometer-half/Pasteurization case/{Exploratory modeling can be agile; deployment gets stronger validation and change control.}, -3.7/hospital/Hospital ML support tool/{Stronger requirement control; formal validation and logging; slower but safer release cadence.}} {
-  \node[tileblue, anchor=north west, minimum width=6.5cm, minimum height=1.7cm] at (0,\y) {};
-  \badge{0.6}{\y-0.85}{courseblue}{\ico}
-  \node[anchor=west, text width=4.9cm, align=left, font=\footnotesize\bfseries, text=courseblue] at (1.15,\y-0.33) {\name};
-  \node[anchor=north west, text width=4.9cm, align=left, font=\scriptsize] at (1.1,\y-0.58) {\txt};
+\foreach \y/\ico/\name/\txt in {0/plane/Flight control software/{Fixed, certified requirements: waterfall or V-model, with full traceability.}, -1.35/car/Driver-assistance perception/{Uncertain data, safety-critical: agile exploration, then a gated release.}, -2.7/mobile-alt/Consumer mobile app/{Needs change weekly and failures are cheap: agile, with frequent releases.}, -4.05/chart-bar/Internal reporting script/{Low risk, few stakeholders: any light process will do.}} {
+  \node[tileblue, anchor=north west, minimum width=6.5cm, minimum height=1.25cm] at (0,\y) {};
+  \badge{0.6}{\y-0.625}{courseblue}{\ico}
+  \node[anchor=west, text width=4.9cm, align=left, font=\footnotesize\bfseries, text=courseblue] at (1.15,\y-0.28) {\name};
+  \node[anchor=north west, text width=4.9cm, align=left, font=\scriptsize] at (1.1,\y-0.48) {\txt};
 }
 \end{tikzpicture}
 \end{columns}
@@ -379,20 +409,6 @@
   \draw[courseice!70!courseblue, line width=0.5pt] (0,\y-0.42) -- (13.7,\y-0.42);
 }
 \keyidea{-4.4}{These questions are an ML version of Boehm and Turner's five factors: size, criticality, dynamism, personnel, and culture. Rate your project on each before choosing.}
-\end{tikzpicture}
-\coursefooter
-\end{cframe}
-
-\begin{cframe}{Project checklist: what to defend in your presentation}{\cterm{Artifact}{anything the team produces that keeps others aligned: a document, a test, a dashboard.}}
-\centering
-\begin{tikzpicture}
-\foreach \x/\y/\n/\ico/\q in {0/0/1/route/{Why did you choose this process?}, 6.8/0/2/sync-alt/{Where may the requirements still change?}, 0/-1.7/3/file-alt/{Which artifacts keep the team aligned?}, 6.8/-1.7/4/flag-checkered/{When do you move from experimentation to controlled delivery?}} {
-  \node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=1.5cm] at (\x,\y) {};
-  \node[circle, fill=coursegold, text=white, font=\bfseries, minimum size=0.55cm, inner sep=0] at (\x+0.4,\y-0.4) {\n};
-  \badge{\x+1.2}{\y-0.75}{courseblue}{\ico}
-  \node[anchor=west, text width=4.6cm, align=left, font=\normalsize] at (\x+1.8,\y-0.75) {\q};
-}
-\keyidea{-3.5}{Be ready to defend each answer with an artifact from your project, not only with an argument.}
 \end{tikzpicture}
 \coursefooter
 \end{cframe}
