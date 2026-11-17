@@ -33,15 +33,15 @@ simulator_url = st.sidebar.text_input(
     help="Use the Render service URL, without /stream. For local development use http://127.0.0.1:8001.",
 )
 team = st.sidebar.text_input("Team identifier", st.session_state.get("team", "dashboard"))
-speed = st.sidebar.slider("Simulation speed", 1, 60, 8, help="Process samples emitted per real-time second.")
 
 st.session_state.simulator_url = simulator_url
 st.session_state.team = team
 
-# Construct an SSE endpoint accepted by both the Render and local simulator.
-STREAM_URL = f"{simulator_url.rstrip('/')}/stream?team={quote(team or 'dashboard', safe='')}&speed={speed}"
+# The service controls speed with one global clock, so teams remain synchronized.
+STREAM_URL = f"{simulator_url.rstrip('/')}/stream?team={quote(team or 'dashboard', safe='')}"
 
 st.sidebar.markdown(f"**Connected to:** `{STREAM_URL}`")
+st.sidebar.caption("The simulator uses one shared process clock for every team.")
 
 # -----------------------------
 # PARAMETERS
@@ -87,16 +87,27 @@ def stream_data(url):
 # -----------------------------
 if "data" not in st.session_state:
     st.session_state.data = pd.DataFrame(columns=["timestamp"] + SENSORS)
+if "current_state" not in st.session_state:
+    st.session_state.current_state = "Waiting for data"
+
+if st.sidebar.button("Reset graph", help="Clear the locally displayed history; the shared simulator keeps running."):
+    st.session_state.data = pd.DataFrame(columns=["timestamp"] + SENSORS)
+    st.session_state.current_state = "Waiting for data"
+    st.rerun()
 
 placeholder = st.empty()
-st.info("🟢 Waiting for live data...")
+state_placeholder = st.empty()
+state_placeholder.metric("Current process state", st.session_state.current_state)
 
 # -----------------------------
 # LIVE PLOTTING LOOP
 # -----------------------------
 data_gen = stream_data(STREAM_URL)
+last_render = 0.0
 
 for sample in data_gen:
+    st.session_state.current_state = sample.get("state", "Unknown")
+
     df = st.session_state.data
     df = pd.concat([df, pd.DataFrame([sample])], ignore_index=True)
 
@@ -104,6 +115,13 @@ for sample in data_gen:
         df = df.iloc[-MAX_POINTS:]
 
     st.session_state.data = df
+
+    # Read every event but redraw less frequently so the dashboard keeps up
+    # with the shared stream without accumulating an artificial delay.
+    if time.monotonic() - last_render < REFRESH_INTERVAL:
+        continue
+
+    state_placeholder.metric("Current process state", st.session_state.current_state)
 
     # Plotting
     fig, axes = plt.subplots(3, 3, figsize=(14, 8))
@@ -120,5 +138,4 @@ for sample in data_gen:
     plt.tight_layout()
     placeholder.pyplot(fig)
     plt.close(fig)
-
-    time.sleep(REFRESH_INTERVAL)
+    last_render = time.monotonic()

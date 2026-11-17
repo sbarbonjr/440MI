@@ -23,12 +23,20 @@ from synth_sensors import DT, simulate_batch
 app = Flask(__name__)
 
 DEFAULT_SPEED = float(os.environ.get("STREAM_SPEED", "8"))
-MAX_SPEED = 60.0
+# A fixed epoch makes the process independent of Render restarts. Every client
+# maps the same wall-clock instant to the same point in the simulated batch.
+SIMULATION_EPOCH = float(os.environ.get("SIMULATION_EPOCH", "1767225600"))
 SCENARIOS = ("nominal", "slow_heatup", "hold_undershoot", "sensor_dropout", "sensor_drift")
 
+# Generated once with the seeded generator in synth_sensors. Do not create a
+# batch per connection: doing so would give each team a different process.
+BASE_BATCH, _ = simulate_batch("template")
+
 SENSOR_SCHEMA = {
-    "timestamp": {"type": "number", "unit": "seconds since batch start"},
-    "batch_id": {"type": "string", "description": "simulation run identifier"},
+    "event_id": {"type": "integer", "description": "global, monotonically increasing SSE event id"},
+    "timestamp": {"type": "number", "unit": "simulated seconds since the global epoch"},
+    "cycle_time": {"type": "number", "unit": "simulated seconds since the current batch began"},
+    "batch_id": {"type": "string", "description": "globally synchronized simulation batch identifier"},
     "state": {"type": "string", "values": ["Idle", "Fill", "HeatUp", "Hold", "Cool", "Discharge"]},
     "T": {"type": "number|null", "unit": "degC"},
     "pH": {"type": "number|null", "unit": "pH"},
@@ -58,18 +66,9 @@ def _scenario_from_request() -> str:
     return scenario
 
 
-def _speed_from_request() -> float:
-    raw_speed = request.args.get("speed", DEFAULT_SPEED)
-    try:
-        return min(max(float(raw_speed), 0.1), MAX_SPEED)
-    except (TypeError, ValueError) as exc:
-        raise ValueError("speed must be a number") from exc
-
-
-def simulate_scenario(batch_id: str, scenario: str) -> pd.DataFrame:
-    """Create one batch and apply a failure mode without exposing its label."""
-    df, _ = simulate_batch(batch_id)
-    df = df.copy()
+def simulate_scenario(scenario: str) -> pd.DataFrame:
+    """Apply a failure mode to the shared, deterministic base batch."""
+    df = BASE_BATCH.copy()
 
     if scenario == "slow_heatup":
         mask = df["state"].eq("HeatUp")
@@ -91,14 +90,43 @@ def simulate_scenario(batch_id: str, scenario: str) -> pd.DataFrame:
     return df
 
 
-def event_stream(df: pd.DataFrame, speed: float) -> Iterator[str]:
-    """Serialize a DataFrame as a Server-Sent Events stream."""
+def _global_event_id(now: float | None = None) -> int:
+    """Return the process sample that corresponds to a real wall-clock instant."""
+    if now is None:
+        now = time.time()
+    return max(0, int((now - SIMULATION_EPOCH) * DEFAULT_SPEED / DT))
+
+
+def _global_sample(df: pd.DataFrame, event_id: int) -> pd.Series:
+    """Select a cyclic batch sample and attach globally meaningful metadata."""
+    batch_length = len(df)
+    row = df.iloc[event_id % batch_length].copy()
+    row["event_id"] = event_id
+    row["timestamp"] = event_id * DT
+    row["cycle_time"] = (event_id % batch_length) * DT
+    row["batch_id"] = f"B-{event_id // batch_length + 1:06d}"
+    return row
+
+
+def event_stream(df: pd.DataFrame) -> Iterator[str]:
+    """Stream the sample selected by the global simulation clock.
+
+    A client joining half-way through a cycle starts at the current state rather
+    than receiving the first Idle event. Clients reconnecting at the same time
+    receive the same event id and sensor values.
+    """
     yield ": connected to the pasteurization simulator\n\n"
-    interval = DT / speed
-    for event_id, (_, row) in enumerate(df.iterrows()):
-        # pandas handles NumPy scalars and serializes NaN as JSON null.
-        yield f"id: {event_id}\nevent: sensor-reading\ndata: {row.to_json()}\n\n"
-        time.sleep(interval)
+    previous_event_id = -1
+    while True:
+        event_id = _global_event_id()
+        if event_id != previous_event_id:
+            row = _global_sample(df, event_id)
+            # pandas handles NumPy scalars and serializes NaN as JSON null.
+            yield f"id: {event_id}\nevent: sensor-reading\ndata: {row.to_json()}\n\n"
+            previous_event_id = event_id
+
+        next_sample_at = SIMULATION_EPOCH + (event_id + 1) * DT / DEFAULT_SPEED
+        time.sleep(max(0.01, next_sample_at - time.time()))
 
 
 @app.route("/", methods=["GET"])
@@ -109,7 +137,7 @@ def home():
         endpoints={
             "health": "/health",
             "schema": "/schema",
-            "stream": "/stream?team=G01&scenario=nominal&speed=8",
+            "stream": "/stream?team=G01&scenario=nominal",
             "replay": "/replay?scenario=nominal",
             "batch": "/batch?scenario=nominal",
             "point": "/point?t=0",
@@ -119,26 +147,37 @@ def home():
 
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify(status="ok", service="pasteurization-simulator")
+    return jsonify(
+        status="ok",
+        service="pasteurization-simulator",
+        synchronization="global-clock",
+        simulation_speed=DEFAULT_SPEED,
+    )
 
 
 @app.route("/schema", methods=["GET"])
 def schema():
-    return jsonify(version="1.0", transport="Server-Sent Events", event="sensor-reading", fields=SENSOR_SCHEMA)
+    return jsonify(
+        version="1.1",
+        transport="Server-Sent Events",
+        event="sensor-reading",
+        synchronization="All clients are aligned to one global simulation clock.",
+        simulation_speed=DEFAULT_SPEED,
+        fields=SENSOR_SCHEMA,
+    )
 
 
 @app.route("/stream", methods=["GET"])
 def stream():
     try:
         scenario = _scenario_from_request()
-        speed = _speed_from_request()
     except ValueError as exc:
         return jsonify(error=str(exc)), 400
 
-    team = request.args.get("team", "anonymous").strip()[:40] or "anonymous"
-    response = Response(event_stream(simulate_scenario(team, scenario), speed), mimetype="text/event-stream")
+    response = Response(event_stream(simulate_scenario(scenario)), mimetype="text/event-stream")
     response.headers["Cache-Control"] = "no-cache, no-transform"
     response.headers["X-Accel-Buffering"] = "no"
+    response.headers["X-Simulation-Speed"] = str(DEFAULT_SPEED)
     return response
 
 
@@ -150,8 +189,7 @@ def replay():
     except ValueError as exc:
         return jsonify(error=str(exc)), 400
 
-    team = request.args.get("team", "validation").strip()[:40] or "validation"
-    return Response(simulate_scenario(team, scenario).to_json(orient="records"), mimetype="application/json")
+    return Response(simulate_scenario(scenario).to_json(orient="records"), mimetype="application/json")
 
 
 @app.route("/batch", methods=["GET"])
@@ -162,7 +200,7 @@ def batch():
     except ValueError as exc:
         return jsonify(error=str(exc)), 400
 
-    return Response(simulate_scenario("batch", scenario).to_json(orient="records"), mimetype="application/json")
+    return Response(simulate_scenario(scenario).to_json(orient="records"), mimetype="application/json")
 
 
 @app.route("/point", methods=["GET"])
@@ -172,7 +210,7 @@ def point():
         timestamp = float(request.args.get("t", 0))
     except ValueError:
         return jsonify(error="t must be a number"), 400
-    df = simulate_scenario("point", "nominal")
+    df = simulate_scenario("nominal")
     row_index = int(timestamp / DT) % len(df)
     return jsonify(json.loads(df.iloc[row_index].to_json()))
 
