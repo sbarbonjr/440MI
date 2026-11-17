@@ -8,6 +8,7 @@ and make it possible to test a solution without waiting for real time.
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from typing import Iterator
@@ -16,7 +17,7 @@ import numpy as np
 import pandas as pd
 from flask import Flask, Response, jsonify, request
 
-from synth_sensors import DT, simulate_batch, simulate_point
+from synth_sensors import DT, simulate_batch
 
 
 app = Flask(__name__)
@@ -171,7 +172,9 @@ def point():
         timestamp = float(request.args.get("t", 0))
     except ValueError:
         return jsonify(error="t must be a number"), 400
-    return jsonify(simulate_point(timestamp))
+    df = simulate_scenario("point", "nominal")
+    row_index = int(timestamp / DT) % len(df)
+    return jsonify(json.loads(df.iloc[row_index].to_json()))
 
 
 if __name__ == "__main__":
