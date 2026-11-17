@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: pasteurization-simulator
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./pasteurization/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
