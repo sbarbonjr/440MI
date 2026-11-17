@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 Streamlit dashboard for pasteurization process sensors.
-Reads from a Flask API (serving.py) /stream endpoint.
-Now supports dynamic IP and port configuration.
+Reads from the classroom pasteurization simulator through its SSE /stream
+endpoint. The public Render deployment is the default; a local or alternative
+deployment can still be selected from the sidebar.
 """
 
 import streamlit as st
@@ -12,6 +13,10 @@ import requests
 import json
 import time
 import matplotlib.pyplot as plt
+from urllib.parse import quote
+
+
+DEFAULT_SIMULATOR_URL = "https://four40mi-pasteurization-simulator.onrender.com"
 
 # -----------------------------
 # STREAMLIT CONFIG
@@ -20,20 +25,21 @@ st.set_page_config(page_title="Pasteurization Dashboard", layout="wide")
 st.title("Pasteurization Process – Live Sensor Dashboard")
 
 # Sidebar configuration
-st.sidebar.header("🔌 Connection Settings")
+st.sidebar.header("🔌 Simulator connection")
 
-default_ip = st.session_state.get("ip", "127.0.0.1")
-default_port = st.session_state.get("port", "8001")
+simulator_url = st.sidebar.text_input(
+    "Simulator URL",
+    st.session_state.get("simulator_url", DEFAULT_SIMULATOR_URL),
+    help="Use the Render service URL, without /stream. For local development use http://127.0.0.1:8001.",
+)
+team = st.sidebar.text_input("Team identifier", st.session_state.get("team", "dashboard"))
+speed = st.sidebar.slider("Simulation speed", 1, 60, 8, help="Process samples emitted per real-time second.")
 
-ip = st.sidebar.text_input("Server IP", default_ip)
-port = st.sidebar.text_input("Server Port", default_port)
+st.session_state.simulator_url = simulator_url
+st.session_state.team = team
 
-# Save for persistence
-st.session_state.ip = ip
-st.session_state.port = port
-
-# Construct the stream URL dynamically
-STREAM_URL = f"http://{ip}:{port}/stream"
+# Construct an SSE endpoint accepted by both the Render and local simulator.
+STREAM_URL = f"{simulator_url.rstrip('/')}/stream?team={quote(team or 'dashboard', safe='')}&speed={speed}"
 
 st.sidebar.markdown(f"**Connected to:** `{STREAM_URL}`")
 
@@ -60,20 +66,11 @@ SENSORS = list(Y_RANGES.keys())
 # -----------------------------
 # FUNCTIONS
 # -----------------------------
-@st.cache_resource
-def get_stream(url):
-    """Create a persistent streaming connection."""
-    try:
-        return requests.get(url, stream=True, timeout=10)
-    except Exception as e:
-        st.error(f"Connection error: {e}")
-        return None
-
-
 def stream_data(url):
     """Generator to read data lines from Flask SSE endpoint."""
     try:
-        with requests.get(url, stream=True, timeout=10) as r:
+        with requests.get(url, stream=True, timeout=(15, 30)) as r:
+            r.raise_for_status()
             for line in r.iter_lines():
                 if line and line.startswith(b"data:"):
                     payload = line.replace(b"data: ", b"").decode("utf-8")
