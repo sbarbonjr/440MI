@@ -1,230 +1,216 @@
 \input{common}
 
-\title{Class 25: Agile Toolkit for Data and ML Teams}
-\subtitle{Session 25 of 36 -- One Integrated Agile Practice Session}
+\title{Class 25: Pasteurization Monitoring Challenge}
+\subtitle{A two-session practice in requirements, specification, validation, and evolution}
 \author{\coursename}
 \date{}
 
 \begin{document}
-
 \frame{\titlepage \coursefooter}
 
-\begin{frame}{Agenda}
-\begin{itemize}
-\item Collaboration and communication
-\item Development practices
-\item Planning and tracking
-\item Agile frameworks and roles
-\item Feedback and customer involvement
-\item Agile anti-patterns in data and ML teams
-\end{itemize}
-\begin{block}{Note}
-This class now runs as one integrated practice session covering what used to be split across two meetings; sections are grouped into denser frames rather than a slower two-week pace.
+\begin{frame}{The challenge in one sentence}
+\begin{block}{NorthRiver Dairy needs a monitoring and alerting application}
+Student teams will specify, build, validate, and evolve a Streamlit application that consumes a live pasteurization stream and helps operators notice abnormal conditions.
 \end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Agile practices are only useful if they change behavior}
-\learninggoals{
 \begin{itemize}
-\item Use ceremonies and artifacts as coordination tools, not rituals.
-\item Adapt user stories, estimation, and boards to data-intensive projects.
-\item Connect agile practices to quality, deployment, and stakeholder learning.
-\item Recognize where standard agile templates break down in exploratory ML work.
-\end{itemize}
-}
-\coursefooter
-\end{frame}
-
-\coursecontextframe
-{Day-to-day agile coordination for data and ML work.}
-{This class turns process-model ideas into concrete planning, review, and feedback practices that teams can actually use.}
-{In the fraud case, agile work means slicing the backlog across data checks, model tuning, API behavior, and validation evidence.}
-{In the pasteurization case, agile work means making sensor issues, drift tasks, dashboard improvements, and monitoring criteria visible on the board.}
-{The thread is that agile only helps when it improves coordination across the full ML lifecycle rather than only speeding up coding.}
-
-\begin{frame}{Agile toolkit means a set of coordination mechanisms}
-\begin{itemize}
-\item Meetings, boards, stories, and metrics are not the goal of agility.
-\item Their value comes from making priorities visible, reducing blockers, and shortening feedback loops.
-\item In ML teams, they also help coordinate data work, experimentation, software integration, and operations.
+\item This is a \textbf{requirements and development-process} exercise, not a competition to build the most elaborate dashboard.
+\item The live simulator is the shared operational environment; the team product is the monitoring and alerting client.
+\item Every feature must trace from a stakeholder need to a requirement, acceptance check, implementation, and test.
 \end{itemize}
 \coursefooter
 \end{frame}
 
-\begin{frame}{Collaboration rituals and what they actually solve}
-\begin{tabularx}{\textwidth}{>{\bfseries}l X}
-Practice & Practical value in an ML project \\
+\begin{frame}{Two-session roadmap}
+\centering
+\begin{tikzpicture}[node distance=0.25cm]
+\node[flowbox, minimum width=3.0cm, minimum height=1.4cm] (a) {\textbf{Session 1}\\[0.25em]\scriptsize Discover, ask, specify};
+\node[flowbox, minimum width=3.0cm, minimum height=1.4cm, right=of a] (b) {\textbf{Between sessions}\\[0.25em]\scriptsize Build a thin vertical slice};
+\node[accentbox, minimum width=3.0cm, minimum height=1.4cm, right=of b] (c) {\textbf{Session 2}\\[0.25em]\scriptsize Validate, review, evolve};
+\draw[arrow] (a) -- (b); \draw[arrow] (b) -- (c);
+\end{tikzpicture}
+\vspace{0.7em}
+\begin{tabularx}{\textwidth}{>{\bfseries}l X X}
+& Main activity & Main evidence \\
 \toprule
-Sprint planning & Defines a thin vertical slice and aligns ambition with capacity. \\
-Daily stand-up & Surfaces blockers such as missing labels or broken environments. \\
-Backlog refinement & Clarifies data dependencies and acceptance criteria before work starts. \\
-Retrospective & Improves how the team works, especially around experimentation waste. \\
-Review or demo & Tests whether the increment creates stakeholder value. \\
+1 & Elicitation, analysis, SRS baseline, plan & Questions, backlog, SRS v1, process model \\
+2 & Demonstration, validation, change request & Tests, traceability, SRS v2, release notes \\
 \bottomrule
 \end{tabularx}
 \coursefooter
 \end{frame}
 
-\begin{frame}{Development practices that matter most}
+\begin{frame}{Learning objectives}
+\learninggoals{\begin{itemize}
+\item Turn an incomplete stakeholder narrative into functional, non-functional, domain, and operational requirements.
+\item Write a concise IEEE-style Software Requirements Specification (SRS) that is testable and traceable.
+\item Use an agile, iterative process model with explicit artifacts, milestones, feedback, and change control.
+\item Validate a working increment against acceptance criteria using a live external stream.
+\item Explain how a requirement change affects requirements, tests, code, and release decisions.
+\end{itemize}}
+\coursefooter
+\end{frame}
+
+\coursecontextframe
+{A dairy operator can observe raw sensor values but has no unified way to configure alerts, understand their severity, or retain a record of what happened during a batch.}
+{NorthRiver Dairy requests a lightweight monitoring and alerting application. It informs people; it never controls the equipment.}
+{The case brief is deliberately incomplete. Asking focused questions and recording assumptions is part of the assessed work.}
+{Use the English case brief in \texttt{documents/Class25\_Pasteurization\_Monitoring\_Challenge.md}.}
+{Do not begin with widgets. Begin with decisions, users, consequences, and evidence.}
+
+\begin{frame}{The shared live simulator}
+\begin{block}{Server}\url{https://four40mi-pasteurization-simulator.onrender.com}\end{block}
+\begin{block}{Team stream}\url{https://four40mi-pasteurization-simulator.onrender.com/stream?team=G01}\end{block}
+Replace \texttt{G01} with your assigned team identifier. The service uses Server-Sent Events (SSE): event \texttt{sensor-reading} carries JSON observations.
 \begin{itemize}
-\item Test-driven development for stable service behavior.
-\item CI for repeated checks on code and packaging.
-\item CD for safe release preparation.
-\item Pair review for notebooks, requirements, and production code.
-\item Retrospectives for process correction, not blame.
+\item The shared global clock gives teams equivalent observations when they connect at the same time.
+\item Fields include \texttt{timestamp}, \texttt{event\_id}, \texttt{batch\_id}, \texttt{state}, \texttt{T}, \texttt{pH}, \texttt{P}, \texttt{Kappa}, \texttt{Mu}, \texttt{Tau}, \texttt{Q\_in}, \texttt{Q\_out}, and \texttt{dTdt}.
+\item Schema: \url{https://four40mi-pasteurization-simulator.onrender.com/schema}
 \end{itemize}
 \coursefooter
 \end{frame}
 
-\begin{frame}{Development practices for notebook-heavy teams}
-\begin{itemize}
-\item Review notebooks for reproducibility, not only for narrative clarity.
-\item Move repeated feature logic into modules before it spreads across files.
-\item Treat data validation and schema checks as quality work, not optional cleanup.
-\item Use small pull requests so code review remains meaningful.
-\end{itemize}
-\begin{block}{Course link}
-This is where agile meets the software engineering and MLOps parts of the course: speed without quality creates faster confusion.
-\end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Better user stories for this course}
-\begin{block}{Weak}
-As a student, I want an AI model.
-\end{block}
-\begin{block}{Better}
-As a quality engineer, I want to detect abnormal temperature trajectories during HeatUp so that I can inspect the pasteurization line before product quality drops.
-\end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}{A better user story also needs acceptance criteria}
-\begin{block}{Story}
-As a quality engineer, I want abnormal HeatUp trajectories flagged so that I can inspect the pasteurization line before product quality drops.
-\end{block}
-\begin{block}{Acceptance criteria}
-\begin{itemize}
-\item The system ingests live or simulated sensor points.
-\item It displays the current state and a risk flag.
-\item Alerts are logged with timestamp and model version.
-\item A false-positive threshold is agreed with stakeholders.
-\end{itemize}
-\end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Planning and tracking tools}
-\begin{itemize}
-\item Kanban board with columns for data, modeling, integration, and validation.
-\item User stories with acceptance criteria, and story points for relative complexity, not exact duration.
-\item Burndown and velocity as team learning tools, not performance theater.
-\item Definition of Ready and Definition of Done for every deliverable.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{A Kanban board adapted to ML work}
-\centering
-\begin{tikzpicture}[node distance=0.2cm]
-\node[flowbox, minimum width=2.15cm, minimum height=2.3cm] (todo) {\textbf{To Do}\\[0.3em]\scriptsize refine feature list\\validate metric};
-\node[flowbox, minimum width=2.15cm, minimum height=2.3cm, right=of todo] (data) {\textbf{Data}\\[0.3em]\scriptsize check labels\\fix schema};
-\node[flowbox, minimum width=2.15cm, minimum height=2.3cm, right=of data] (model) {\textbf{Modeling}\\[0.3em]\scriptsize baseline run\\threshold tune};
-\node[accentbox, minimum width=2.15cm, minimum height=2.3cm, right=of model] (valid) {\textbf{Validation}\\[0.3em]\scriptsize API test\\drift check};
-\node[accentbox, minimum width=2.15cm, minimum height=2.3cm, right=of valid] (done) {\textbf{Done}\\[0.3em]\scriptsize reviewed\\documented};
-\end{tikzpicture}
-\vspace{0.5em}
-\begin{itemize}
-\item This kind of board makes hidden data work visible instead of pretending every task is pure coding.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Estimation is for coordination, not prediction theater}
-\begin{itemize}
-\item Story points work best as a relative complexity language shared by the team.
-\item Estimation fails when people use points as disguised hours.
-\item High uncertainty tasks should often be split into investigation work before full implementation.
-\item Velocity should guide planning, not evaluate people.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Agile meets DevOps and MLOps}
-\begin{itemize}
-\item Continuous integration protects the code path.
-\item Continuous delivery protects the release path.
-\item Monitoring closes the loop after release.
-\item Without operational feedback, agile becomes local optimization.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Frameworks, their natural use, and their roles}
+\begin{frame}{Product scope: make the boundary explicit}
 \begin{columns}[T]
-\column{0.48\textwidth}
-\textbf{Structured rhythm}
-\begin{itemize}
-\item Scrum: bounded sprint goals, structured events and roles
-\item Good for student teams needing cadence and review moments
-\end{itemize}
-\column{0.48\textwidth}
-\textbf{Flow orientation}
-\begin{itemize}
-\item Kanban: continuous incoming work, flow-oriented management
-\item Good for ops-heavy teams or highly varied work types
-\end{itemize}
+\column{0.48\textwidth}\begin{block}{In scope for the MVP}\begin{itemize}
+\item Connect to and visualize live data.
+\item Show connection, batch, and current state.
+\item Configure selected alert rules.
+\item Display severity, active alerts, and local history.
+\item Acknowledge alerts and explain why they occurred.
+\end{itemize}\end{block}
+\column{0.48\textwidth}\begin{block}{Outside scope}\begin{itemize}
+\item Sending commands to heaters, pumps, or valves.
+\item Modifying the simulator or its stream contract.
+\item Replacing quality procedures or a plant safety system.
+\item Enterprise identity management in the first release.
+\end{itemize}\end{block}
 \end{columns}
-\vspace{0.5em}
-\begin{block}{Bridge}
-DevOps shares responsibility across build, release, and operations; MLOps extends DevOps with data, models, drift, and governance concerns.
-\end{block}
+\begin{alertblock}{Important}An attractive chart is not a requirement. State the user, trigger, behavior, constraint, and acceptance evidence.\end{alertblock}
 \coursefooter
 \end{frame}
 
-\begin{frame}{Agile anti-patterns in data teams}
+\begin{frame}{The process model teams will apply}
+\centering
+\begin{tikzpicture}[node distance=0.35cm]
+\node[flowbox, minimum width=2.05cm] (elicit) {Elicit\\needs};
+\node[flowbox, minimum width=2.05cm, right=of elicit] (spec) {Specify\\and prioritize};
+\node[flowbox, minimum width=2.05cm, right=of spec] (build) {Build a thin\\increment};
+\node[accentbox, minimum width=2.05cm, right=of build] (valid) {Validate\\with evidence};
+\node[accentbox, minimum width=2.05cm, right=of valid] (evolve) {Evolve after\\feedback};
+\draw[arrow] (elicit) -- (spec); \draw[arrow] (spec) -- (build); \draw[arrow] (build) -- (valid); \draw[arrow] (valid) -- (evolve);
+\draw[coursegray, dashed, ->] (evolve.south) to[out=-110,in=-70] node[below, font=\scriptsize] {change, learning, or defect} (elicit.south);
+\end{tikzpicture}
+\vspace{0.55em}
 \begin{itemize}
-\item Treating research uncertainty as if it were ordinary feature implementation.
-\item Filling sprints with vaguely defined ``improve model'' tasks.
-\item Ignoring data dependencies until late integration.
-\item Using demos that show only happy-path notebooks instead of operational evidence.
-\item Running retrospectives that identify problems but never change behavior.
+\item This is an \textbf{iterative-incremental agile process}: specification is sufficient to start a small, testable slice, then evolves with feedback.
+\item Each team adapts this model into its own workflow: roles, board states, Definition of Ready, Definition of Done, review point, and change rule.
 \end{itemize}
 \coursefooter
 \end{frame}
 
-\begin{frame}{What good agile behavior looks like in this course}
-\repoactivity{
+\begin{frame}{Session 1: discovery and specification}
+\begin{enumerate}
+\item Read the case brief; identify stakeholders, decisions supported, risks, assumptions, and open questions.
+\item Conduct a short stakeholder interview with the instructor. Record answers and unanswered questions.
+\item Build a prioritized product backlog with user stories and acceptance criteria.
+\item Write SRS v1 and agree a minimum viable increment.
+\item Define the team process and plan the first increment.
+\end{enumerate}
+\begin{block}{Question discipline}Ask questions that reduce uncertainty: ``Who configures this?'', ``What makes an alert critical?'', ``What evidence is required?'', ``What happens if data is missing?''\end{block}
+\coursefooter
+\end{frame}
+
+\begin{frame}{SRS v1: concise, IEEE-style, and useful}
+\begin{tabularx}{\textwidth}{>{\bfseries}l X}
+Section & Minimum content \\
+\toprule
+Introduction & Purpose, scope, stakeholders, definitions, assumptions \\
+Overall description & Users, operating environment, external SSE interface, constraints \\
+Functional requirements & Identified \texttt{FR-xx} statements written with ``shall'' \\
+Non-functional requirements & Measurable usability, performance, reliability, maintainability, and security expectations \\
+Domain and business rules & Alert concepts, severity, process-state rules, traceability expectations \\
+Operational requirements & Start-up, configuration, disconnection, recovery, support, known limitations \\
+Validation and traceability & Acceptance criteria, test idea, priority, dependencies \\
+\bottomrule
+\end{tabularx}
+\vspace{0.3em}\begin{block}{Quality check}One requirement should express one observable obligation. Avoid ``fast'', ``easy'', ``robust'', or ``real time'' unless the statement says how it will be checked.\end{block}
+\coursefooter
+\end{frame}
+
+\begin{frame}{From a story to evidence}
+\begin{block}{User story}As a plant operator, I want to see a clearly classified active alert so that I can decide whether the current batch needs attention.\end{block}
+\begin{block}{Possible system requirement}When an evaluated reading violates a configured rule, the system \textbf{shall} create an alert containing the batch identifier, sensor, configured rule, observed value, timestamp, process state, and severity.\end{block}
+\begin{block}{Possible acceptance criterion}Given a configured temperature rule and a violating reading, when the configured persistence condition is met, then the dashboard displays one active alert with all required fields and stores it in session history.\end{block}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Session 2: validation and evolution}
+\begin{enumerate}
+\item Demonstrate the thin increment against agreed acceptance criteria.
+\item Use the live stream to gather evidence: normal behavior, threshold crossing, and disconnection behavior.
+\item Review the traceability matrix and identify defects, gaps, and assumptions.
+\item Receive the change request from Quality Management.
+\item Analyze impact, reprioritize the backlog, update SRS v1 to v2, and implement or plan the evolution.
+\end{enumerate}
+\begin{block}{Change request}During \texttt{Hold}, temperature violations become critical only after a configurable number of consecutive readings. The recorded alert must include the process state in which it was raised.\end{block}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Milestones and artifacts}
+\begin{tabularx}{\textwidth}{>{\bfseries}l X X}
+Milestone & Decision gate & Required artifact \\
+\toprule
+M1 Discovery & Do we understand the problem enough to proceed? & Stakeholder map, question log, glossary, assumptions \\
+M2 Baseline & Is the first increment small and testable? & Backlog, SRS v1, acceptance criteria, process model \\
+M3 MVP & Does the vertical slice work? & Streamlit application, code, demonstration \\
+M4 Validation & What evidence supports the claims? & Test record, defects, traceability matrix \\
+M5 Evolution & What changes and why? & Change analysis, SRS v2, backlog update, release notes \\
+\bottomrule
+\end{tabularx}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Operational requirements are part of the product}
+\begin{block}{Operational guide: minimum contents}\begin{itemize}
+\item How to start the Streamlit application and select a team stream.
+\item How to configure, save, reset, and interpret alert rules.
+\item Meaning of severities, acknowledgement, active versus historic alert.
+\item Behavior on malformed data, missing values, or stream disconnection.
+\item Recovery steps, known limitations, and explicit statement that the application does not control equipment.
+\end{itemize}\end{block}
+\begin{alertblock}{Operational thinking}If the app is correct only when the stream is perfect, the requirement is incomplete.\end{alertblock}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Instructor as the stakeholder panel}
 \begin{itemize}
-\item Use notebooks to explore, then promote reusable logic into scripts or services.
-\item Demonstrate thin slices such as ingest plus baseline plus API rather than isolated fragments.
-\item Keep project boards aligned with requirements, deployment work, and monitoring plans.
-\item Show how feedback changes backlog priorities instead of pretending the first plan was complete.
+\item The instructor plays Operations Manager, Quality Manager, and Senior Plant Operator.
+\item Teams ask questions; the instructor gives the same canonical answer to every team and adds it to a shared answer log.
+\item When a business decision is genuinely open, teams propose alternatives, record an assumption, and justify their choice.
+\item Do not silently invent a requirement. Mark the source: stakeholder answer, observed stream behavior, team assumption, or technical constraint.
 \end{itemize}
-}
+\begin{block}{Facilitation guide}The case brief includes a private instructor section with recommended answers, disclosure timing, and discussion prompts.\end{block}
+\coursefooter
+\end{frame}
+
+\begin{frame}{Assessment: evidence over interface polish}
+\begin{tabularx}{\textwidth}{>{\bfseries}l X}
+Criterion & What good evidence looks like \\
+\toprule
+Requirements quality & Clear scope; distinguishable FR/NFR/domain/operational requirements; testable wording \\
+Elicitation and reasoning & Focused questions, explicit assumptions, trade-offs, stakeholder rationale \\
+Process discipline & Credible iterative workflow, prioritized work, Definition of Done, change handling \\
+Traceability and validation & Requirement $\rightarrow$ acceptance criterion $\rightarrow$ implementation $\rightarrow$ test result \\
+Working increment & Reliable connection, understandable status, configured alert behavior, useful evidence \\
+Evolution & Impact analysis and coherent SRS/backlog/test changes after the new rule \\
+\bottomrule
+\end{tabularx}
 \coursefooter
 \end{frame}
 
 \classclosingframe
-{\begin{itemize}
-\item Agile in data-driven work means learning quickly while preserving evidence and alignment.
-\item Stories, boards, demos, and retrospectives are useful only when they reflect technical and data reality.
-\item Thin vertical slices are stronger than isolated notebook achievements.
-\end{itemize}}
-{Teams should now be able to organize milestones, backlog items, and reviews around deployable progress instead of vague promises to improve the model later.}
-{Class 26 reconnects these practices to MLOps, where experimentation, delivery, ownership, and monitoring become one operational system.}
-{Agile coordination gives the team a way to move continuously; MLOps gives that movement technical reliability.}
-
-\begin{frame}{Papers and materials}
-\readinglist{
-\href{https://www.scrumguides.org/}{Scrum Guide};\ 
-\href{https://kanban.university/kanban-resources/getting-started/what-is-kanban/}{What is Kanban};\ 
-\href{https://www.oreilly.com/library/view/learning-agile/9780596527679/}{Learning Agile};\ 
-\href{https://martinfowler.com/bliki/UserStory.html}{Martin Fowler on user stories};\ 
-\href{https://itrevolution.com/product/accelerate/}{Forsgren, Humble, Kim, Accelerate}.
-}
-\coursefooter
-\end{frame}
-
+{\begin{itemize}\item The simulator is a source of evidence, not the specification.\item Agile work is disciplined learning: small increments, explicit decisions, and feedback that changes the plan.\item A requirement is complete only when somebody can decide whether it has been met.\end{itemize}}
+{Begin with the case brief, form a team, and prepare questions before deciding what to build.}
+{Class 34 develops the practical agile toolkit: boards, refinement, estimation, reviews, quality practices, and common failure modes.}
+{The strongest prototype is the one whose behavior can be explained and defended from stakeholder need to validation evidence.}
 \end{document}

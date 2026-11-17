@@ -14,7 +14,7 @@ This directory contains the 36-class lecture sequence for the course `440MI / 30
 - `generate_class20_figures.py`, `generate_class22_figures.py`, `generate_class23_figures.py`: regenerate the figures of those decks into `images/` (the Class 22 and 23 figures are synthetic or schematic and say so on their face)
 - `class01_intro_course.tex` to `class36_presentation_proposals.tex`: lecture decks, numbered in delivery order
 
-Classes 21, 24, and 34 are intervention sessions. Their material is provided directly for those sessions, rather than authored as course decks in this repository.
+Classes 21 and 24 are intervention sessions. Class 34 contains the course's agile tools and good-practices material, reinforcing the two-session pasteurization requirements practice introduced in Class 25.
 
 ## Suggested workflow
 

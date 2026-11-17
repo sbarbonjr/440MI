@@ -1,0 +1,229 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\renewcommand{\familydefault}{\sfdefault}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=black,pdftitle={NorthRiver Dairy Pasteurization Monitoring Challenge}}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{440MI / 305SM}
+\rhead{Pasteurization Monitoring Challenge}
+\cfoot{\thepage}
+\titleformat{\section}{\Large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.5em}{}
+\newcommand{\quoteitem}[1]{\begin{quote}\itshape #1\end{quote}}
+\newcommand{\important}[1]{\noindent\fbox{\parbox{0.94\linewidth}{\textbf{Important.} #1}}}
+\setlist{nosep}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries NorthRiver Dairy Pasteurization Monitoring Challenge}\\[0.4em]
+{\large Class 25 --- Requirements, Agile Process, Validation, and Evolution}\\[0.8em]
+\rule{0.9\linewidth}{0.6pt}
+\end{center}
+
+\important{This document contains the student case brief, expected deliverables, and a private instructor facilitation guide at the end. Distribute only the student-facing sections.}
+
+\section{Student case brief}
+
+\subsection{Background}
+NorthRiver Dairy is a medium-sized dairy producer that operates a semi-automated pasteurization line. The company produces several batches every day for local supermarkets, schools, and hospital kitchens.
+
+The pasteurization process is controlled by industrial equipment, but the operational team currently has no unified application for monitoring the process in real time. Operators can see raw sensor readings on separate technical screens, yet they must manually interpret the information and decide whether a situation requires attention.
+
+The company has recently experienced operational incidents. In one case, temperature remained outside the desired range for a short period, but the operator noticed the deviation too late. In another, a pressure variation was visible in the technical data but was not considered important until the batch had already been completed. No unsafe product reached customers, but the incidents caused rework, delayed production, and higher quality-control costs.
+
+NorthRiver Dairy wants a lightweight monitoring and alerting application before investing in a larger industrial platform. Your team has been asked to develop its first release.
+
+\subsection{Business goal}
+The application must help plant personnel monitor a live pasteurization process, identify abnormal conditions early, and keep a traceable record of important alerts. It supports human decision-making; it must \textbf{not} directly control pumps, valves, heaters, or other physical equipment.
+
+\subsection{Live data source}
+The simulator publishes readings through Server-Sent Events (SSE). Use the team identifier assigned by the instructor:
+
+\begin{center}\url{https://four40mi-pasteurization-simulator.onrender.com/stream?team=G01}\end{center}
+
+The event is named \texttt{sensor-reading}. The schema is available at:
+
+\begin{center}\url{https://four40mi-pasteurization-simulator.onrender.com/schema}\end{center}
+
+The service uses a shared global clock. Teams connected at the same time see equivalent process observations, even if they started their applications at different moments.
+
+An observation may include \texttt{timestamp}, \texttt{event\_id}, \texttt{batch\_id}, \texttt{state}, \texttt{T}, \texttt{pH}, \texttt{P}, \texttt{Kappa}, \texttt{Mu}, \texttt{Tau}, \texttt{Q\_in}, \texttt{Q\_out}, and \texttt{dTdt}. The process states are:
+
+\begin{center}\texttt{Idle $\rightarrow$ Fill $\rightarrow$ HeatUp $\rightarrow$ Hold $\rightarrow$ Cool $\rightarrow$ Discharge}\end{center}
+
+\subsection{Stakeholders}
+\textbf{Elena Rossi --- Operations Manager}
+\quoteitem{``My main concern is that operators need to know what needs attention now. A dashboard full of numbers is not enough. We need clear alerts, and we need to distinguish between a minor deviation and a serious operational risk.''}
+
+\textbf{Marco Bianchi --- Quality Manager}
+\quoteitem{``We must be able to explain what happened during a batch. If an alert occurred, I need to know the batch, the affected measurement, the configured rule, the observed value, and when the alert was raised.''}
+
+\textbf{Sofia Conti --- Senior Plant Operator}
+\quoteitem{``Do not make the application too complicated. During a shift, I need to see whether the system is connected, which batch is running, the current process state, and whether I need to act. I also need to acknowledge that I have seen an alert.''}
+
+\textbf{Daniel Weber --- IT and Maintenance Engineer}
+\quoteitem{``This first release must use the existing simulation service. It should run as a small web application and should not require users to install special industrial software. The application must not send commands to the production equipment.''}
+
+\subsection{What is known at project start}
+\begin{itemize}
+\item The application must consume the live sensor stream.
+\item Users must be able to configure at least some alert thresholds.
+\item The dashboard must show the current process state and batch identifier.
+\item Alerts must have a visible severity level and local session history.
+\item An operator must be able to acknowledge an alert.
+\item The application must clearly indicate whether the live data connection is active.
+\item The interface must be understandable by an operator without programming knowledge.
+\end{itemize}
+
+\subsection{What is deliberately unknown}
+The stakeholder narrative is not a complete specification. Your team must identify and resolve questions such as:
+\begin{itemize}
+\item Which sensors require alerts in the first release? What ranges and severity policy apply?
+\item Should one abnormal reading create an alert immediately? Can an acknowledged alert become active again?
+\item What happens when the live stream disconnects, or a reading is missing or invalid?
+\item Should thresholds be identical for every process state? How long should history remain available?
+\item Which users may modify configurations?
+\end{itemize}
+
+\important{Do not silently invent answers. Ask the instructor, record the answer source, or state and justify an explicit team assumption.}
+
+\subsection{Constraints and expected first release}
+\begin{itemize}
+\item Implement the application using Streamlit.
+\item Do not alter the simulator or its stream contract.
+\item Build a monitoring and alerting tool, not a controller for industrial equipment.
+\item Demonstrate the solution in a web browser.
+\item Prioritize: a small, validated vertical slice is preferable to many unvalidated features.
+\end{itemize}
+
+The first release should connect to the simulator; display current status and selected sensor data; configure selected rules; detect, classify, display, record, and acknowledge alerts; explain why an alert occurred; and demonstrate validation against agreed acceptance criteria.
+
+\section{Team brief: process and deliverables}
+
+Use an iterative-incremental agile process. Adapt it to your team, but make this cycle visible:
+
+\begin{center}\textbf{Elicit $\rightarrow$ Specify and prioritize $\rightarrow$ Build a thin increment $\rightarrow$ Validate $\rightarrow$ Evolve}\end{center}
+
+\subsection{Milestones}
+\begin{longtable}{p{0.18\linewidth}p{0.29\linewidth}p{0.42\linewidth}}
+\toprule
+\textbf{Milestone} & \textbf{Goal} & \textbf{Required artifacts}\\
+\midrule
+M1: Discovery & Understand needs, stakeholders, constraints, and uncertainty & Stakeholder map, question log, glossary, assumptions\\
+M2: Specification baseline & Agree a smallest testable increment & Prioritized backlog, SRS v1, acceptance criteria, process model\\
+M3: MVP & Demonstrate one working vertical slice & Streamlit application and source code\\
+M4: Validation & Produce evidence of what works and what does not & Test record, defects/issues, traceability matrix\\
+M5: Evolution & Respond coherently to the change request & SRS v2, updated backlog, impact analysis, release notes\\
+\bottomrule
+\end{longtable}
+
+\subsection{Required artifacts}
+\begin{enumerate}
+\item Product vision and stakeholder map.
+\item Prioritized product backlog, user stories, and acceptance criteria.
+\item SRS v1 and v2 in a concise IEEE-style structure.
+\item Development-process model: roles, board states, Definition of Ready, Definition of Done, review, and change handling.
+\item Operational requirements and user guide.
+\item Working Streamlit application.
+\item Traceability matrix from requirement to acceptance evidence.
+\item Validation report and evolution note.
+\end{enumerate}
+
+\subsection{SRS minimum structure}
+\begin{longtable}{p{0.29\linewidth}p{0.60\linewidth}}
+\toprule
+\textbf{Section} & \textbf{Include}\\
+\midrule
+Introduction & Purpose, scope, stakeholders, definitions, assumptions\\
+Overall description & User roles, operating environment, external SSE interface, constraints\\
+Functional requirements & Uniquely identified \texttt{FR-xx} requirements using clear ``shall'' language\\
+Non-functional requirements & Measurable usability, performance, reliability, maintainability, and security expectations\\
+Domain/business rules & Alert concepts, severity, process-state rules, traceability expectations\\
+Operational requirements & Deployment, configuration, recovery, support, limitations\\
+Validation and traceability & Acceptance criteria, test idea, priority, dependencies\\
+\bottomrule
+\end{longtable}
+
+\subsection{Operational guide minimum structure}
+\begin{itemize}
+\item How to start the application and select a team stream.
+\item How to configure, reset, and interpret alert rules.
+\item Meaning of severity, acknowledgement, active alerts, and alert history.
+\item Expected behavior for missing data, invalid readings, and stream disconnection.
+\item Recovery steps, known limitations, and the statement that the application does not control plant equipment.
+\end{itemize}
+
+\subsection{Traceability example}
+\begin{center}
+\begin{tabularx}{\linewidth}{p{0.08\linewidth}X X X}
+\toprule
+\textbf{ID} & \textbf{Requirement / story} & \textbf{Acceptance criterion} & \textbf{Evidence}\\
+\midrule
+FR-04 & Operator configures a temperature rule & Configured threshold is used for subsequent readings & TC-08 screenshot/log; evaluator test\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Change request --- issued in Session 2}
+Quality Management introduces the following rule after the first release:
+
+\quoteitem{During the \texttt{Hold} state, temperature compliance is more important than during other states. A critical temperature alert must be raised only when the configured limit is violated for a configurable number of consecutive readings. The alert history must record the process state in which the alert was created.}
+
+Analyze its impact on the backlog, SRS, tests, architecture, interface, and operational guide. Update relevant artifacts before implementing or planning the evolved increment.
+
+\newpage
+\section{Instructor facilitation guide --- private}
+
+\subsection{Recommended two-session conduct}
+\textbf{Session 1 (90--120 minutes).} Introduce the challenge and a live stream; give teams ten minutes to annotate the brief; run short stakeholder-interview rounds; require a first backlog, one functional requirement, one non-functional requirement, and an open assumption before coding; close with each team stating its MVP and validation evidence.
+
+\textbf{Between sessions.} Teams implement the MVP. Encourage the smallest vertical slice: connect to SSE, evaluate one configurable rule, show one meaningful alert, record it, and test it.
+
+\textbf{Session 2 (90--120 minutes).} Teams demonstrate validation evidence rather than only the interface; ask for one traceability path from stakeholder statement to test result; issue the change request; run a brief impact-analysis review; close with a retrospective.
+
+\subsection{Canonical stakeholder answers}
+Use these answers consistently across teams. For an unlisted question, distinguish a known fact, a technical constraint, and a legitimate product decision that the team must propose.
+
+\begin{longtable}{p{0.25\linewidth}p{0.64\linewidth}}
+\toprule
+\textbf{Topic} & \textbf{Canonical response}\\
+\midrule
+System role & The system supports human decisions; it does not control equipment or make production decisions autonomously.\\
+First-release focus & Temperature, pressure, pH, and \texttt{dTdt} are sensible candidates, but teams must prioritize and justify the MVP.\\
+Alert fatigue & Excessive alerts are harmful. Consider persistence, deduplication, or state-aware logic rather than alerting on every sample.\\
+History & Local session history is sufficient for the first release. Long-term persistence is future scope.\\
+Configuration & A designated operator or quality user may adjust thresholds in this prototype. Authentication is out of scope but must be documented as a limitation.\\
+Disconnection & The operator must clearly see stale or disconnected data. The system must not imply monitoring continues normally.\\
+Missing data & Do not silently treat missing or invalid data as normal. Show a comprehensible condition and record evaluator behavior.\\
+Severity & There must be at least warning and critical. Exact policy may be proposed and justified by the team.\\
+Auditability & Each alert should identify enough context to explain its rule and batch/state.\\
+Safety & The prototype is educational, not a certified safety system, and must say so clearly.\\
+\bottomrule
+\end{longtable}
+
+\subsection{Useful prompts}
+\begin{itemize}
+\item Who uses this feature, and what decision will they make?
+\item Can I observe a pass or fail for that statement?
+\item Is this a functional requirement, quality attribute, domain rule, or assumption?
+\item What happens if the stream is unavailable exactly when it is needed?
+\item What is the smallest vertical slice that proves this idea?
+\item Which requirement and test must change after the new \texttt{Hold} rule?
+\end{itemize}
+
+\important{Reward evidence and reasoning over visual polish. A strong team distinguishes stakeholder facts, technical constraints, and assumptions; writes testable requirements; demonstrates a small working increment; and shows coherent change impact.}
+
+\end{document}
