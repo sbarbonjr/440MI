@@ -1,4 +1,4 @@
-"""Fraud scoring service: the corrected counterpart of Class6_model_api.py (Class 30).
+"""Fraud scoring service: the corrected counterpart of Class6_model_api.py (Class 31).
 
 Differences from the minimal endpoint:
 - loads an artifact that exists in the repository, together with its scaler

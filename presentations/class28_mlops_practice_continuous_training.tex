@@ -1,7 +1,7 @@
 \input{common}
 
-\title{Class 27: MLOps Practice -- Continuous Training}
-\subtitle{Session 27 of 36 -- MLOps Block}
+\title{Class 28: MLOps Practice -- Continuous Training}
+\subtitle{Session 28 of 36 -- MLOps Block}
 \author{\coursename}
 \date{}
 
@@ -35,7 +35,7 @@
 
 \coursecontextframe
 {Operationalizing ML development and training as a repeatable, automatable pipeline.}
-{Class 26 introduced MLOps as coordination across the whole lifecycle; this class zooms into one box of that diagram, train and retrain, and asks what it takes to run it without a human kicking it off by hand every time.}
+{Class 27 introduced MLOps as coordination across the whole lifecycle; this class zooms into one box of that diagram, train and retrain, and asks what it takes to run it without a human kicking it off by hand every time.}
 {A continuous training pipeline for fraud scoring would retrain on a schedule or when score drift is detected, then gate promotion on a held-out evaluation before replacing the serving model.}
 {A continuous training pipeline for the pasteurization forecaster would retrain as new batches complete, gated by a check that the new model does not regress on known abnormal trajectories.}
 {Automation without validation just moves risk faster; a training pipeline needs the same gates as any other release.}
@@ -64,7 +64,7 @@ Trigger & When it fires \\
 \toprule
 Schedule & A fixed cadence, for example nightly or weekly. \\
 Data volume & Enough new labeled data has accumulated to justify a refresh. \\
-Drift signal & A monitoring alert from Class 32's detectors fires. \\
+Drift signal & A monitoring alert from Class 33's detectors fires. \\
 Performance decay & A tracked metric drops below an agreed threshold. \\
 Manual request & A team member has a specific reason to trigger a run. \\
 \bottomrule
@@ -123,8 +123,8 @@ Manual request & A team member has a specific reason to trigger a run. \\
 \begin{frame}{Where continuous training meets CI/CD}
 \begin{itemize}
 \item The retraining job itself can be triggered the same way as any other automated workflow: on a schedule or an event.
-\item Class 31's GitHub Actions cron trigger is a small but real building block for exactly this kind of scheduled job.
-\item Packaging, testing, and versioning from Class 31 apply to the training code path, not only the serving code path.
+\item Class 32's GitHub Actions cron trigger is a small but real building block for exactly this kind of scheduled job.
+\item Packaging, testing, and versioning from Class 32 apply to the training code path, not only the serving code path.
 \end{itemize}
 \coursefooter
 \end{frame}
@@ -202,7 +202,7 @@ If a retraining pipeline ran fully unattended, which single gate would you refus
 \item Automating a bad process just produces bad models faster; the gates matter more than the automation.
 \end{itemize}}
 {Teams should now be able to describe, even without building it, what a retraining pipeline for their own project would trigger on and what would stop a bad candidate.}
-{Class 28 returns to online learning and concept drift; Class 30 resumes the delivery side of the pipeline with model deployment and prediction serving.}
+{Class 29 returns to online learning and concept drift; Class 31 resumes the delivery side of the pipeline with model deployment and prediction serving.}
 {Training and delivery are two automatable paths that both need the same discipline: gates, versioning, and observability.}
 
 \end{document}

@@ -56,20 +56,20 @@ The materials in this repository follow a 36-class sequence organized in three m
 22. Requirements engineering
 23. Process models and Agile foundations
 24. Intervention: YesAlps
-25. Agile toolkit practice
-26. MLOps foundations
-27. MLOps practice and continuous training
-28. Online machine learning and concept drift
-29. Online learning, concept drift, and streaming practice
-30. Model deployment and prediction serving
-31. Good practices (Docker, CI/CD)
-32. Continuous monitoring and scalability
-33. Practical project — brainstorm and definitions
-34. Intervention
+25. Agile tools and good practices
+26. Agile toolkit practice (pasteurization monitoring challenge)
+27. MLOps foundations
+28. MLOps practice and continuous training
+29. Online machine learning and concept drift
+30. Online learning, concept drift, and streaming practice
+31. Model deployment and prediction serving
+32. Good practices (Docker, CI/CD)
+33. Continuous monitoring and scalability
+34. Practical project — brainstorm and definitions
 35. Project requirements and development plan
 36. Proposal presentations and course closing (merged session)
 
-The class slides live in [presentations/](presentations/), with both `.tex` sources and compiled PDFs. Classes 21, 24, and 34 are intervention sessions whose material is provided directly for those sessions, rather than authored as course decks in this repository. Classes 27 and 32 flag practical components that do not yet have runnable exercises in this repository (continuous training and monitoring/scalability, respectively).
+The class slides live in [presentations/](presentations/), with both `.tex` sources and compiled PDFs. Classes 21 and 24 are intervention sessions whose material is provided directly for those sessions, rather than authored as course decks in this repository. Classes 28 and 33 flag practical components that do not yet have runnable exercises in this repository (continuous training and monitoring/scalability, respectively).
 
 Class 15 has a [student activity brief](documents/Class15_Encoding_Embedding_Activity.pdf), a [worked notebook](notebooks/Class15_Encoding_Embedding_Solution.ipynb), and a [prepared Titanic dataset](notebooks/Class15_Titanic_Imputed.csv). The activity uses all 891 rows for encoding and chi-squared/Spearman exploratory diagnostics; it does not evaluate a predictive model. Class 16 returns to imputation and the broader feature-engineering workflow, and Class 18 introduces the train/test split for model evaluation.
 

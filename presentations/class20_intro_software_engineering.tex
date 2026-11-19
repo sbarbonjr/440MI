@@ -276,7 +276,7 @@
 \systile{s1}{0}{0}{tileblue}{Stand-alone application}{A Streamlit dashboard running on one laptop}{}
 \systile{s2}{4.65}{0}{tilegold}{Transaction-based system}{Fraud scoring API: request in, answer out}{\casetag{FRAUD CASE}}
 \systile{s3}{9.3}{0}{tileblue}{Embedded control system}{The pasteurizer's own controller (outside our scope)}{}
-\systile{s4}{0}{-2.3}{tileblue}{Batch processing system}{Scheduled retraining (Class 27)}{}
+\systile{s4}{0}{-2.3}{tileblue}{Batch processing system}{Scheduled retraining (Class 28)}{}
 \systile{s5}{4.65}{-2.3}{tilegold}{Data collection system}{Sensor stream feeding an online predictor}{\casetag{PASTEURIZATION CASE}}
 \systile{s6}{9.3}{-2.3}{tileblue}{System of systems}{Model service + feature pipeline + CRM + alert routing}{}
 \node[tile, minimum width=6.7cm, text width=6.4cm, align=left, font=\scriptsize] at (2.2,-4.4) {\textbf{Generic product:} the vendor owns and evolves it (e.g.\ scikit-learn).};
@@ -671,7 +671,7 @@ Temporal & Step B only works if step A ran earlier in the session & Explicit inp
 \foreach \a/\b in {Data/Train,Train/Evaluate,Evaluate/Register,Register/Monitor} {\draw[arrowgold] (\a) -- (\b);}
 \foreach \a/\b in {Code/Data,Build/Train,Test/Evaluate,Release/Register,Operate/Monitor} {\draw[coursegray!70, thick, <->] (\a.south) -- (\b.north);}
 \node[font=\scriptsize\bfseries, text=coursegold!65!black, anchor=west] at (0,-0.5) {MODEL LOOP (ADDED BY ML): REPEATED ON EVERY NEW DATA OR RETRAINING};
-\node[tag, anchor=north east] at (13.6,3.75) {PREVIEW OF CLASS 26};
+\node[tag, anchor=north east] at (13.6,3.75) {PREVIEW OF CLASS 27};
 \node[tileblue, anchor=north west, minimum width=13.4cm, text width=13.0cm, align=left, font=\small] at (0,-0.95) {\textbf{CI/CD} builds, tests, and releases every change automatically; for ML, the data and the model artifact are checked as well.};
 \node[tilegreen, anchor=north west, minimum width=13.4cm, text width=13.0cm, align=left, font=\small] at (0,-2.05) {\textbf{MLOps} runs both loops together, automated and observable.};
 \end{tikzpicture}
