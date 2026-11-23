@@ -1,216 +1,437 @@
 \input{common}
+\input{common_visual}
 
-\title{Class 26: Pasteurization Monitoring Challenge}
-\subtitle{A two-session practice in requirements, specification, validation, and evolution}
+% Three parts; the progress strip on each divider uses these labels.
+\newcommand{\sectioncount}{3}
+\newcommand{\sectionlabels}{1/Challenge,2/Session 1,3/Ground rules}
+
+\title{Class 26: Pasteurization Monitoring Challenge, Session 1}
 \author{\coursename}
 \date{}
 
+\definecolor{stickyyellow}{HTML}{FBE8A6}
+\definecolor{stickygreen}{HTML}{CFE6D6}
+\definecolor{stickyblue}{HTML}{CFE0F1}
+
+% ------------------------------------------------------------------ helpers
+% A gold strip with the idea to remember: y text
+\newcommand{\keyidea}[2]{%
+  \node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=0.8cm, text width=12.6cm, align=left, font=\footnotesize] at (0,#1) {{\bfseries\goldink\faIcon{lightbulb}\ Key idea.}\ #2};
+}
+% A goal card (6.6 x 1.6): x y style icon title text
+\newcommand{\goalcard}[6]{%
+  \node[#3, anchor=north west, minimum width=6.6cm, minimum height=1.6cm] at (#1,#2) {};
+  \badge{#1+0.65}{#2-0.8}{courseblue}{#4}
+  \node[anchor=west, text width=5.2cm, align=left, font=\small\bfseries, text=courseblue] at (#1+1.25,#2-0.28) {#5};
+  \node[anchor=north west, text width=5.2cm, align=left, font=\scriptsize, inner sep=0pt] at (#1+1.25,#2-0.5) {#6};
+}
+% A person pictogram: x y colour scale (y is the baseline of the shoulders)
+\newcommand{\person}[4]{%
+  \begin{scope}[shift={(#1,#2)}, scale=#4]
+    \fill[#3] (-0.3,0) arc (180:0:0.3 and 0.38) -- cycle;
+    \fill[#3] (0,0.58) circle (0.16);
+  \end{scope}
+}
+% A sticky note: x y colour rotation text
+\newcommand{\sticky}[5]{%
+  \node[fill=#3, draw=#3!55!black, line width=0.3pt, minimum width=1.55cm, minimum height=0.46cm, text width=1.4cm, align=center, font=\tiny, text=black, inner sep=2pt, rotate=#4] at (#1,#2) {#5};
+}
+% A cell of a comparison grid: x y colour width text
+\newcommand{\gridcell}[5]{%
+  \node[tile, fill=white, draw=#3!55, thick, anchor=north west, minimum width=#4cm, minimum height=0.72cm, text width={(#4-0.3)*1cm}, align=left, font=\scriptsize] at (#1,#2) {#5};
+}
+% A numbered step card (2.55 x 3.3): x number icon colour title text
+\newcommand{\stepcard}[6]{%
+  \node[tile, fill=white, draw=#4, thick, anchor=north west, minimum width=2.55cm, minimum height=3.7cm] at (#1,0) {};
+  \node[circle, fill=#4, text=white, minimum size=0.55cm, inner sep=0, font=\small\bfseries] at (#1+0.42,-0.42) {#2};
+  \node[text=#4!70, font=\Large] at (#1+2.1,-0.42) {\faIcon{#3}};
+  \node[anchor=north west, text width=2.2cm, align=left, font=\footnotesize\bfseries, text=courseblue, inner sep=0pt] at (#1+0.2,-0.88) {#5};
+  \node[anchor=north west, text width=2.2cm, align=left, font=\scriptsize, inner sep=0pt] at (#1+0.2,-1.7) {#6};
+}
+% One row of a two-column list: y icon label text
+\newcommand{\listrow}[4]{%
+  \node[chip, anchor=west, minimum width=4.3cm, minimum height=0.55cm, font=\scriptsize\bfseries, align=left] at (0,#1) {\faIcon{#2}\ #3};
+  \node[anchor=west, text width=8.7cm, font=\scriptsize, align=left] at (4.5,#1) {#4};
+  \draw[courseice!70!courseblue, line width=0.5pt] (0,#1-0.36) -- (13.4,#1-0.36);
+}
+\tikzset{fchip/.style={rounded corners=2pt, fill=courseice, draw=courseblue!55, thick, font=\ttfamily\tiny, inner sep=3pt, minimum height=0.36cm}}
+\def\nonetag{none}
+
 \begin{document}
+
+% ------------------------------------------------------------------ title
 \frame{\titlepage \coursefooter}
 
-\begin{frame}{The challenge in one sentence}
-\begin{block}{NorthRiver Dairy needs a monitoring and alerting application}
-Student teams will specify, build, validate, and evolve a Streamlit application that consumes a live pasteurization stream and helps operators notice abnormal conditions.
-\end{block}
-\begin{itemize}
-\item This is a \textbf{requirements and development-process} exercise, not a competition to build the most elaborate dashboard.
-\item The live simulator is the shared operational environment; the team product is the monitoring and alerting client.
-\item Every feature must trace from a stakeholder need to a requirement, acceptance check, implementation, and test.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Two-session roadmap}
+% ------------------------------------------------------------------ roadmap
+\begin{cframe}{Roadmap: two sessions around one thin slice}{\cterm{SRS}{Software Requirements Specification: the document that states what the system shall do.}\cterm{Elicitation}{gathering needs from stakeholders by asking, listening, and observing.}\cterm{Traceability}{a recorded link from each requirement to its source and to its test.}}
 \centering
-\begin{tikzpicture}[node distance=0.25cm]
-\node[flowbox, minimum width=3.0cm, minimum height=1.4cm] (a) {\textbf{Session 1}\\[0.25em]\scriptsize Discover, ask, specify};
-\node[flowbox, minimum width=3.0cm, minimum height=1.4cm, right=of a] (b) {\textbf{Between sessions}\\[0.25em]\scriptsize Build a thin vertical slice};
-\node[accentbox, minimum width=3.0cm, minimum height=1.4cm, right=of b] (c) {\textbf{Session 2}\\[0.25em]\scriptsize Validate, review, evolve};
-\draw[arrow] (a) -- (b); \draw[arrow] (b) -- (c);
+\begin{tikzpicture}
+\foreach \x/\col/\ico/\when/\ttl/\act/\evi in {0/courseblue/comments/CLASS 26: SESSION 1/{Discover, ask, specify}/{Elicitation, analysis, SRS baseline, and a plan.}/{Questions, backlog, SRS v1, process model.}, 4.55/coursegold/laptop-code/BETWEEN SESSIONS/{Build a thin vertical slice}/{Connect, evaluate one rule, show and log one alert.}/{A Streamlit application and its source code.}, 9.1/coursegreen/clipboard-check/CLASS 28: SESSION 2/{Validate, review, evolve}/{Demonstration, validation, and a change request.}/{Tests, traceability, SRS v2, release notes.}} {
+  \node[rounded corners=4pt, fill=\col, anchor=north west, minimum width=4.3cm, minimum height=1.2cm] at (\x,0) {};
+  \node[anchor=north west, text=white!85, font=\tiny\bfseries, inner sep=0pt] at (\x+0.2,-0.12) {\when};
+  \node[anchor=north west, text=white, font=\footnotesize\bfseries, text width=3.0cm, align=left, inner sep=0pt] at (\x+0.2,-0.38) {\ttl};
+  \node[text=white!45, font=\fontsize{18}{18}\selectfont] at (\x+3.8,-0.62) {\faIcon{\ico}};
+  \node[tile, fill=white, draw=\col!60, thick, anchor=north west, minimum width=4.3cm, minimum height=2.55cm] at (\x,-1.25) {};
+  \node[anchor=north west, font=\tiny\bfseries, text=\col!85!black, inner sep=0pt] at (\x+0.2,-1.42) {MAIN ACTIVITY};
+  \node[anchor=north west, text width=3.9cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.2,-1.65) {\act};
+  \node[anchor=north west, font=\tiny\bfseries, text=coursegold!65!black, inner sep=0pt] at (\x+0.2,-2.65) {MAIN EVIDENCE};
+  \node[anchor=north west, text width=3.9cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.2,-2.88) {\evi};
+}
+\draw[arrowgray] (4.3,-0.6) -- (4.55,-0.6);
+\draw[arrowgray] (8.85,-0.6) -- (9.1,-0.6);
+\keyidea{-4.1}{A small, validated vertical slice beats many unvalidated features. Classes 26 and 28 are the checkpoints before and after it; Class 27 falls in between.}
 \end{tikzpicture}
-\vspace{0.7em}
-\begin{tabularx}{\textwidth}{>{\bfseries}l X X}
-& Main activity & Main evidence \\
-\toprule
-1 & Elicitation, analysis, SRS baseline, plan & Questions, backlog, SRS v1, process model \\
-2 & Demonstration, validation, change request & Tests, traceability, SRS v2, release notes \\
-\bottomrule
-\end{tabularx}
 \coursefooter
-\end{frame}
+\end{cframe}
 
-\begin{frame}{Learning objectives}
-\learninggoals{\begin{itemize}
-\item Turn an incomplete stakeholder narrative into functional, non-functional, domain, and operational requirements.
-\item Write a concise IEEE-style Software Requirements Specification (SRS) that is testable and traceable.
-\item Use an agile, iterative process model with explicit artifacts, milestones, feedback, and change control.
-\item Validate a working increment against acceptance criteria using a live external stream.
-\item Explain how a requirement change affects requirements, tests, code, and release decisions.
-\end{itemize}}
-\coursefooter
-\end{frame}
+% ================================================================== PART 1
+\sectiondivider{1}{The challenge}{bullseye}{class 25 gave your team its toolkit; now the team applies it to a client brief.}{$\bullet$\ The client, the stakeholders, and the brief\\[3pt]$\bullet$\ The live simulator and its data\\[3pt]$\bullet$\ Product scope and constraints\\[3pt]$\bullet$\ What you will be able to do afterwards}
 
-\coursecontextframe
-{A dairy operator can observe raw sensor values but has no unified way to configure alerts, understand their severity, or retain a record of what happened during a batch.}
-{NorthRiver Dairy requests a lightweight monitoring and alerting application. It informs people; it never controls the equipment.}
-{The case brief is deliberately incomplete. Asking focused questions and recording assumptions is part of the assessed work.}
-{Use the English case brief in \texttt{documents/Class26\_Pasteurization\_Monitoring\_Challenge.md}.}
-{Do not begin with widgets. Begin with decisions, users, consequences, and evidence.}
-
-\begin{frame}{The shared live simulator}
-\begin{block}{Server}\url{https://four40mi-pasteurization-simulator.onrender.com}\end{block}
-\begin{block}{Team stream}\url{https://four40mi-pasteurization-simulator.onrender.com/stream?team=G01}\end{block}
-Replace \texttt{G01} with your assigned team identifier. The service uses Server-Sent Events (SSE): event \texttt{sensor-reading} carries JSON observations.
-\begin{itemize}
-\item The shared global clock gives teams equivalent observations when they connect at the same time.
-\item Fields include \texttt{timestamp}, \texttt{event\_id}, \texttt{batch\_id}, \texttt{state}, \texttt{T}, \texttt{pH}, \texttt{P}, \texttt{Kappa}, \texttt{Mu}, \texttt{Tau}, \texttt{Q\_in}, \texttt{Q\_out}, and \texttt{dTdt}.
-\item Schema: \url{https://four40mi-pasteurization-simulator.onrender.com/schema}
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Product scope: make the boundary explicit}
-\begin{columns}[T]
-\column{0.48\textwidth}\begin{block}{In scope for the MVP}\begin{itemize}
-\item Connect to and visualize live data.
-\item Show connection, batch, and current state.
-\item Configure selected alert rules.
-\item Display severity, active alerts, and local history.
-\item Acknowledge alerts and explain why they occurred.
-\end{itemize}\end{block}
-\column{0.48\textwidth}\begin{block}{Outside scope}\begin{itemize}
-\item Sending commands to heaters, pumps, or valves.
-\item Modifying the simulator or its stream contract.
-\item Replacing quality procedures or a plant safety system.
-\item Enterprise identity management in the first release.
-\end{itemize}\end{block}
-\end{columns}
-\begin{alertblock}{Important}An attractive chart is not a requirement. State the user, trigger, behavior, constraint, and acceptance evidence.\end{alertblock}
-\coursefooter
-\end{frame}
-
-\begin{frame}{The process model teams will apply}
+\begin{cframe}{The challenge in one sentence}{\cterm{Monitoring and alerting application}{software that watches a live process and tells people when something needs attention.}\cterm{Operator}{the person who runs the production line during a shift.}}
 \centering
-\begin{tikzpicture}[node distance=0.35cm]
-\node[flowbox, minimum width=2.05cm] (elicit) {Elicit\\needs};
-\node[flowbox, minimum width=2.05cm, right=of elicit] (spec) {Specify\\and prioritize};
-\node[flowbox, minimum width=2.05cm, right=of spec] (build) {Build a thin\\increment};
-\node[accentbox, minimum width=2.05cm, right=of build] (valid) {Validate\\with evidence};
-\node[accentbox, minimum width=2.05cm, right=of valid] (evolve) {Evolve after\\feedback};
-\draw[arrow] (elicit) -- (spec); \draw[arrow] (spec) -- (build); \draw[arrow] (build) -- (valid); \draw[arrow] (valid) -- (evolve);
-\draw[coursegray, dashed, ->] (evolve.south) to[out=-110,in=-70] node[below, font=\scriptsize] {change, learning, or defect} (elicit.south);
+\begin{tikzpicture}
+\node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=1.55cm, text width=12.8cm, align=left] at (0,0) {{\bfseries\goldink\large\faIcon{industry}\ NorthRiver Dairy needs a monitoring and alerting application.}\\[4pt]{\footnotesize Student teams will specify, build, validate, and evolve a Streamlit application that consumes a live pasteurization stream and helps operators notice abnormal conditions.}};
+\foreach \x/\col/\ico/\lab in {0/courseblue/file-alt/Specify, 3.43/courseblue/code/Build, 6.86/coursegreen/check-double/Validate, 10.3/coursegold/sync-alt/Evolve} {
+  \node[chip, fill=\col, anchor=north west, minimum width=3.1cm, minimum height=0.55cm, font=\footnotesize\bfseries] at (\x,-1.85) {\faIcon{\ico}\ \lab};
+}
+\foreach \x in {3.1,6.53,9.96} {\draw[arrowgray] (\x,-2.12) -- (\x+0.33,-2.12);}
+\foreach \x/\ico/\ttl/\txt in {0/clipboard-list/{A requirements and process exercise}/{Not a competition to build the most elaborate dashboard.}, 4.55/server/{The simulator is shared}/{It is the common operational environment; your product is the monitoring client.}, 9.1/route/{Every feature is traced}/{From stakeholder need to requirement, acceptance check, code, and test.}} {
+  \node[tileblue, anchor=north west, minimum width=4.3cm, minimum height=2.3cm] at (\x,-2.65) {};
+  \badge{\x+0.55}{-3.25}{courseblue}{\ico}
+  \node[anchor=west, text width=3.1cm, align=left, font=\footnotesize\bfseries, text=courseblue] at (\x+1.05,-3.25) {\ttl};
+  \node[anchor=north west, text width=3.9cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.2,-3.78) {\txt};
+}
 \end{tikzpicture}
-\vspace{0.55em}
-\begin{itemize}
-\item This is an \textbf{iterative-incremental agile process}: specification is sufficient to start a small, testable slice, then evolves with feedback.
-\item Each team adapts this model into its own workflow: roles, board states, Definition of Ready, Definition of Done, review point, and change rule.
-\end{itemize}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{What you will be able to do}{\cterm{Domain requirement}{a rule that comes from the problem domain, such as what makes an alert critical.}\cterm{Operational requirement}{what is needed to run and support the system: start-up, configuration, recovery.}}
+\centering
+\begin{tikzpicture}
+\goalcard{0}{0}{tileblue}{file-alt}{Write requirements}{Turn an incomplete stakeholder narrative into functional, non-functional, domain, and operational requirements.}
+\goalcard{6.8}{0}{tileblue}{file-signature}{Write the SRS}{Write a concise IEEE-style Software Requirements Specification that is testable and traceable.}
+\goalcard{0}{-1.7}{tileblue}{sync-alt}{Run an agile process}{Use an iterative process with explicit artifacts, milestones, feedback, and change control.}
+\goalcard{6.8}{-1.7}{tileblue}{check-double}{Validate with evidence}{Validate a working increment against acceptance criteria, using a live external stream.}
+\goalcard{0}{-3.4}{tileblue}{exchange-alt}{Handle change}{Explain how a requirement change affects requirements, tests, code, and release decisions.}
+\node[tilegold, anchor=north west, minimum width=6.6cm, minimum height=1.6cm, text width=6.2cm, align=left, font=\footnotesize] at (6.8,-3.4) {{\bfseries\goldink\faIcon{balance-scale}\ How it is judged.} By evidence, not by interface polish: every claim must be traceable from a stakeholder need to a test result.};
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{NorthRiver Dairy: the situation}{\cterm{Alert}{a message that tells a person that something needs attention.}\cterm{Stakeholder}{anyone with an interest in the system or affected by it.}}
+\centering
+\begin{tikzpicture}
+\foreach \x/\ico/\col/\ttl/\txt in {0/desktop/courseblue/TODAY/{Operators read raw sensor values on separate screens and interpret them by hand.}, 4.55/exclamation-triangle/coursered/TWO INCIDENTS/{A temperature deviation was noticed too late; a pressure change, only after the batch.}, 9.1/bullhorn/coursegold/THE REQUEST/{A lightweight monitoring and alerting application, before a larger platform.}} {
+  \node[tile, fill=white, draw=\col!70, thick, anchor=north west, minimum width=4.3cm, minimum height=2.35cm] at (\x,0) {};
+  \badge{\x+0.55}{-0.55}{\col}{\ico}
+  \node[anchor=west, font=\footnotesize\bfseries, text=\col!85!black] at (\x+1.1,-0.55) {\ttl};
+  \node[anchor=north west, text width=3.9cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.2,-1.1) {\txt};
+}
+\node[tilered, anchor=north west, minimum width=6.6cm, minimum height=1.0cm, text width=6.2cm, align=left, font=\footnotesize] at (0,-2.55) {{\bfseries\color{coursered}\faIcon{ban}\ Boundary.} It informs people. It never controls the equipment.};
+\node[tilegold, anchor=north west, minimum width=6.6cm, minimum height=1.0cm, text width=6.2cm, align=left, font=\scriptsize] at (6.8,-2.55) {{\bfseries\goldink\faIcon{question-circle}\ Deliberately incomplete.} Asking focused questions and recording assumptions is part of the assessed work.};
+\node[note, anchor=north west, inner sep=0pt] at (0,-3.8) {The English case brief is on GitHub: \href{https://github.com/sbarbonjr/440MI/blob/main/documents/Class26_Pasteurization_Monitoring_Challenge.pdf}{\texttt{documents/Class26\_Pasteurization\_Monitoring\_Challenge.pdf}}.};
+\keyidea{-4.15}{Do not begin with widgets. Begin with decisions, users, consequences, and evidence.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Four voices in the brief}{\cterm{Stakeholder concern}{what a stakeholder needs from the system, which a requirement must capture.}\cterm{Acknowledge}{to record that a person has seen an alert.}}
+\centering
+\begin{tikzpicture}
+\foreach \x/\y/\col/\name/\role/\tag/\txt in {0/0/coursegold/Elena Rossi/Operations Manager/URGENCY/{Operators must see what needs attention now: clear alerts that tell a minor deviation from a serious risk.}, 6.8/0/courseblue/Marco Bianchi/Quality Manager/AUDITABILITY/{Must explain what happened in a batch: batch, measurement, rule, observed value, and time.}, 0/-1.85/coursegreen/Sofia Conti/Senior Plant Operator/USABILITY/{Keep it simple: connected? which batch and state? do I need to act? Operators must acknowledge alerts.}, 6.8/-1.85/coursered/Daniel Weber/IT and Maintenance Engineer/CONSTRAINTS/{Use the existing simulator as a small web app: no special software, and no commands to the equipment.}} {
+  \node[tileblue, draw=\col!70, anchor=north west, minimum width=6.6cm, minimum height=1.7cm] at (\x,\y) {};
+  \person{\x+0.7}{\y-1.45}{\col}{1.25}
+  \node[anchor=west, font=\small\bfseries, text=courseblue] at (\x+1.4,\y-0.3) {\name};
+  \node[anchor=west, font=\tiny, text=coursegray] at (\x+1.4,\y-0.58) {\role};
+  \node[chip, fill=\col, anchor=north east, minimum height=0.3cm, font=\tiny\bfseries] at (\x+6.45,\y-0.12) {\tag};
+  \node[anchor=north west, text width=5.0cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+1.4,\y-0.78) {\txt};
+}
+\keyidea{-3.85}{Four voices, four kinds of requirement: urgency, auditability, usability, and constraints. They will not settle every question for you, so ask.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{The shared live simulator}{\cterm{SSE}{Server-Sent Events: a one-way stream of events from a server to a client over HTTP.}\cterm{Schema}{the description of the fields a message may carry and their types.}\cterm{Global clock}{one shared time, so teams connected together see equivalent readings.}}
+\centering
+\begin{tikzpicture}
+\node[tileblue, anchor=north west, minimum width=3.6cm, minimum height=0.95cm, text width=3.3cm, align=center, font=\scriptsize] at (0,0) {{\bfseries\color{courseblue}\faIcon{server}\ Simulator}\\publishes readings};
+\draw[arrowgold, line width=2pt] (3.7,-0.48) -- (7.9,-0.48);
+\node[font=\scriptsize\bfseries, text=courseblue, fill=white, inner sep=2pt] at (5.8,-0.2) {SSE: sensor-reading (JSON)};
+\node[font=\tiny, text=coursegray, fill=white, inner sep=1pt] at (5.8,-0.77) {one stream per team};
+\node[tilegold, anchor=north west, minimum width=3.6cm, minimum height=0.95cm, text width=3.3cm, align=center, font=\scriptsize] at (8.0,0) {{\bfseries\goldink\faIcon{desktop}\ Your Streamlit app}\\monitors and alerts};
+\draw[arrowgray] (11.7,-0.48) -- (12.3,-0.48);
+\person{12.85}{-0.8}{courseblue}{0.9}
+\node[tile, fill=white, draw=courseblue!55, thick, anchor=north west, minimum width=13.4cm, minimum height=1.7cm] at (0,-1.2) {};
+\node[anchor=north west, font=\tiny\bfseries, text=coursegold!65!black] at (0.2,-1.45) {SERVER};
+\node[anchor=north west, font=\ttfamily\scriptsize, inner sep=0pt] at (2.2,-1.42) {\href{https://four40mi-pasteurization-simulator.onrender.com}{https://four40mi-pasteurization-simulator.onrender.com}};
+\node[anchor=north west, font=\tiny\bfseries, text=coursegold!65!black] at (0.2,-1.8) {TEAM STREAM};
+\node[anchor=north west, font=\ttfamily\scriptsize, inner sep=0pt] at (2.2,-1.77) {\href{https://four40mi-pasteurization-simulator.onrender.com/stream?team=G01}{https://four40mi-pasteurization-simulator.onrender.com/stream?team=G01}};
+\node[anchor=north west, font=\tiny\bfseries, text=coursegold!65!black] at (0.2,-2.15) {SCHEMA};
+\node[anchor=north west, font=\ttfamily\scriptsize, inner sep=0pt] at (2.2,-2.12) {\href{https://four40mi-pasteurization-simulator.onrender.com/schema}{https://four40mi-pasteurization-simulator.onrender.com/schema}};
+\node[anchor=north west, font=\tiny\itshape, text=coursegray] at (0.2,-2.47) {Replace \texttt{G01} with your assigned team identifier.};
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,-3.2) {FIELDS OF EACH EVENT};
+\node[fchip, anchor=west] (f1) at (0,-3.55) {timestamp};
+\node[fchip, right=3pt of f1] (f2) {event\_id};
+\node[fchip, right=3pt of f2] (f3) {batch\_id};
+\node[fchip, right=3pt of f3, fill=coursegold!18, draw=coursegold] (f4) {state};
+\node[fchip, right=3pt of f4] (f5) {T};
+\node[fchip, right=3pt of f5] (f6) {pH};
+\node[fchip, right=3pt of f6] (f7) {P};
+\node[fchip, right=3pt of f7] (f8) {Kappa};
+\node[fchip, right=3pt of f8] (f9) {Mu};
+\node[fchip, right=3pt of f9] (f10) {Tau};
+\node[fchip, right=3pt of f10] (f11) {Q\_in};
+\node[fchip, right=3pt of f11] (f12) {Q\_out};
+\node[fchip, right=3pt of f12] (f13) {dTdt};
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,-3.98) {PROCESS STATES};
+\foreach \i/\s/\sty in {0/Idle/tileblue, 1/Fill/tileblue, 2/HeatUp/tileblue, 3/Hold/tilegold, 4/Cool/tileblue, 5/Discharge/tileblue} {
+  \node[\sty, minimum width=1.9cm, minimum height=0.4cm, font=\scriptsize\bfseries, anchor=north west, inner sep=2pt] at ({\i*2.2},-4.15) {\s};
+}
+\foreach \i in {0,1,2,3,4} {\draw[arrowgray] ({\i*2.2+1.9},-4.35) -- ({\i*2.2+2.2},-4.35);}
+\node[note, anchor=north west] at (0,-4.65) {The shared global clock gives teams equivalent observations when they connect at the same time.};
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Product scope: make the boundary explicit}{\cterm{MVP}{minimum viable product: the smallest release that delivers value and can be validated.}\cterm{Scope}{the boundary between what the product will and will not do.}\cterm{Stream contract}{the agreed format and meaning of the data the simulator sends.}}
+\centering
+\begin{tikzpicture}
+\node[tilegreen, anchor=north west, minimum width=6.6cm, minimum height=3.1cm] at (0,0) {};
+\node[anchor=north west, font=\scriptsize\bfseries, text=coursegreen, inner sep=0pt] at (0.25,-0.18) {\faIcon{check-circle}\ IN SCOPE FOR THE MVP};
+\foreach \y/\t in {-0.8/Connect to and visualize live data., -1.25/{Show connection, batch, and state.}, -1.7/Configure selected alert rules., -2.15/{Display severity, alerts, and history.}, -2.7/Acknowledge alerts and explain why they occurred.} {
+  \node[text=coursegreen, font=\small] at (0.4,\y) {\faIcon{check}};
+  \node[anchor=west, text width=5.6cm, align=left, font=\scriptsize, inner sep=0pt] at (0.75,\y) {\t};
+}
+\node[tilered, anchor=north west, minimum width=6.6cm, minimum height=3.1cm] at (6.8,0) {};
+\node[anchor=north west, font=\scriptsize\bfseries, text=coursered, inner sep=0pt] at (7.05,-0.18) {\faIcon{ban}\ OUTSIDE SCOPE};
+\foreach \y/\t in {-0.85/{Commands to heaters, pumps, or valves.}, -1.4/Modifying the simulator or its contract., -1.95/Replacing quality or plant safety systems., -2.5/Enterprise identity management in v1.} {
+  \node[text=coursered, font=\small] at (7.2,\y) {\faIcon{times}};
+  \node[anchor=west, text width=5.5cm, align=left, font=\scriptsize, inner sep=0pt] at (7.55,\y) {\t};
+}
+\foreach \x/\ico/\txt in {0/laptop-code/Use Streamlit, 3.4/globe/Demo in a browser, 6.8/lock/Simulator as is, 10.2/eye/Monitor only} {
+  \node[tile, fill=white, draw=courseblue!55, thick, anchor=north west, minimum width=3.2cm, minimum height=0.5cm, text width=2.9cm, align=left, font=\scriptsize\bfseries, text=courseblue] at (\x,-3.3) {\faIcon{\ico}\ \txt};
+}
+\keyidea{-4.0}{An attractive chart is not a requirement. State the user, the trigger, the behavior, the constraint, and the acceptance evidence.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ================================================================== PART 2
+\sectiondivider{2}{Session 1: discover and specify}{search}{the brief gives you the problem; session 1 turns it into questions, a backlog, and an SRS baseline.}{$\bullet$\ The iterative-incremental process teams apply\\[3pt]$\bullet$\ The five steps of session 1 and the discipline of good questions\\[3pt]$\bullet$\ SRS v1 and operational requirements\\[3pt]$\bullet$\ From story to requirement to acceptance criterion}
+
+\begin{cframe}{The process model teams will apply}{\cterm{Iterative-incremental process}{repeated short cycles, each adding a usable piece.}\cterm{Change rule}{how the team decides to accept, defer, or reject a change.}}
+\centering
+\begin{tikzpicture}
+\foreach \i/\ico/\a/\b/\col in {0/search/Elicit/needs/courseblue, 1/file-alt/Specify/and prioritize/courseblue, 2/code/Build a thin/increment/courseblue, 3/check-double/Validate/with evidence/coursegold, 4/sync-alt/Evolve after/feedback/coursegold} {
+  \node[rounded corners=4pt, fill=\col, text=white, anchor=north west, minimum width=2.4cm, minimum height=1.25cm, align=center, font=\footnotesize\bfseries] (p\i) at ({\i*2.75},0) {\faIcon{\ico}\\[-1pt]\a\\[-3pt]\b};
+}
+\foreach \i/\j in {0/1,1/2,2/3,3/4} {\draw[arrow] (p\i.east) -- (p\j.west);}
+\draw[coursegray, dashed, thick, ->] (p4.north) to[bend right=12] node[above, font=\scriptsize, fill=white, inner sep=2pt] {change, learning, or defect} (p0.north);
+\node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=2.3cm] at (0,-1.9) {};
+\node[anchor=north west, font=\tiny\bfseries, text=courseblue, inner sep=0pt] at (0.25,-2.08) {\faIcon{sync-alt}\ ITERATIVE-INCREMENTAL AND AGILE};
+\node[anchor=north west, text width=6.2cm, align=left, font=\scriptsize, inner sep=0pt] at (0.25,-2.45) {Specification is sufficient to start a small, testable slice, then evolves with feedback.\\[4pt]The boards, stories, and reviews of Class 25 are your working tools.};
+\node[tilegold, anchor=north west, minimum width=6.6cm, minimum height=2.3cm] at (6.8,-1.9) {};
+\node[anchor=north west, font=\tiny\bfseries, text=coursegold!65!black, inner sep=0pt] at (7.05,-2.08) {\faIcon{cogs}\ EACH TEAM ADAPTS IT INTO ITS OWN WORKFLOW};
+\foreach \x/\y/\ico/\t in {7.0/-2.45/users/Roles, 10.15/-2.45/columns/Board states, 7.0/-2.97/check-square/Definition of Ready, 10.15/-2.97/check-double/Definition of Done, 7.0/-3.49/desktop/Review point, 10.15/-3.49/exchange-alt/Change rule} {
+  \node[tile, fill=white, draw=coursegold!70, thick, anchor=north west, minimum width=3.0cm, minimum height=0.42cm, font=\scriptsize\bfseries, text=courseblue, align=left, inner sep=3pt] at (\x,\y) {\faIcon{\ico}\ \t};
+}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Session 1: five steps}{\cterm{Minimum viable increment}{the smallest slice worth building and validating first.}\cterm{Assumption}{a statement taken as true until it is confirmed.}}
+\centering
+\begin{tikzpicture}
+\stepcard{0}{1}{book-open}{courseblue}{Read the brief}{Find stakeholders, decisions, risks, assumptions, and open questions.}
+\stepcard{2.71}{2}{comments}{courseblue}{Interview the panel}{A short interview with the professor; log answers and open questions.}
+\stepcard{5.42}{3}{list-ol}{courseblue}{Build the backlog}{Prioritized backlog with user stories and acceptance criteria.}
+\stepcard{8.13}{4}{file-alt}{courseblue}{Write SRS v1}{Write SRS v1 and agree a minimum viable increment.}
+\stepcard{10.85}{5}{project-diagram}{courseblue}{Define the process}{Define the team process and plan the first increment.}
+\foreach \x in {2.55,5.26,7.97,10.68} {\draw[arrowgold] (\x,-0.42) -- (\x+0.16,-0.42);}
+\keyidea{-4.05}{Session 1 leaves you with a question log, a prioritized backlog, SRS v1, a process model, and agreement on the smallest increment worth building.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Question discipline}{\cterm{Question log}{a record of the questions asked, the answers given, and where each came from.}\cterm{Open question}{something the team must find out before it can specify the system.}}
+\centering
+\begin{tikzpicture}
+\person{0.5}{-1.9}{courseblue}{1.6}
+\person{0.35}{-1.9}{courseblue}{1.3}
+\foreach \y/\q in {-0.1/{Who configures this?}, -0.95/{What makes an alert critical?}, -1.8/{What evidence is required?}, -2.65/{What happens if data is missing?}} {
+  \node[tile, fill=white, draw=courseblue, thick, anchor=north west, minimum width=5.0cm, minimum height=0.65cm, font=\scriptsize\itshape, text=courseblue, align=left] at (0.85,\y) {``\q''};
+}
+\node[anchor=west, font=\tiny\bfseries, text=coursegold!65!black] at (6.0,0.15) {WHAT THE BRIEF DELIBERATELY LEAVES OPEN};
+\foreach \x/\y/\t in {6.0/-0.1/Which sensors need alerts?, 9.75/-0.1/What is the acceptable range per sensor?, 6.0/-0.82/When is an alert a warning or critical?, 9.75/-0.82/Does one abnormal reading alert at once?, 6.0/-1.54/Can an acknowledged alert reopen?, 9.75/-1.54/What happens when the stream disconnects?, 6.0/-2.26/Same thresholds in every process state?, 9.75/-2.26/How long is the alert history kept?, 6.0/-2.98/Who may change the configuration?, 9.75/-2.98/What if a value is missing or invalid?} {
+  \node[tile, fill=coursegold!12, draw=coursegold!70, thick, anchor=north west, minimum width=3.6cm, minimum height=0.6cm, text width=3.3cm, align=left, font=\scriptsize, inner sep=3pt] at (\x,\y) {\t};
+}
+\keyidea{-4.0}{Do not silently invent answers. Ask the professor, record where the answer came from, or state and justify an explicit team assumption.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{SRS v1: concise, IEEE-style, and useful}{\cterm{FR-xx}{a uniquely numbered functional requirement, such as FR-04.}\cterm{Shall}{the word that marks a binding requirement.}\cterm{Observable obligation}{something the system must do that a person can see pass or fail.}}
+\centering
+\begin{tikzpicture}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,0.2) {SECTION};
+\node[anchor=west, font=\tiny\bfseries, text=coursegold!65!black] at (4.5,0.2) {MINIMUM CONTENT};
+\listrow{-0.3}{play-circle}{Introduction}{Purpose, scope, stakeholders, definitions, assumptions.}
+\listrow{-0.9}{industry}{Overall description}{Users, operating environment, external SSE interface, constraints.}
+\listrow{-1.5}{list-ol}{Functional requirements}{Identified \texttt{FR-xx} statements, written with ``shall''.}
+\listrow{-2.1}{tachometer-alt}{Non-functional requirements}{Measurable usability, performance, reliability, maintainability, and security expectations.}
+\listrow{-2.7}{balance-scale}{Domain and business rules}{Alert concepts, severity, process-state rules, traceability expectations.}
+\listrow{-3.3}{cogs}{Operational requirements}{Start-up, configuration, disconnection, recovery, support, known limitations.}
+\listrow{-3.9}{route}{Validation and traceability}{Acceptance criteria, test idea, priority, dependencies.}
+\node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=0.8cm, text width=12.6cm, align=left, font=\footnotesize] at (0,-4.4) {{\bfseries\goldink\faIcon{search}\ Quality check.} One requirement should express one observable obligation. Avoid ``fast'', ``easy'', ``robust'', or ``real time'' unless the statement says how it will be checked.};
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{From a story to evidence}{\cterm{System requirement}{a statement of what the system shall do, written for developers and testers.}\cterm{Session history}{the alerts kept for as long as the user session lasts.}}
+\centering
+\begin{tikzpicture}
+\foreach \x/\col/\ico/\tag/\txt in {0/courseblue/sticky-note/USER STORY/{As a plant operator, I want to see a clearly classified active alert so that I can decide whether the current batch needs attention.}, 4.55/coursegold/file-alt/POSSIBLE REQUIREMENT/{When an evaluated reading violates a configured rule, the system {\bfseries shall} create an alert containing the batch identifier, sensor, configured rule, observed value, timestamp, process state, and severity.}, 9.1/coursegreen/check-double/POSSIBLE CRITERION/{{\bfseries\color{courseblue}Given} a configured temperature rule and a violating reading, {\bfseries\color{coursegold!70!black}when} the configured persistence condition is met, {\bfseries\color{coursegreen}then} the dashboard displays one active alert with all required fields and stores it in session history.}} {
+  \node[tile, fill=white, draw=\col, thick, anchor=north west, minimum width=4.3cm, minimum height=3.7cm] at (\x,0) {};
+  \node[chip, fill=\col, anchor=north west, minimum width=3.9cm, minimum height=0.42cm, font=\tiny\bfseries, align=left] at (\x+0.2,-0.18) {\faIcon{\ico}\ \tag};
+  \node[anchor=north west, text width=3.9cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.2,-0.85) {\txt};
+}
+\draw[arrowgold, line width=1.6pt] (4.3,-1.85) -- (4.55,-1.85);
+\draw[arrowgold, line width=1.6pt] (8.85,-1.85) -- (9.1,-1.85);
+\keyidea{-4.0}{Each step is more precise and more checkable than the last: the story gives the reason, the requirement the obligation, and the criterion the evidence.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Operational requirements are part of the product}{\cterm{Operational guide}{the document that tells a user how to start, configure, and recover the application.}\cterm{Malformed data}{a message that does not follow the stream schema.}}
+\centering
+\begin{tikzpicture}
+\node[tileblue, anchor=north west, minimum width=7.9cm, minimum height=4.1cm] at (0,0) {};
+\node[anchor=north west, font=\scriptsize\bfseries, text=courseblue, inner sep=0pt] at (0.25,-0.18) {\faIcon{book}\ OPERATIONAL GUIDE: MINIMUM CONTENTS};
+\foreach \y/\ico/\t in {-1.0/play-circle/{How to start the Streamlit application and select a team stream.}, -1.67/sliders-h/{How to configure, save, reset, and interpret alert rules.}, -2.34/bell/{Meaning of severities, acknowledgement, and active versus historic alert.}, -3.01/plug/{Behavior on malformed data, missing values, or stream disconnection.}, -3.68/life-ring/{Recovery steps, known limitations, and a statement that the application does not control equipment.}} {
+  \node[circle, fill=courseblue, text=white, minimum size=0.45cm, inner sep=0, font=\scriptsize] at (0.5,\y) {\faIcon{\ico}};
+  \node[anchor=west, text width=6.7cm, align=left, font=\scriptsize, inner sep=0pt] at (0.9,\y) {\t};
+}
+\node[anchor=west, font=\tiny\bfseries, text=coursegold!65!black, text width=5.2cm, align=left] at (8.2,0.1) {FOUR CONDITIONS THE APP MUST HANDLE: HOW WILL THE OPERATOR KNOW?};
+\foreach \y/\ico/\col/\t in {-0.55/wifi/coursegreen/Connected, -1.35/unlink/coursered/Disconnected, -2.15/question-circle/coursegold/A missing value, -2.95/bug/coursegray/Malformed data} {
+  \node[tile, fill=white, draw=\col, very thick, anchor=north west, minimum width=5.2cm, minimum height=0.65cm, font=\footnotesize\bfseries, text=courseblue, align=left] at (8.2,\y) {\faIcon{\ico}\ \t};
+}
+\keyidea{-4.4}{If the application is correct only when the stream is perfect, the requirement is incomplete. Operational thinking is part of specifying the product.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ================================================================== PART 4
+\sectiondivider{3}{Ground rules}{flag-checkered}{the same ground rules cover both sessions: what is delivered, at which milestone, and how it is judged.}{$\bullet$\ Five milestones and their decision gates\\[3pt]$\bullet$\ The nine required artifacts\\[3pt]$\bullet$\ The professor as the stakeholder panel\\[3pt]$\bullet$\ Assessment: evidence over interface polish}
+
+\begin{cframe}{Milestones and decision gates}{\cterm{Milestone}{a checkpoint with a defined decision and a defined deliverable.}\cterm{Decision gate}{the question the team must answer with evidence before moving on.}}
+\centering
+\begin{tikzpicture}
+\node[chip, fill=courseblue, anchor=north west, minimum width=5.25cm, minimum height=0.36cm, font=\tiny\bfseries] at (0,0) {SESSION 1 (CLASS 26)};
+\node[chip, fill=coursegold, anchor=north west, minimum width=2.55cm, minimum height=0.36cm, font=\tiny\bfseries] at (5.4,0) {BETWEEN SESSIONS};
+\node[chip, fill=coursegreen, anchor=north west, minimum width=5.25cm, minimum height=0.36cm, font=\tiny\bfseries] at (8.1,0) {SESSION 2 (CLASS 28)};
+\draw[line width=2pt, courseblue!25] (0.3,-0.85) -- (13.1,-0.85);
+\foreach \i/\col/\name/\gate/\art in {0/courseblue/Discovery/{Do we understand the problem enough to proceed?}/{Stakeholder map, question log, glossary, assumptions}, 1/courseblue/Baseline/{Is the first increment small and testable?}/{Backlog, SRS v1, acceptance criteria, process model}, 2/coursegold/MVP/{Does the vertical slice work?}/{Streamlit application, code, demonstration}, 3/coursegreen/Validation/{What evidence supports the claims?}/{Test record, defects, traceability matrix}, 4/coursegreen/Evolution/{What changes and why?}/{Change analysis, SRS v2, backlog update, release notes}} {
+  \pgfmathsetmacro{\x}{\i*2.7}
+  \node[circle, fill=\col, text=white, draw=white, line width=1.5pt, minimum size=0.62cm, inner sep=0, font=\scriptsize\bfseries] at (\x+1.275,-0.85) {M\the\numexpr\i+1\relax};
+  \node[tile, fill=white, draw=\col, thick, anchor=north west, minimum width=2.55cm, minimum height=3.65cm] at (\x,-1.3) {};
+  \node[anchor=north west, font=\footnotesize\bfseries, text=\col!85!black, inner sep=0pt] at (\x+0.18,-1.45) {\name};
+  \node[anchor=north west, font=\tiny\bfseries, text=coursegray, inner sep=0pt] at (\x+0.18,-1.85) {DECISION GATE};
+  \node[anchor=north west, text width=2.25cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.18,-2.08) {\gate};
+  \node[anchor=north west, font=\tiny\bfseries, text=coursegold!65!black, inner sep=0pt] at (\x+0.18,-3.4) {ARTIFACTS};
+  \node[anchor=north west, text width=2.25cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.18,-3.62) {\art};
+}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Nine required artifacts}{\cterm{Artifact}{a document or piece of software the team produces and the assessors review.}}
+\centering
+\begin{tikzpicture}
+\foreach \x/\y/\ico/\ttl/\tags in {0/0/map/{Product vision and stakeholder map}/M1, 4.55/0/list-ol/{Prioritized product backlog}/M2, 9.1/0/sticky-note/{User stories and acceptance criteria}/M2, 0/-1.4/file-alt/{SRS v1 and v2, concise IEEE style}/{M2 M5}, 4.55/-1.4/project-diagram/{Development-process model}/M2, 9.1/-1.4/book/{Operational guide and requirements}/none, 0/-2.8/laptop-code/{Working Streamlit application}/M3, 4.55/-2.8/route/{Traceability matrix}/M4, 9.1/-2.8/clipboard-check/{Validation report and evolution note}/{M4 M5}} {
+  \node[tileblue, anchor=north west, minimum width=4.3cm, minimum height=1.25cm] at (\x,\y) {};
+  \badge{\x+0.55}{\y-0.625}{courseblue}{\ico}
+  \node[anchor=north west, text width=3.1cm, align=left, font=\scriptsize\bfseries, text=courseblue, inner sep=0pt] at (\x+1.05,\y-0.17) {\ttl};
+  \ifx\tags\nonetag\else
+    \node[chip, fill=coursegold, anchor=south west, minimum height=0.28cm, font=\tiny\bfseries, inner sep=2.5pt] at (\x+1.05,\y-1.15) {\tags};
+  \fi
+}
+\keyidea{-4.2}{The application is one of nine artifacts. A plain dashboard with complete, traceable evidence beats a polished one that nobody can defend.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{The professor as the stakeholder panel}{\cterm{Canonical answer}{the single agreed reply that every team receives to the same question.}\cterm{Answer log}{the shared record of the questions asked and the answers given.}}
+\centering
+\begin{tikzpicture}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,0.15) {TEAMS};
+\foreach \x in {0.5,1.3,2.1} {\person{\x}{-1.7}{courseblue}{1.0}}
+\node[anchor=north, font=\tiny, text=coursegray] at (1.3,-1.75) {ask questions};
+\draw[arrowgold, line width=2pt] (3.0,-1.0) -- (4.3,-1.0);
+\node[tilegold, anchor=north west, minimum width=4.9cm, minimum height=2.05cm] at (4.4,0.25) {};
+\node[anchor=north west, font=\tiny\bfseries, text=coursegold!65!black] at (4.55,0.1) {THE PROFESSOR PLAYS THREE ROLES};
+\foreach \x/\role in {5.25/Operations Manager, 6.95/Quality Manager, 8.65/Senior Plant Operator} {
+  \person{\x}{-1.35}{coursegold}{1.0}
+  \node[anchor=north, text width=1.6cm, align=center, font=\tiny\bfseries, text=courseblue] at (\x,-1.4) {\role};
+}
+\draw[arrowgold, line width=2pt] (9.4,-1.0) -- (10.1,-1.0);
+\node[tile, fill=white, draw=courseblue, thick, anchor=north west, minimum width=3.2cm, minimum height=2.05cm] at (10.2,0.25) {};
+\node[anchor=north west, font=\tiny\bfseries, text=courseblue, inner sep=0pt] at (10.4,0.08) {\faIcon{book-open}\ ANSWER LOG};
+\sticky{11.8}{-0.55}{stickyyellow}{-2}{same answer for every team}
+\sticky{11.8}{-1.1}{stickygreen}{1.5}{who, when, and why}
+\sticky{11.8}{-1.65}{stickyblue}{-1}{open decisions marked}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,-2.5) {WHEN A BUSINESS DECISION IS GENUINELY OPEN};
+\foreach \x/\n/\t in {0/1/Propose alternatives, 4.55/2/Record an assumption, 9.1/3/Justify your choice} {
+  \node[chip, fill=courseblue, anchor=north west, minimum width=4.3cm, minimum height=0.5cm, font=\scriptsize\bfseries, align=left] at (\x,-2.7) {\n\ \ \t};
+}
+\draw[arrowgray] (4.3,-2.95) -- (4.55,-2.95);
+\draw[arrowgray] (8.85,-2.95) -- (9.1,-2.95);
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,-3.55) {MARK THE SOURCE OF EVERY REQUIREMENT};
+\foreach \x/\w/\col/\t in {0/3.0/courseblue/Stakeholder answer, 3.2/3.7/coursegreen/Observed stream behavior, 7.1/2.9/coursegold/Team assumption, 10.2/3.2/coursegray/Technical constraint} {
+  \node[chip, fill=\col, anchor=north west, minimum width=\w cm, minimum height=0.45cm, font=\scriptsize\bfseries] at (\x,-3.75) {\t};
+}
+\node[note, anchor=north west, text width=13.2cm, inner sep=0pt] at (0,-4.4) {Do not silently invent a requirement. The case brief also holds a private professor section with recommended answers and discussion prompts.};
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Assessment: evidence over interface polish}{\cterm{Evidence}{what lets a third person check a claim without trusting the author.}}
+\centering
+\begin{tikzpicture}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,0.35) {CRITERION};
+\node[anchor=west, font=\tiny\bfseries, text=coursegold!65!black] at (4.5,0.35) {WHAT GOOD EVIDENCE LOOKS LIKE};
+\listrow{-0.1}{file-alt}{Requirements quality}{Clear scope, distinguishable requirement types, testable wording.}
+\listrow{-0.7}{comments}{Elicitation and reasoning}{Focused questions, explicit assumptions, trade-offs, rationale.}
+\listrow{-1.3}{project-diagram}{Process discipline}{Iterative workflow, priorities, Definition of Done, change handling.}
+\listrow{-1.9}{route}{Traceability and validation}{Requirement, criterion, implementation, and test result, linked.}
+\listrow{-2.5}{laptop-code}{Working increment}{Reliable connection, clear status, configured alerts, evidence.}
+\listrow{-3.1}{sync-alt}{Evolution}{Impact analysis; coherent SRS, backlog, and test changes.}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,-3.8) {EVERY CLAIM FOLLOWS THE SAME CHAIN};
+\foreach \x/\t in {0/Requirement, 3.45/Acceptance criterion, 6.9/Implementation, 10.35/Test result} {
+  \node[chip, fill=coursegold, anchor=north west, minimum width=3.05cm, minimum height=0.5cm, font=\scriptsize\bfseries] at (\x,-4.0) {\t};
+}
+\foreach \x in {3.05,6.5,9.95} {\draw[arrowgold, line width=1.6pt] (\x,-4.25) -- (\x+0.4,-4.25);}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ------------------------------------------------------------------ closing
+\section{Wrap-up}\gdef\currentsectionname{Wrap-up}
+\begin{frame}{From this class to the next}
+\centering
+\begin{tikzpicture}
+\foreach \i/\lab/\bg/\fg in {1/SE and ML/courseice/coursegray, 2/Requirements/courseblue/white, 3/Process/courseblue/white, 4/Design/courseice/coursegray, 5/Quality/courseice/coursegray, 6/Evolution/courseice/coursegray} {
+  \node[rounded corners=3pt, minimum width=2.18cm, minimum height=0.6cm, font=\scriptsize\bfseries, fill=\bg, text=\fg] at ({1.1+(\i-1)*2.28},0) {\i\ \lab};
+}
+\node[font=\tiny\bfseries, text=courseblue] at (6.8,-0.52) {THIS CLASS PUTS REQUIREMENTS AND PROCESS TO WORK; CLASS 28 ADDS QUALITY AND EVOLUTION};
+\foreach \x/\sty/\ico/\ttl/\txt in {0/tileblue/lightbulb/What stays with us/{$\bullet$\ The simulator is evidence, not the specification.\\[3pt]$\bullet$\ Agile work is disciplined learning.\\[3pt]$\bullet$\ A requirement is complete when it can be checked.}, 4.55/tileblue/laptop-code/Before Class 28/{$\bullet$\ Build the thinnest slice: connect to the stream, evaluate one rule, show and log one alert, and test it.\\[3pt]$\bullet$\ Keep the question log and backlog current.}, 9.1/tilegold/arrow-right/Next: Class 27/{\textbf{MLOps Foundations and Continuous Training.}\\[3pt]The class turns to running ML systems in production. Session 2 of this challenge follows in Class 28.}} {
+  \node[\sty, anchor=north west, minimum width=4.3cm, minimum height=3.8cm] at (\x,-0.95) {};
+  \badge{\x+0.65}{-1.6}{courseblue}{\ico}
+  \node[anchor=west, text width=3.0cm, align=left, font=\small\bfseries, text=courseblue] at (\x+1.2,-1.6) {\ttl};
+  \node[anchor=north west, text width=3.9cm, align=left, font=\scriptsize] at (\x+0.2,-2.25) {\txt};
+}
+\node[tilegold, fill=white, anchor=north west, minimum width=13.4cm, minimum height=0.95cm, text width=12.6cm, align=left, font=\footnotesize] at (0,-5.0) {{\bfseries\goldink\faIcon{route}\ Course thread.} The strongest prototype is the one whose behavior can be explained and defended from stakeholder need to validation evidence.};
+\end{tikzpicture}
 \coursefooter
 \end{frame}
 
-\begin{frame}{Session 1: discovery and specification}
-\begin{enumerate}
-\item Read the case brief; identify stakeholders, decisions supported, risks, assumptions, and open questions.
-\item Conduct a short stakeholder interview with the instructor. Record answers and unanswered questions.
-\item Build a prioritized product backlog with user stories and acceptance criteria.
-\item Write SRS v1 and agree a minimum viable increment.
-\item Define the team process and plan the first increment.
-\end{enumerate}
-\begin{block}{Question discipline}Ask questions that reduce uncertainty: ``Who configures this?'', ``What makes an alert critical?'', ``What evidence is required?'', ``What happens if data is missing?''\end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}{SRS v1: concise, IEEE-style, and useful}
-\begin{tabularx}{\textwidth}{>{\bfseries}l X}
-Section & Minimum content \\
-\toprule
-Introduction & Purpose, scope, stakeholders, definitions, assumptions \\
-Overall description & Users, operating environment, external SSE interface, constraints \\
-Functional requirements & Identified \texttt{FR-xx} statements written with ``shall'' \\
-Non-functional requirements & Measurable usability, performance, reliability, maintainability, and security expectations \\
-Domain and business rules & Alert concepts, severity, process-state rules, traceability expectations \\
-Operational requirements & Start-up, configuration, disconnection, recovery, support, known limitations \\
-Validation and traceability & Acceptance criteria, test idea, priority, dependencies \\
-\bottomrule
-\end{tabularx}
-\vspace{0.3em}\begin{block}{Quality check}One requirement should express one observable obligation. Avoid ``fast'', ``easy'', ``robust'', or ``real time'' unless the statement says how it will be checked.\end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}{From a story to evidence}
-\begin{block}{User story}As a plant operator, I want to see a clearly classified active alert so that I can decide whether the current batch needs attention.\end{block}
-\begin{block}{Possible system requirement}When an evaluated reading violates a configured rule, the system \textbf{shall} create an alert containing the batch identifier, sensor, configured rule, observed value, timestamp, process state, and severity.\end{block}
-\begin{block}{Possible acceptance criterion}Given a configured temperature rule and a violating reading, when the configured persistence condition is met, then the dashboard displays one active alert with all required fields and stores it in session history.\end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Session 2: validation and evolution}
-\begin{enumerate}
-\item Demonstrate the thin increment against agreed acceptance criteria.
-\item Use the live stream to gather evidence: normal behavior, threshold crossing, and disconnection behavior.
-\item Review the traceability matrix and identify defects, gaps, and assumptions.
-\item Receive the change request from Quality Management.
-\item Analyze impact, reprioritize the backlog, update SRS v1 to v2, and implement or plan the evolution.
-\end{enumerate}
-\begin{block}{Change request}During \texttt{Hold}, temperature violations become critical only after a configurable number of consecutive readings. The recorded alert must include the process state in which it was raised.\end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Milestones and artifacts}
-\begin{tabularx}{\textwidth}{>{\bfseries}l X X}
-Milestone & Decision gate & Required artifact \\
-\toprule
-M1 Discovery & Do we understand the problem enough to proceed? & Stakeholder map, question log, glossary, assumptions \\
-M2 Baseline & Is the first increment small and testable? & Backlog, SRS v1, acceptance criteria, process model \\
-M3 MVP & Does the vertical slice work? & Streamlit application, code, demonstration \\
-M4 Validation & What evidence supports the claims? & Test record, defects, traceability matrix \\
-M5 Evolution & What changes and why? & Change analysis, SRS v2, backlog update, release notes \\
-\bottomrule
-\end{tabularx}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Operational requirements are part of the product}
-\begin{block}{Operational guide: minimum contents}\begin{itemize}
-\item How to start the Streamlit application and select a team stream.
-\item How to configure, save, reset, and interpret alert rules.
-\item Meaning of severities, acknowledgement, active versus historic alert.
-\item Behavior on malformed data, missing values, or stream disconnection.
-\item Recovery steps, known limitations, and explicit statement that the application does not control equipment.
-\end{itemize}\end{block}
-\begin{alertblock}{Operational thinking}If the app is correct only when the stream is perfect, the requirement is incomplete.\end{alertblock}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Instructor as the stakeholder panel}
-\begin{itemize}
-\item The instructor plays Operations Manager, Quality Manager, and Senior Plant Operator.
-\item Teams ask questions; the instructor gives the same canonical answer to every team and adds it to a shared answer log.
-\item When a business decision is genuinely open, teams propose alternatives, record an assumption, and justify their choice.
-\item Do not silently invent a requirement. Mark the source: stakeholder answer, observed stream behavior, team assumption, or technical constraint.
-\end{itemize}
-\begin{block}{Facilitation guide}The case brief includes a private instructor section with recommended answers, disclosure timing, and discussion prompts.\end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Assessment: evidence over interface polish}
-\begin{tabularx}{\textwidth}{>{\bfseries}l X}
-Criterion & What good evidence looks like \\
-\toprule
-Requirements quality & Clear scope; distinguishable FR/NFR/domain/operational requirements; testable wording \\
-Elicitation and reasoning & Focused questions, explicit assumptions, trade-offs, stakeholder rationale \\
-Process discipline & Credible iterative workflow, prioritized work, Definition of Done, change handling \\
-Traceability and validation & Requirement $\rightarrow$ acceptance criterion $\rightarrow$ implementation $\rightarrow$ test result \\
-Working increment & Reliable connection, understandable status, configured alert behavior, useful evidence \\
-Evolution & Impact analysis and coherent SRS/backlog/test changes after the new rule \\
-\bottomrule
-\end{tabularx}
-\coursefooter
-\end{frame}
-
-\classclosingframe
-{\begin{itemize}\item The simulator is a source of evidence, not the specification.\item Agile work is disciplined learning: small increments, explicit decisions, and feedback that changes the plan.\item A requirement is complete only when somebody can decide whether it has been met.\end{itemize}}
-{Begin with the case brief, form a team, and prepare questions before deciding what to build.}
-{The agile toolkit from Class 25 (boards, refinement, estimation, reviews) is the working method for this practice; Class 27 then moves on to MLOps foundations and production readiness.}
-{The strongest prototype is the one whose behavior can be explained and defended from stakeholder need to validation evidence.}
 \end{document}

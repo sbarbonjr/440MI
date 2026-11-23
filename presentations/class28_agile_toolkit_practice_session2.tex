@@ -1,0 +1,195 @@
+\input{common}
+\input{common_visual}
+
+% Two parts; the progress strip on each divider uses these labels.
+\newcommand{\sectioncount}{2}
+\newcommand{\sectionlabels}{1/Validate,2/Evolve}
+
+\title{Class 28: Pasteurization Monitoring Challenge, Session 2}
+\author{\coursename}
+\date{}
+
+\definecolor{stickyyellow}{HTML}{FBE8A6}
+\definecolor{stickygreen}{HTML}{CFE6D6}
+\definecolor{stickyblue}{HTML}{CFE0F1}
+
+% ------------------------------------------------------------------ helpers
+% A gold strip with the idea to remember: y text
+\newcommand{\keyidea}[2]{%
+  \node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=0.8cm, text width=12.6cm, align=left, font=\footnotesize] at (0,#1) {{\bfseries\goldink\faIcon{lightbulb}\ Key idea.}\ #2};
+}
+% A sticky note: x y colour rotation text
+\newcommand{\sticky}[5]{%
+  \node[fill=#3, draw=#3!55!black, line width=0.3pt, minimum width=1.55cm, minimum height=0.46cm, text width=1.4cm, align=center, font=\tiny, text=black, inner sep=2pt, rotate=#4] at (#1,#2) {#5};
+}
+% A numbered step card (2.55 x 3.7 cm): x number icon colour title text
+\newcommand{\stepcard}[6]{%
+  \node[tile, fill=white, draw=#4, thick, anchor=north west, minimum width=2.55cm, minimum height=3.7cm] at (#1,0) {};
+  \node[circle, fill=#4, text=white, minimum size=0.55cm, inner sep=0, font=\small\bfseries] at (#1+0.42,-0.42) {#2};
+  \node[text=#4!70, font=\Large] at (#1+2.1,-0.42) {\faIcon{#3}};
+  \node[anchor=north west, text width=2.2cm, align=left, font=\footnotesize\bfseries, text=courseblue, inner sep=0pt] at (#1+0.2,-0.88) {#5};
+  \node[anchor=north west, text width=2.2cm, align=left, font=\scriptsize, inner sep=0pt] at (#1+0.2,-1.7) {#6};
+}
+
+\begin{document}
+
+% ------------------------------------------------------------------ title
+\frame{\titlepage \coursefooter}
+
+% ------------------------------------------------------------------ where we are
+\begin{cframe}{Where the team stands}{\cterm{Milestone}{a checkpoint with a defined decision and a defined deliverable.}\cterm{Increment}{a usable piece of the product that the team can demonstrate.}}
+\centering
+\begin{tikzpicture}
+\node[chip, fill=courseblue, anchor=north west, minimum width=5.25cm, minimum height=0.36cm, font=\tiny\bfseries] at (0,0) {CLASS 26: SESSION 1};
+\node[chip, fill=coursegold, anchor=north west, minimum width=2.55cm, minimum height=0.36cm, font=\tiny\bfseries] at (5.4,0) {BETWEEN SESSIONS};
+\node[chip, fill=coursegreen, anchor=north west, minimum width=5.25cm, minimum height=0.36cm, font=\tiny\bfseries] at (8.1,0) {CLASS 28: TODAY};
+\draw[line width=2pt, courseblue!25] (0.3,-0.85) -- (13.1,-0.85);
+\foreach \i/\col/\name/\tag/\txt in {0/courseblue/Discovery/DONE/{Stakeholder map, question log, assumptions}, 1/courseblue/Baseline/DONE/{Backlog, SRS v1, acceptance criteria}, 2/coursegold/MVP/BUILT/{Streamlit application and its code}, 3/coursegreen/Validation/TODAY/{What evidence supports the claims?}, 4/coursegreen/Evolution/TODAY/{What changes and why?}} {
+  \pgfmathsetmacro{\x}{\i*2.7}
+  \node[circle, fill=\col, text=white, draw=white, line width=1.5pt, minimum size=0.62cm, inner sep=0, font=\scriptsize\bfseries] at (\x+1.275,-0.85) {M\the\numexpr\i+1\relax};
+  \ifnum\i<3
+    \node[tile, fill=white, draw=\col!60, anchor=north west, minimum width=2.55cm, minimum height=1.75cm] at (\x,-1.3) {};
+  \else
+    \node[tile, fill=white, draw=\col, very thick, anchor=north west, minimum width=2.55cm, minimum height=1.75cm] at (\x,-1.3) {};
+  \fi
+  \node[anchor=north west, font=\footnotesize\bfseries, text=\col!85!black, inner sep=0pt] at (\x+0.18,-1.43) {\name};
+  \node[anchor=north west, font=\tiny\bfseries, text=coursegray, inner sep=0pt] at (\x+0.18,-1.78) {\tag};
+  \node[anchor=north west, text width=2.25cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.18,-2.0) {\txt};
+}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,-3.3) {BRING TO THIS SESSION};
+\foreach \x/\ico/\t in {0/file-alt/SRS and backlog, 3.4/comments/Question logs, 6.8/laptop-code/Live increment, 10.2/vial/Test evidence} {
+  \node[chip, anchor=north west, minimum width=3.2cm, minimum height=0.5cm, font=\scriptsize\bfseries, align=left] at (\x,-3.5) {\faIcon{\ico}\ \t};
+}
+\keyidea{-4.25}{Today is about evidence and change: show what works, then show how the product evolves when a requirement moves.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ================================================================== PART 1
+\sectiondivider{1}{Validate}{clipboard-check}{session 1 produced the questions, the backlog, and SRS v1; between sessions the team built a thin slice.}{$\bullet$\ The five steps of session 2\\[3pt]$\bullet$\ Evidence from the live stream\\[3pt]$\bullet$\ One traceability path from need to test result}
+
+\begin{cframe}{Session 2: five steps}{\cterm{Validation evidence}{test records, logs, and screenshots showing whether a criterion was met.}\cterm{Defect}{a place where the behavior differs from the requirement.}}
+\centering
+\begin{tikzpicture}
+\stepcard{0}{1}{desktop}{coursegreen}{Demonstrate}{Demonstrate the thin increment against the agreed acceptance criteria.}
+\stepcard{2.71}{2}{vial}{coursegreen}{Gather evidence}{Use the live stream: normal behavior, threshold crossing, disconnection.}
+\stepcard{5.42}{3}{route}{coursegreen}{Review traceability}{Review the matrix; identify defects, gaps, and assumptions.}
+\stepcard{8.13}{4}{envelope-open-text}{coursegold}{Receive the change}{Receive the change request from Quality Management.}
+\stepcard{10.85}{5}{sync-alt}{coursegold}{Evolve the product}{Analyze impact, reprioritize, update SRS v1 to v2, implement or plan.}
+\foreach \x in {2.55,5.26,7.97,10.68} {\draw[arrowgold] (\x,-0.42) -- (\x+0.16,-0.42);}
+\keyidea{-4.05}{Demonstrate evidence, not only the interface: validation means showing what works, what does not, and why.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Evidence from the live stream}{\cterm{Persistence}{the number of consecutive readings a rule must violate before it raises an alert.}\cterm{Test case}{a set of inputs and expected results that checks one behavior.}}
+\centering
+\begin{tikzpicture}
+\node[anchor=north west, inner sep=0pt] at (0,0.1) {\includegraphics[width=7.3cm]{images/class28_evidence_stream.pdf}};
+\foreach \y/\n/\ico/\col/\ttl/\txt in {0/1/check-circle/coursegreen/Normal behavior/{The application stays quiet and shows connection, batch, and state.}, -1.4/2/exclamation-triangle/coursegold/Threshold crossing/{A configured rule is violated; the alert appears with its fields.}, -2.8/3/unlink/coursered/Disconnection/{The stream stops: show what the operator sees and what is recorded.}} {
+  \node[tile, fill=white, draw=\col, very thick, anchor=north west, minimum width=5.8cm, minimum height=1.3cm] at (7.6,\y) {};
+  \node[circle, fill=\col, text=white, minimum size=0.55cm, inner sep=0, font=\small\bfseries] at (8.0,\y-0.65) {\n};
+  \node[anchor=west, font=\footnotesize\bfseries, text=courseblue] at (8.45,\y-0.22) {\faIcon{\ico}\ \ttl};
+  \node[anchor=north west, text width=4.7cm, align=left, font=\scriptsize, inner sep=0pt] at (8.45,\y-0.45) {\txt};
+}
+\keyidea{-4.4}{Collect the evidence as you go: a log line, a screenshot, and a test identifier for every claim you make.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{One traceability path}{\cterm{Traceability matrix}{a table linking each requirement to its acceptance criterion, implementation, and test.}}
+\centering
+\begin{tikzpicture}
+\foreach \x/\w/\lab in {0/1.0/ID, 1.16/2.5/REQUIREMENT, 3.82/3.2/ACCEPTANCE CRITERION, 7.18/2.4/IMPLEMENTATION, 9.74/2.3/TEST EVIDENCE, 12.2/1.2/STATUS} {
+  \node[chip, anchor=north west, minimum width=\w cm, minimum height=0.4cm, font=\tiny\bfseries] at (\x,0) {\lab};
+}
+% the example row from the brief
+\foreach \x/\w/\txt in {0/1.0/{{\bfseries FR-04}}, 1.16/2.5/{Operator configures a temperature rule}, 3.82/3.2/{A configured threshold is used for subsequent readings}, 7.18/2.4/{Alert rule form and evaluator}, 9.74/2.3/{TC-08 screenshot or log}} {
+  \node[tile, fill=white, draw=coursegreen!70, thick, anchor=north west, minimum width=\w cm, minimum height=1.0cm, text width={(\w-0.25)*1cm}, align=left, font=\scriptsize, inner sep=3pt] at (\x,-0.5) {\txt};
+}
+\node[tilegreen, anchor=north west, minimum width=1.2cm, minimum height=1.0cm, font=\scriptsize\bfseries, text=coursegreen] at (12.2,-0.5) {\faIcon{check}\ Passed};
+\draw[arrowgold, line width=1.6pt] (1.0,-1.0) -- (1.16,-1.0);
+\draw[arrowgold, line width=1.6pt] (3.66,-1.0) -- (3.82,-1.0);
+\draw[arrowgold, line width=1.6pt] (7.02,-1.0) -- (7.18,-1.0);
+\draw[arrowgold, line width=1.6pt] (9.58,-1.0) -- (9.74,-1.0);
+\draw[arrowgold, line width=1.6pt] (12.04,-1.0) -- (12.2,-1.0);
+% placeholders for the other rows
+\foreach \y/\id in {-1.65/FR-05, -2.8/NFR-01} {
+  \foreach \x/\w in {0/1.0, 1.16/2.5, 3.82/3.2, 7.18/2.4, 9.74/2.3, 12.2/1.2} {
+    \node[tilegray, anchor=north west, minimum width=\w cm, minimum height=0.9cm] at (\x,\y) {};
+  }
+  \node[font=\tiny\bfseries, text=coursegray!70] at (0.5,\y-0.45) {\id};
+}
+\node[font=\tiny\itshape, text=coursegray] at (6.7,-3.82) {one row per requirement, filled in as the work progresses};
+\keyidea{-4.1}{A traceability matrix answers two questions: why does this code exist, and how do we know it works? Follow one row from left to right.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ================================================================== PART 2
+\sectiondivider{2}{Evolve and close}{sync-alt}{validation shows where the product stands; a change request tests how well the work can evolve.}{$\bullet$\ The change request and its impact\\[3pt]$\bullet$\ Retrospective: how the team worked}
+
+\begin{cframe}{The change request}{\cterm{Release notes}{a short account of what changed in a release.}\cterm{SRS v2}{the specification after the change request has been analyzed and applied.}}
+\centering
+\begin{tikzpicture}
+\node[chip, fill=coursegold, anchor=north west, minimum width=6.2cm, minimum height=0.55cm, font=\scriptsize\bfseries, align=left] at (0,0) {\faIcon{envelope-open-text}\ CHANGE REQUEST \ from Quality Management};
+\node[tile, fill=white, draw=coursegold, thick, anchor=north west, minimum width=6.2cm, minimum height=1.95cm, text width=5.8cm, align=left, font=\footnotesize] at (0,-0.6) {During {\bfseries Hold}, temperature violations become critical only after a configurable number of consecutive readings. The recorded alert must include the process state in which it was raised.};
+\foreach \y/\n/\t in {-2.8/1/Analyze the impact, -3.5/2/Update SRS v1 to v2 and the backlog, -4.2/3/Implement or plan the evolved increment} {
+  \node[chip, fill=courseblue, anchor=north west, minimum width=6.2cm, minimum height=0.45cm, font=\scriptsize\bfseries, align=left] at (0,\y) {\n\ \ \t};
+}
+\draw[arrowgray] (3.1,-3.28) -- (3.1,-3.48);
+\draw[arrowgray] (3.1,-3.98) -- (3.1,-4.18);
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (6.75,0.15) {ANALYZE ITS IMPACT ON};
+\foreach \a in {90,30,-30,-90,-150,150} {
+  \draw[courseblue!25, line width=1.5pt] (9.9,-2.15) -- ({9.9+2.35*cos(\a)},{-2.15+1.85*sin(\a)});
+}
+\node[circle, fill=coursegold, text=white, minimum size=1.3cm, inner sep=0, font=\scriptsize\bfseries, draw=white, line width=2pt, align=center] at (9.9,-2.15) {{\Large\faIcon{exchange-alt}}\\Change};
+\foreach \a/\ico/\lab in {90/list-ol/Backlog, 30/file-alt/SRS, -30/vial/Tests, -90/cubes/Architecture, -150/desktop/Interface, 150/book/Operational guide} {
+  \node[tile, fill=white, draw=coursegold!80, thick, minimum width=2.6cm, minimum height=0.5cm, font=\scriptsize, text=courseblue, inner sep=3pt] at ({9.9+2.35*cos(\a)},{-2.15+1.85*sin(\a)}) {\faIcon{\ico}\ \lab};
+}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Retrospective}{\cterm{Retrospective}{a short meeting where a team reviews how it worked and agrees what to change.}\cterm{Action}{one concrete change the team commits to try, with someone responsible.}}
+\centering
+\begin{tikzpicture}
+\foreach \x/\col/\ico/\lab/\q/\sa/\sb/\ra/\rb in {0/coursegreen/thumbs-up/KEEP/{Which habit made your evidence easy to find and defend?}/stickygreen/stickyyellow/-2/1.5, 4.55/coursegold/sync-alt/CHANGE/{Where did an unclear question, an assumption, or a late change cost the most?}/stickyyellow/stickyblue/1.5/-1, 9.1/courseblue/lightbulb/TRY/{Which one practice from Class 25 will your team apply next time?}/stickyblue/stickygreen/-1/2} {
+  \node[tile, fill=white, draw=\col, thick, anchor=north west, minimum width=4.3cm, minimum height=2.55cm] at (\x,0) {};
+  \node[chip, fill=\col, anchor=north west, minimum width=3.9cm, minimum height=0.42cm, font=\tiny\bfseries, align=left] at (\x+0.2,-0.18) {\faIcon{\ico}\ \lab};
+  \node[anchor=north west, text width=3.9cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.2,-0.8) {\q};
+  \sticky{\x+1.15}{-2.05}{\sa}{\ra}{}
+  \sticky{\x+3.05}{-2.05}{\sb}{\rb}{}
+}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,-2.85) {HOW TO RUN IT, IN ABOUT TEN MINUTES};
+\foreach \x/\n/\t in {0/1/Look back at both sessions, 4.55/2/Group the notes by theme, 9.1/3/Agree one change to try} {
+  \node[chip, fill=courseblue, anchor=north west, minimum width=4.3cm, minimum height=0.5cm, font=\scriptsize\bfseries, align=left] at (\x,-3.05) {\n\ \ \t};
+}
+\draw[arrowgray] (4.3,-3.3) -- (4.55,-3.3);
+\draw[arrowgray] (8.85,-3.3) -- (9.1,-3.3);
+\keyidea{-3.85}{A retrospective is about the process, not about people. Leave with one concrete change the team will really try.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ------------------------------------------------------------------ closing
+\section{Wrap-up}\gdef\currentsectionname{Wrap-up}
+\begin{frame}{From this class to the next}
+\centering
+\begin{tikzpicture}
+\foreach \i/\lab/\bg/\fg in {1/SE and ML/courseice/coursegray, 2/Requirements/courseice/coursegray, 3/Process/courseice/coursegray, 4/Design/courseice/coursegray, 5/Quality/courseblue/white, 6/Evolution/courseblue/white} {
+  \node[rounded corners=3pt, minimum width=2.18cm, minimum height=0.6cm, font=\scriptsize\bfseries, fill=\bg, text=\fg] at ({1.1+(\i-1)*2.28},0) {\i\ \lab};
+}
+\node[font=\tiny\bfseries, text=courseblue] at (6.8,-0.52) {THIS CLASS PUTS QUALITY AND EVOLUTION TO WORK, ON THE REQUIREMENTS AND PROCESS OF CLASS 26};
+\foreach \x/\sty/\ico/\ttl/\txt in {0/tileblue/lightbulb/What stays with us/{$\bullet$\ Validation is evidence, not opinion.\\[3pt]$\bullet$\ A change touches backlog, SRS, tests, and code.\\[3pt]$\bullet$\ Version 2 keeps the chain coherent.}, 4.55/tileblue/project-diagram/Use it in your project/{$\bullet$\ Keep a log line, a screenshot, and a test identifier for every claim.\\[3pt]$\bullet$\ Treat each change as an impact analysis, not as a patch.}, 9.1/tilegold/arrow-right/Next: Class 29/{\textbf{Online Learning and Concept Drift.}\\[3pt]The live stream returns in the next class: models that learn from each reading and the change they must detect.}} {
+  \node[\sty, anchor=north west, minimum width=4.3cm, minimum height=3.8cm] at (\x,-0.95) {};
+  \badge{\x+0.65}{-1.6}{courseblue}{\ico}
+  \node[anchor=west, text width=3.0cm, align=left, font=\small\bfseries, text=courseblue] at (\x+1.2,-1.6) {\ttl};
+  \node[anchor=north west, text width=3.9cm, align=left, font=\scriptsize] at (\x+0.2,-2.25) {\txt};
+}
+\node[tilegold, fill=white, anchor=north west, minimum width=13.4cm, minimum height=0.95cm, text width=12.6cm, align=left, font=\footnotesize] at (0,-5.0) {{\bfseries\goldink\faIcon{route}\ Course thread.} The strongest prototype is the one whose behavior can be explained and defended from stakeholder need to validation evidence.};
+\end{tikzpicture}
+\coursefooter
+\end{frame}
+
+\end{document}
