@@ -46,6 +46,10 @@
   \node[tile, fill=white, draw=courseblue!40, thick, anchor=north west, minimum width=6.3cm, minimum height=0.74cm, inner sep=2pt, text width=5.9cm, align=left, font=\scriptsize] at (4.75,#1) {#3};
   \node[chip, fill=#4, anchor=north west, minimum width=2.15cm, minimum height=0.74cm, font=\scriptsize\bfseries] at (11.25,#1) {#5};
 }
+% A reference tile (4.3 x 1.05): x y style name text
+\newcommand{\reftile}[5]{%
+  \node[#3, anchor=north west, minimum width=4.3cm, minimum height=1.05cm, text width=4.0cm, inner sep=2pt, align=left, font=\scriptsize] at (#1,#2) {{\bfseries\footnotesize\color{courseblue}#4\par}#5};
+}
 \tikzset{fchip/.style={rounded corners=2pt, fill=courseice, draw=courseblue!55, thick, font=\ttfamily\tiny, inner sep=3pt, minimum height=0.36cm}}
 
 \begin{document}
@@ -93,7 +97,7 @@
 \end{cframe}
 
 % ================================================================== PART 1
-\sectiondivider{1}{Why MLOps}{bullseye}{}{$\bullet$\ Why training a model is only part of delivering value\\[3pt]$\bullet$\ Why AI adoption is hard\\[3pt]$\bullet$\ AI maturity and what it changes in practice}
+\sectiondivider{1}{Why MLOps}{bullseye}{}{$\bullet$\ Why training a model is only part of delivering value\\[3pt]$\bullet$\ Why AI adoption is hard\\[3pt]$\bullet$\ AI maturity, and the standards used to assess it}
 
 \begin{cframe}{Why MLOps became necessary}{\cterm{Technical debt}{the hidden future cost of shortcuts taken to ship sooner.}\cterm{Handoff}{the point where work passes from one team or role to another.}\cterm{Rollback}{returning to an earlier, known-good version after a bad release.}}
 \centering
@@ -135,6 +139,26 @@
   \node[chip, anchor=north west, minimum width=2.6cm, minimum height=0.6cm, text width=2.4cm, inner sep=2pt, font=\scriptsize\bfseries] at (\x,-3.4) {\faIcon{\ico}\ \t};
 }
 \keyidea{-4.3}{Each signal removes a way for a result to depend on one person or on one machine.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Standards and frameworks for AI maturity}{\cterm{Certification}{an independent audit that confirms a standard is met.}\cterm{Management system}{the policies, roles, and processes that run a practice.}\cterm{Framework}{voluntary guidance with no pass or fail.}}
+\centering
+\begin{tikzpicture}
+\node[chip, fill=courseblue, anchor=north west, minimum width=4.3cm, minimum height=0.45cm, font=\scriptsize\bfseries, align=left] at (0,0) {\faIcon{certificate}\ CERTIFY OR COMPLY};
+\node[chip, fill=coursegold, anchor=north west, minimum width=4.3cm, minimum height=0.45cm, font=\scriptsize\bfseries, align=left] at (4.55,0) {\faIcon{layer-group}\ PLACE ON A SCALE};
+\node[chip, fill=coursegreen, anchor=north west, minimum width=4.3cm, minimum height=0.45cm, font=\scriptsize\bfseries, align=left] at (9.1,0) {\faIcon{clipboard-check}\ SCORE A SYSTEM};
+\reftile{0}{-0.65}{tileblue}{ISO/IEC 42001}{A management system that a third party can certify.}
+\reftile{0}{-1.82}{tileblue}{NIST AI RMF 1.0}{Voluntary framework: govern, map, measure, manage.}
+\reftile{0}{-2.99}{tileblue}{EU AI Act}{Law: obligations grow with the risk class.}
+\reftile{4.55}{-0.65}{tilegold}{CMMI, ISO/IEC 33000}{Generic process maturity; not specific to AI.}
+\reftile{4.55}{-1.82}{tilegold}{MLOps levels}{Lifecycle automation: Microsoft 0~to~4, Google 0~to~2.}
+\reftile{4.55}{-2.99}{tilegold}{Gartner, MITRE}{Organization-wide AI adoption scales.}
+\reftile{9.1}{-0.65}{tilegreen}{ML Test Score}{Breck et al. (2017): rubric of tests and monitoring.}
+\reftile{9.1}{-1.82}{tilegreen}{In this class}{Readiness: demo-ready versus production-ready.}
+\reftile{9.1}{-2.99}{tilegray}{Not a maturity standard}{PMBOK covers project management, not AI maturity.}
+\keyidea{-4.35}{No single standard measures AI maturity: you certify, place a team on a scale, or score a system. Our four levels are a teaching simplification.}
 \end{tikzpicture}
 \coursefooter
 \end{cframe}
