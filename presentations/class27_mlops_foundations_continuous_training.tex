@@ -63,14 +63,14 @@
 \begin{tikzpicture}
 \foreach \i/\col/\ico/\ttl/\txt in {0/courseblue/bullseye/Why MLOps/{Why ML fails after the notebook, and what maturity changes.}, 1/courseblue/sync-alt/The lifecycle/{Workflow, infrastructure, roles, handoffs, and readiness.}, 2/coursegreen/redo-alt/Continuous training/{Triggers, pipeline stages, gates, and failure modes.}, 3/coursegray/folder-open/Repository/{What exists today, and an honest gap.}} {
   \pgfmathsetmacro{\x}{\i*3.4}
-  \node[tile, fill=white, draw=\col, thick, anchor=north west, minimum width=3.2cm, minimum height=2.25cm] at (\x,0) {};
+  \node[tile, fill=white, draw=\col, thick, anchor=north west, minimum width=3.2cm, minimum height=2.55cm] at (\x,0) {};
   \node[circle, fill=\col, text=white, minimum size=0.5cm, inner sep=0, font=\small\bfseries] at (\x+0.4,-0.45) {\the\numexpr\i+1\relax};
   \node[anchor=west, text width=1.7cm, align=left, font=\footnotesize\bfseries, text=courseblue, inner sep=0pt] at (\x+0.8,-0.45) {\ttl};
   \node[text=\col!70, font=\Large] at (\x+2.8,-0.45) {\faIcon{\ico}};
   \node[anchor=north west, text width=2.8cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.2,-1.0) {\txt};
 }
-\node[anchor=west, font=\tiny\bfseries, text=coursegold!65!black] at (0,-2.55) {WHAT YOU WILL BE ABLE TO DO};
-\foreach \x/\y/\ico/\t in {0/-2.7/project-diagram/{Define MLOps as model development joined to operational discipline.}, 6.8/-2.7/users/{Map the roles and handoffs of production ML.}, 0/-3.45/clipboard-check/{Judge whether a project is production-ready or only demo-ready.}, 6.8/-3.45/balance-scale/{Separate what DevOps covers from what MLOps adds.}, 0/-4.2/redo-alt/{Describe a continuous training pipeline and the gates in it.}, 6.8/-4.2/hand-pointer/{Choose retraining triggers; separate retraining from deployment.}} {
+\node[anchor=west, font=\tiny\bfseries, text=coursegold!65!black] at (0,-2.85) {WHAT YOU WILL BE ABLE TO DO};
+\foreach \x/\y/\ico/\t in {0/-3.0/project-diagram/{Define MLOps as model development joined to operational discipline.}, 6.8/-3.0/users/{Map the roles and handoffs of production ML.}, 0/-3.75/clipboard-check/{Judge whether a project is production-ready or only demo-ready.}, 6.8/-3.75/balance-scale/{Separate what DevOps covers from what MLOps adds.}, 0/-4.5/redo-alt/{Describe a continuous training pipeline and the gates in it.}, 6.8/-4.5/hand-pointer/{Choose retraining triggers; separate retraining from deployment.}} {
   \node[circle, fill=courseblue, text=white, minimum size=0.45cm, inner sep=0, font=\scriptsize] at (\x+0.3,\y-0.3) {\faIcon{\ico}};
   \node[anchor=west, text width=5.8cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.7,\y-0.3) {\t};
 }
@@ -89,9 +89,9 @@
 }
 \node[tilegold, anchor=north west, minimum width=6.6cm, minimum height=1.3cm, text width=6.2cm, align=left] at (0,-0.9) {{\bfseries\goldink\faIcon{bullseye}\ Focus.} Operational ownership across the ML lifecycle, including automated retraining.};
 \node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=1.3cm, text width=6.2cm, align=left] at (6.8,-0.9) {{\bfseries\color{courseblue}\faIcon{link}\ Bridge.} This class connects engineering artifacts to production responsibilities, then opens one lifecycle box: train and retrain.};
-\node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=1.5cm, text width=6.2cm, align=left, font=\scriptsize] at (0,-2.4) {{\bfseries\color{courseblue}\faIcon{credit-card}\ Fraud case.} Reproducible training, versioned artifacts, safe deployment, and score-shift monitoring; retraining is gated by a held-out evaluation.};
-\node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=1.5cm, text width=6.2cm, align=left, font=\scriptsize] at (6.8,-2.4) {{\bfseries\color{courseblue}\faIcon{industry}\ Pasteurization case.} Streaming behavior, drift detection, rollback thinking, and visibility; retraining must not regress on abnormal batches.};
-\keyidea{-4.1}{The course unifies engineering, experimentation, delivery, and monitoring into one lifecycle.}
+\node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=1.5cm, text width=6.2cm, align=left, font=\scriptsize] at (0,-2.5) {{\bfseries\color{courseblue}\faIcon{credit-card}\ Fraud case.} Reproducible training, versioned artifacts, safe deployment, and score-shift monitoring; retraining is gated by evaluation.};
+\node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=1.5cm, text width=6.2cm, align=left, font=\scriptsize] at (6.8,-2.5) {{\bfseries\color{courseblue}\faIcon{industry}\ Pasteurization case.} Streaming behavior, drift detection, rollback thinking, and visibility; retraining must not regress on abnormal batches.};
+\keyidea{-4.2}{The course unifies engineering, experimentation, delivery, and monitoring into one lifecycle.}
 \end{tikzpicture}
 \coursefooter
 \end{cframe}
@@ -247,14 +247,14 @@
 \node[chip, fill=courseblue, anchor=north west, minimum width=5.2cm, minimum height=0.3cm, inner sep=2pt, font=\scriptsize\bfseries, align=left] at (0,0) {\faIcon{question-circle}\ THE READINESS QUESTION};
 \node[chip, fill=coursered, anchor=north west, minimum width=3.9cm, minimum height=0.3cm, inner sep=2pt, font=\scriptsize\bfseries] at (5.4,0) {\faIcon{flask}\ DEMO-READY};
 \node[chip, fill=coursegreen, anchor=north west, minimum width=3.9cm, minimum height=0.3cm, inner sep=2pt, font=\scriptsize\bfseries] at (9.5,0) {\faIcon{industry}\ PRODUCTION-READY};
-\foreach \y/\ico/\q/\d/\p in {-0.55/redo-alt/{Can we rebuild the model from code, data, and config?}/{Works on one machine}/{Reproducible environment}, -1.27/archive/{Can we explain which version is running and why?}/{Manual execution}/{Versioned artifacts and configs}, -1.99/exclamation-triangle/{Do we know how the service fails and who is notified?}/{Little failure handling}/{Clear ownership and a rollback path}, -2.71/chart-line/{Is there a monitoring plan before launch?}/{Monitoring absent or superficial}/{Monitoring and operational evidence}, -3.43/handshake/{Do stakeholders agree on success and rollback criteria?}/{Success not agreed in advance}/{Written success and rollback criteria}} {
-  \node[tile, fill=white, draw=courseblue, thick, anchor=north west, minimum width=5.2cm, minimum height=0.68cm, inner sep=2pt] at (0,\y) {};
-  \node[circle, fill=courseblue, text=white, minimum size=0.45cm, inner sep=0, font=\scriptsize] at (0.4,\y-0.34) {\faIcon{\ico}};
-  \node[anchor=west, text width=4.3cm, align=left, font=\scriptsize\bfseries, text=courseblue, inner sep=0pt] at (0.8,\y-0.34) {\q};
-  \node[tilered, anchor=north west, minimum width=3.9cm, minimum height=0.68cm, inner sep=2pt, text width=3.6cm, align=left, font=\scriptsize] at (5.4,\y) {\d};
-  \node[tilegreen, anchor=north west, minimum width=3.9cm, minimum height=0.68cm, inner sep=2pt, text width=3.6cm, align=left, font=\scriptsize] at (9.5,\y) {\p};
+\foreach \y/\ico/\q/\d/\p in {-0.5/redo-alt/{Can we rebuild the model from code, data, and config?}/{Works on one machine}/{Reproducible environment}, -1.36/archive/{Can we explain which version is running and why?}/{Manual execution}/{Versioned artifacts and configs}, -2.22/exclamation-triangle/{Do we know how it fails and who gets notified?}/{Little failure handling}/{Clear ownership and a rollback path}, -3.08/chart-line/{Is there a monitoring plan before launch?}/{Monitoring absent or superficial}/{Monitoring and operational evidence}, -3.94/handshake/{Do stakeholders agree on success and rollback criteria?}/{Success not agreed in advance}/{Written success and rollback criteria}} {
+  \node[tile, fill=white, draw=courseblue, thick, anchor=north west, minimum width=5.2cm, minimum height=0.78cm, inner sep=2pt] at (0,\y) {};
+  \node[circle, fill=courseblue, text=white, minimum size=0.45cm, inner sep=0, font=\scriptsize] at (0.4,\y-0.39) {\faIcon{\ico}};
+  \node[anchor=west, text width=4.1cm, align=left, font=\scriptsize\bfseries, text=courseblue, inner sep=0pt] at (0.8,\y-0.39) {\q};
+  \node[tilered, anchor=north west, minimum width=3.9cm, minimum height=0.78cm, inner sep=2pt, text width=3.6cm, align=left, font=\scriptsize] at (5.4,\y) {\d};
+  \node[tilegreen, anchor=north west, minimum width=3.9cm, minimum height=0.78cm, inner sep=2pt, text width=3.6cm, align=left, font=\scriptsize] at (9.5,\y) {\p};
 }
-\keyidea{-4.25}{Demo-ready answers ``does it work?''. Production-ready answers ``can we keep it working, and prove it?''.}
+\keyidea{-4.85}{Demo-ready answers ``does it work?''. Production-ready answers ``can we keep it working, and prove it?''.}
 \end{tikzpicture}
 \coursefooter
 \end{cframe}
@@ -270,21 +270,21 @@
   \node[rounded corners=4pt, fill=\col, text=white, align=center, minimum width=2.0cm, minimum height=0.85cm, inner sep=3pt, font=\scriptsize\bfseries, anchor=north west] (z\i) at (\x,0) {\faIcon{\ico}\ \t};
 }
 \foreach \i/\j in {0/1,1/2,2/3,3/4} {\draw[arrowgray] (z\i.east) -- (z\j.west);}
-\node[font=\tiny\bfseries, text=coursegold!65!black] at (3.85,-1.1) {\faIcon{arrow-down}\ THIS CLASS OPENS THIS BOX};
-\node[tileblue, anchor=north west, minimum width=6.0cm, minimum height=1.7cm] at (0,-1.35) {};
-\badge{0.6}{-1.9}{courseblue}{flask}
-\node[anchor=west, font=\footnotesize\bfseries, text=courseblue] at (1.1,-1.9) {IN A NOTEBOOK};
-\node[anchor=north west, text width=5.5cm, align=left, font=\scriptsize, inner sep=0pt] at (0.25,-2.35) {Training is something a person runs once and inspects.};
-\node[tilegold, anchor=north west, minimum width=6.0cm, minimum height=1.7cm] at (7.4,-1.35) {};
-\badge{8.0}{-1.9}{coursegold}{server}
-\node[anchor=west, font=\footnotesize\bfseries, text=courseblue] at (8.5,-1.9) {IN PRODUCTION};
-\node[anchor=north west, text width=5.5cm, align=left, font=\scriptsize, inner sep=0pt] at (7.65,-2.35) {The same code runs again as data, labels, and performance change.};
-\draw[arrowgold, line width=2pt] (6.1,-2.2) -- (7.3,-2.2);
-\node[font=\tiny\bfseries, text=coursegold!65!black] at (6.7,-1.9) {AGAIN};
-\node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=1.5cm] at (0,-3.2) {};
-\node[anchor=north west, text width=6.0cm, align=left, inner sep=0pt] at (0.3,-3.38) {{\bfseries\tiny\goldink THE QUESTION}\\[3pt]{\bfseries\small\color{courseblue}What does it take to run training again and again without a person starting it by hand?}};
-\draw[coursegold, line width=0.8pt] (6.7,-3.4) -- (6.7,-4.55);
-\node[anchor=north west, text width=6.0cm, align=left, inner sep=0pt] at (7.1,-3.38) {{\bfseries\tiny\goldink CONTINUOUS TRAINING (CT)}\\[3pt]{\scriptsize Retraining as a repeatable, automatable job, not a manual ritual: unattended, on a cadence (not every second) matched to the business reason.\par}};
+\node[font=\tiny\bfseries, text=coursegold!65!black] at (3.85,-1.07) {\faIcon{arrow-down}\ THIS CLASS OPENS THIS BOX};
+\node[tileblue, anchor=north west, minimum width=6.0cm, minimum height=1.65cm] at (0,-1.3) {};
+\badge{0.6}{-1.75}{courseblue}{flask}
+\node[anchor=west, font=\footnotesize\bfseries, text=courseblue] at (1.1,-1.75) {IN A NOTEBOOK};
+\node[anchor=north west, text width=5.5cm, align=left, font=\scriptsize, inner sep=0pt] at (0.25,-2.2) {Training is something a person runs once and inspects.\par};
+\node[tilegold, anchor=north west, minimum width=6.0cm, minimum height=1.65cm] at (7.4,-1.3) {};
+\badge{8.0}{-1.75}{coursegold}{server}
+\node[anchor=west, font=\footnotesize\bfseries, text=courseblue] at (8.5,-1.75) {IN PRODUCTION};
+\node[anchor=north west, text width=5.5cm, align=left, font=\scriptsize, inner sep=0pt] at (7.65,-2.2) {The same code runs again as data, labels, and performance change.\par};
+\draw[arrowgold, line width=2pt] (6.1,-2.15) -- (7.3,-2.15);
+\node[font=\tiny\bfseries, text=coursegold!65!black] at (6.7,-1.8) {AGAIN};
+\node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=1.6cm] at (0,-3.05) {};
+\node[anchor=north west, text width=6.0cm, align=left, inner sep=0pt] at (0.3,-3.2) {{\bfseries\tiny\goldink THE QUESTION}\\[3pt]{\bfseries\small\color{courseblue}How can training run again and again without a person starting it?\par}};
+\draw[coursegold, line width=0.8pt] (6.7,-3.2) -- (6.7,-4.5);
+\node[anchor=north west, text width=6.0cm, align=left, inner sep=0pt] at (7.1,-3.2) {{\bfseries\tiny\goldink CONTINUOUS TRAINING (CT)}\\[3pt]{\scriptsize A repeatable, automatable retraining job: unattended, on a cadence matched to the business reason.\par}};
 \end{tikzpicture}
 \coursefooter
 \end{cframe}
@@ -304,7 +304,7 @@
 \coursefooter
 \end{cframe}
 
-\begin{cframe}{Anatomy of a continuous training pipeline}{\cterm{Pipeline}{an ordered set of automated steps, each consuming the output of the one before.}\cterm{Gate}{an explicit pass-or-fail check that decides whether a run may continue.}\cterm{Champion}{the model currently in use, against which candidates are compared.}}
+\begin{cframe}{Anatomy of a continuous training pipeline}{\cterm{Pipeline}{an ordered set of automated steps, each using the previous output.}\cterm{Gate}{a pass-or-fail check before a run may continue.}\cterm{Champion}{the model in use, which candidates must beat.}\cterm{Held-out set}{data kept aside during training and used only to evaluate.}}
 \centering
 \begin{tikzpicture}
 \foreach \i/\ico/\ttl/\sub/\col in {0/play-circle/Trigger/{schedule, event, or request}/courseblue, 1/check-double/Validate data/{schema, freshness, volume}/courseblue, 2/cogs/Train candidate/{same code, new data}/courseblue, 3/balance-scale/Evaluate vs champion/{frozen held-out set}/courseblue, 4/flag-checkered/Promote or reject/{register and release, or discard}/coursegold} {
@@ -334,40 +334,23 @@
 \coursefooter
 \end{cframe}
 
-\begin{cframe}{Evaluation gates before promotion}{\cterm{Held-out set}{data kept aside during training and used only to evaluate.}\cterm{Business metric}{a measure tied to operational cost or benefit, such as the false-alert rate.}}
+\begin{cframe}{Champion-challenger extends into training}{\cterm{Challenger}{a candidate model under evaluation against the champion.}\cterm{Shadow evaluation}{running a candidate on live inference requests without serving its predictions.}\cterm{Training-serving skew}{a mismatch between how data looks in training and in production.}}
 \centering
 \begin{tikzpicture}
-\node[tileblue, anchor=north west, minimum width=3.9cm, minimum height=1.2cm, text width=3.5cm, align=left] at (0,0) {{\bfseries\color{courseblue}\faIcon{medal}\ Champion}\\[2pt]{\scriptsize the model in use today}};
-\node[tilegray, anchor=north west, minimum width=3.9cm, minimum height=1.2cm, text width=3.5cm, align=left] at (4.75,0) {{\bfseries\color{coursegray}\faIcon{lock}\ Frozen held-out set}\\[2pt]{\scriptsize same data for both models}};
-\node[tilegold, anchor=north west, minimum width=3.9cm, minimum height=1.2cm, text width=3.5cm, align=left] at (9.5,0) {{\bfseries\goldink\faIcon{seedling}\ Candidate}\\[2pt]{\scriptsize the newly trained model}};
-\draw[arrowgray] (3.9,-0.6) -- (4.75,-0.6);
-\draw[arrowgray] (9.5,-0.6) -- (8.65,-0.6);
-\node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=1.15cm, text width=6.2cm, align=left, font=\scriptsize] at (0,-1.45) {{\bfseries\color{courseblue}\faIcon{chart-bar}\ STATISTICAL METRIC}\\How well does it predict on the held-out set?};
-\node[tilegold, anchor=north west, minimum width=6.6cm, minimum height=1.15cm, text width=6.2cm, align=left, font=\scriptsize] at (6.8,-1.45) {{\bfseries\goldink\faIcon{coins}\ BUSINESS METRIC}\\What does it cost or save: review load, false alerts, missed detections?};
-\node[tilegreen, anchor=north west, minimum width=4.3cm, minimum height=1.4cm, text width=3.9cm, align=left, font=\scriptsize] at (0,-2.85) {{\bfseries\color{coursegreen}\faIcon{check-circle}\ Better on every metric}\\Promote the candidate.};
-\node[tilegold, anchor=north west, minimum width=4.3cm, minimum height=1.4cm, text width=3.9cm, align=left, font=\scriptsize] at (4.55,-2.85) {{\bfseries\goldink\faIcon{user-check}\ Mixed result}\\Better on one metric, worse on another: a human decides, no automatic merge.};
-\node[tilered, anchor=north west, minimum width=4.3cm, minimum height=1.4cm, text width=3.9cm, align=left, font=\scriptsize] at (9.1,-2.85) {{\bfseries\color{coursered}\faIcon{times-circle}\ Not better}\\Reject it; the champion keeps serving.};
-\end{tikzpicture}
-\coursefooter
-\end{cframe}
-
-\begin{cframe}{Champion-challenger extends into training}{\cterm{Challenger}{a candidate model under evaluation against the champion.}\cterm{Shadow evaluation}{running a candidate on live requests without using its answers.}}
-\centering
-\begin{tikzpicture}
-\node[tile, fill=courseice, anchor=north west, minimum width=2.6cm, minimum height=1.1cm, font=\footnotesize\bfseries, text=courseblue] at (0,-1.45) {\faIcon{stream}\ Live requests};
-\node[tileblue, anchor=north west, minimum width=3.8cm, minimum height=1.1cm, text width=3.4cm, align=left] at (4.4,0) {{\bfseries\color{courseblue}\faIcon{medal}\ Champion}\\[2pt]{\scriptsize serves every request}};
-\node[tilegold, dashed, anchor=north west, minimum width=3.8cm, minimum height=1.1cm, text width=3.4cm, align=left] at (4.4,-2.9) {{\bfseries\goldink\faIcon{seedling}\ Challenger}\\[2pt]{\scriptsize sees a copy of the traffic}};
+\node[tile, fill=courseice, anchor=north west, minimum width=2.6cm, minimum height=1.1cm, font=\footnotesize\bfseries, text=courseblue] at (0,-1.45) {\faIcon{stream}\ Inference\\requests};
+\node[tileblue, anchor=north west, minimum width=3.8cm, minimum height=1.1cm, text width=3.4cm, align=left] at (4.4,0) {{\bfseries\color{courseblue}\faIcon{medal}\ Champion}\\[2pt]{\scriptsize serves all predictions}};
+\node[tilegold, dashed, anchor=north west, minimum width=3.8cm, minimum height=1.1cm, text width=3.4cm, align=left] at (4.4,-2.9) {{\bfseries\goldink\faIcon{seedling}\ Challenger}\\[2pt]{\scriptsize scores a mirrored copy}};
 \draw[arrowgray] (2.6,-1.75) -- (4.4,-0.55);
 \draw[arrowgold, dashed] (2.6,-2.25) -- (4.4,-3.45);
-\node[font=\tiny\bfseries, text=coursegold!65!black, fill=white, inner sep=1pt] at (3.5,-2.85) {COPY};
-\node[tilegreen, anchor=north west, minimum width=4.0cm, minimum height=1.1cm, text width=3.6cm, align=left, font=\scriptsize] at (9.4,0) {{\bfseries\color{coursegreen}\faIcon{check}\ Answers used}\\returned to users};
-\node[tilegray, anchor=north west, minimum width=4.0cm, minimum height=1.1cm, text width=3.6cm, align=left, font=\scriptsize] at (9.4,-2.9) {{\bfseries\color{coursegray}\faIcon{ban}\ Answers not used}\\only logged for comparison};
+\node[font=\tiny\bfseries, text=coursegold!65!black, fill=white, inner sep=1pt] at (3.5,-2.85) {MIRROR};
+\node[tilegreen, anchor=north west, minimum width=4.0cm, minimum height=1.1cm, text width=3.6cm, align=left, font=\scriptsize] at (9.4,0) {{\bfseries\color{coursegreen}\faIcon{check}\ Predictions served}\\returned to the caller};
+\node[tilegray, anchor=north west, minimum width=4.0cm, minimum height=1.1cm, text width=3.6cm, align=left, font=\scriptsize] at (9.4,-2.9) {{\bfseries\color{coursegray}\faIcon{ban}\ Shadow predictions}\\logged, never served};
 \draw[arrowgray] (8.2,-0.55) -- (9.4,-0.55);
 \draw[arrowgold, dashed] (8.2,-3.45) -- (9.4,-3.45);
-\node[tilegold, anchor=north west, minimum width=4.0cm, minimum height=1.1cm, text width=3.6cm, align=left, font=\scriptsize] at (9.4,-1.5) {{\bfseries\goldink\faIcon{balance-scale}\ Compare}\\same requests; promote only if it wins};
+\node[tilegold, anchor=north west, minimum width=4.0cm, minimum height=1.1cm, text width=3.6cm, align=left, font=\scriptsize] at (9.4,-1.5) {{\bfseries\goldink\faIcon{balance-scale}\ Compare}\\same inputs; promote only if metrics improve};
 \draw[arrowgray] (11.4,-1.1) -- (11.4,-1.5);
 \draw[arrowgray] (11.4,-2.9) -- (11.4,-2.6);
-\keyidea{-4.2}{Shadow evaluation on live traffic catches problems that offline metrics miss, before the challenger serves anyone.}
+\keyidea{-4.2}{Shadow evaluation exposes what offline metrics miss, such as training-serving skew and latency, before the challenger serves a prediction.}
 \end{tikzpicture}
 \coursefooter
 \end{cframe}
