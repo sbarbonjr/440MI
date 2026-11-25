@@ -1,352 +1,298 @@
 \input{common}
-\usepackage{amssymb}
+\input{common_visual}
 
-\title{Class 30: Online Learning, Concept Drift, and Streaming Practice}
+% Three parts; the progress strip on each divider uses these labels.
+\newcommand{\sectioncount}{3}
+\newcommand{\sectionlabels}{1/Stream,2/Learn and detect,3/Evolve}
+
+\title{Class 30: Pasteurization Monitoring Challenge, Session 3}
+\subtitle{Online learning, concept drift, and streaming in practice}
 \author{\coursename}
 \date{}
 
+% ------------------------------------------------------------------ helpers
+% A gold strip with the idea to remember: y text
+\newcommand{\keyidea}[2]{%
+  \node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=0.8cm, text width=12.6cm, align=left, font=\footnotesize] at (0,#1) {{\bfseries\goldink\faIcon{lightbulb}\ Key idea.}\ #2};
+}
+% A red strip: y icon label text
+\newcommand{\warning}[4]{%
+  \node[tilered, anchor=north west, minimum width=13.4cm, minimum height=0.8cm, text width=12.6cm, align=left, font=\footnotesize] at (0,#1) {{\bfseries\color{coursered}\faIcon{#2}\ #3}\ #4};
+}
+% A numbered step card (2.55 x 3.7 cm): x number icon colour title text
+\newcommand{\stepcard}[6]{%
+  \node[tile, fill=white, draw=#4, thick, anchor=north west, minimum width=2.55cm, minimum height=3.7cm] at (#1,0) {};
+  \node[circle, fill=#4, text=white, minimum size=0.55cm, inner sep=0, font=\small\bfseries] at (#1+0.42,-0.42) {#2};
+  \node[text=#4!70, font=\Large] at (#1+2.1,-0.42) {\faIcon{#3}};
+  \node[anchor=north west, text width=2.2cm, align=left, font=\footnotesize\bfseries, text=courseblue, inner sep=0pt] at (#1+0.2,-0.88) {#5};
+  \node[anchor=north west, text width=2.2cm, align=left, font=\scriptsize, inner sep=0pt] at (#1+0.2,-1.7) {#6};
+}
+% An information tile: x y width height style colour icon title text
+\newcommand{\infotile}[9]{%
+  \node[#5, anchor=north west, minimum width=#3cm, minimum height=#4cm] at (#1,#2) {};
+  \badge{#1+0.55}{#2-0.55}{#6}{#7}
+  \node[anchor=west, text width={(#3-1.35)*1cm}, align=left, font=\footnotesize\bfseries, text=courseblue] at (#1+1.05,#2-0.55) {#8};
+  \node[anchor=north west, text width={(#3-0.4)*1cm}, align=left, font=\scriptsize, inner sep=0pt] at (#1+0.2,#2-1.0) {#9};
+}
+% One row of a two-column list: y icon label text
+\newcommand{\listrow}[4]{%
+  \node[chip, anchor=west, minimum width=4.3cm, minimum height=0.55cm, font=\scriptsize\bfseries, align=left] at (0,#1) {\faIcon{#2}\ #3};
+  \node[anchor=west, text width=8.7cm, font=\scriptsize, align=left] at (4.5,#1) {#4};
+  \draw[courseice!70!courseblue, line width=0.5pt] (0,#1-0.36) -- (13.4,#1-0.36);
+}
+% A reference row: y height icon label text
+\newcommand{\refrow}[5]{%
+  \node[chip, anchor=west, minimum width=3.4cm, minimum height=0.68cm, font=\scriptsize\bfseries, align=left] at (0,#1-#2/2) {\faIcon{#3}\ #4};
+  \node[anchor=west, text width=9.8cm, font=\scriptsize, align=left] at (3.6,#1-#2/2) {#5};
+  \draw[courseice!70!courseblue, line width=0.5pt] (0,#1-#2) -- (13.7,#1-#2);
+}
+
 \begin{document}
 
+% ------------------------------------------------------------------ title
 \frame{\titlepage \coursefooter}
 
-\begin{frame}{Agenda}
-\begin{itemize}
-\item Goal of the lab: from synthetic sensor generation to a live stream that can be consumed.
-\item \texttt{synth\_sensors.py}: states, sensors, and the derived feature \texttt{dTdt}.
-\item \texttt{serving.py}: the batch, point, and streaming endpoints.
-\item Guided exercises: run, inspect, request, stream, and detect drift.
-\item What to observe, and common pitfalls.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Lab overview and setup}
-\begin{enumerate}
-\item From the repository root, install the dependencies: \texttt{pip install -r requirements.txt}.
-\item Two files are used: \texttt{pasteurization/synth\_sensors.py} and \texttt{pasteurization/serving.py}.
-\item \texttt{synth\_sensors.py} does not depend on Flask; it can be run and inspected on its own.
-\item \texttt{serving.py} imports the simulation functions from \texttt{synth\_sensors.py} and exposes them over the Hypertext Transfer Protocol (HTTP).
-\end{enumerate}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Architecture of the lab}
-\centering
-\begin{tikzpicture}[font=\footnotesize, box/.style={flowbox, minimum width=2.6cm, minimum height=1.0cm}]
-\node[box] (gen) at (0,0) {\texttt{synth\_sensors.py}\\\scriptsize state machine + sensors};
-\node[accentbox, minimum width=2.8cm, minimum height=2.6cm, align=center] (srv) at (4.4,0) {\texttt{serving.py}\\\scriptsize Flask, port 8001\\[0.4em]\texttt{/batch}\\\texttt{/point?t=}\\\texttt{/stream}};
-\node[box] (curl) at (9.0,1.1) {\texttt{curl}\\\scriptsize raw responses};
-\node[box] (st) at (9.0,-0.15) {Streamlit dashboard\\\scriptsize \texttt{App\_Pasteurization.py}};
-\node[box] (own) at (9.0,-1.4) {Own Python client\\\scriptsize Exercises 3--4};
-\draw[arrow] (gen) -- node[above, font=\scriptsize] {import} (srv);
-\draw[arrow] (srv.east) -- node[above, sloped, font=\scriptsize] {JSON / SSE} (curl.west);
-\draw[arrow] (srv.east) -- node[above, font=\scriptsize] {SSE} (st.west);
-\draw[arrow] (srv.east) -- node[below, sloped, font=\scriptsize] {JSON} (own.west);
-\end{tikzpicture}
-\vspace{0.6em}
-\begin{itemize}\footnotesize
-\item \texttt{/batch} returns one complete simulated batch as a JSON array; \texttt{/point?t=} returns a single reading; \texttt{/stream} replays one batch as Server-Sent Events (SSE), one event per second.
-\item The generator has no knowledge of HTTP, and the clients have no knowledge of the simulation: each layer can be tested in isolation.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}[fragile]{Sensors and states in the code}
-\begin{lstlisting}[style=coursepython]
-# Sensors (7): Temperature, pH, Kappa, Mu, Tau, Q_in, Q_out, P
-# Derived: dT/dt
-
-PROD_RANGES = {
-    "Idle":      (60, 120),
-    "Fill":      (30, 60),
-    "HeatUp":    (30, 45),
-    "Hold":      (15, 25),
-    "Cool":      (30, 60),
-    "Discharge": (60, 120),
-}
-\end{lstlisting}
-\begin{itemize}
-\item From \texttt{pasteurization/synth\_sensors.py}: the docstring counts seven sensors, but inflow and outflow are separate channels, so each sample is $\mathbf{x}_t \in \mathbb{R}^{8}$, plus the derived \texttt{dTdt}.
-\item Six production states, each with a duration drawn uniformly from the given range (in seconds) for every batch.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{The batch lifecycle as a state machine}
-\centering
-\begin{tikzpicture}[node distance=0.35cm, every node/.append style={minimum width=1.75cm}]
-\node[flowbox] (idle) {\small Idle};
-\node[flowbox, right=of idle] (fill) {\small Fill};
-\node[flowbox, right=of fill] (heat) {\small HeatUp};
-\node[accentbox, right=of heat] (hold) {\small Hold};
-\node[flowbox, right=of hold] (cool) {\small Cool};
-\node[flowbox, right=of cool] (disch) {\small Discharge};
-\foreach \a/\b in {idle/fill,fill/heat,heat/hold,hold/cool,cool/disch} {
-  \draw[arrow] (\a) -- (\b);
-}
-\end{tikzpicture}
-\vspace{0.6em}
-\begin{itemize}
-\item Each function \texttt{seg\_*} in \texttt{synth\_sensors.py} generates the signals of exactly one state.
-\item The sequence of states is fixed; only the durations are random. The state is therefore a deterministic function of the time elapsed since the start of the batch, given the sampled durations.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Exercise 1: generate and inspect a batch}
-\begin{enumerate}
-\item Run \texttt{python synth\_sensors.py} from the directory \texttt{pasteurization/}; it simulates 1{,}000 batches (about 324{,}000 samples, a few seconds).
-\item Open \texttt{synthetic\_pasteurization\_signals.csv} and verify that the column \texttt{state} contains exactly the six states, in the expected order within each \texttt{batch\_id}.
-\item Plot \texttt{T} and \texttt{dTdt} for a single \texttt{batch\_id} and identify the phases HeatUp and Cool.
-\item Verify that \texttt{dTdt} changes sign where the temperature trend reverses.
-\end{enumerate}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Exercise 1: expected result}
-\centering
-\includegraphics[width=0.82\textwidth,height=0.58\textheight,keepaspectratio]{images/class20_expected_batch.pdf}
-
-\vspace{0.2em}
-\begin{itemize}\footnotesize
-\item One batch: the temperature rises during HeatUp, stays at the set point of 72\,°C during Hold, and falls during Cool.
-\item \texttt{dTdt} is approximately constant and positive during HeatUp, negative during Cool, and close to zero elsewhere; isolated spikes occur where a state begins with a jump in temperature (e.g.\ at the start of Fill).
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}[fragile]{The derived feature in the code}
-\begin{lstlisting}[style=coursepython]
-def simulate_batch(bid, start_time=0.0):
-    ...
-    frames = simulate_production_cycle(pdur, ctx)
-    df, t = to_df(frames, start_time, bid)
-    df["dTdt"] = df["T"].diff().fillna(0.0) / DT
-    return df, t
-\end{lstlisting}
-\begin{itemize}
-\item \texttt{dTdt} is the backward finite difference $(T_t - T_{t-1})/\Delta t$, the rate-of-change feature constructed in Class 16.
-\item It is causal: it uses only the current and the previous sample, so it can also be computed online on the stream.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Exercise 2: serve the simulation over HTTP}
-\begin{enumerate}
-\item Start the Flask service: \texttt{python serving.py} (port 8001).
-\item Request a complete simulated batch: \texttt{GET /batch}.
-\item Request a single reading: \texttt{GET /point?t=45}, then an invalid one: \texttt{GET /point?t=abc}.
-\item Request \texttt{GET /point?t=120} several times and compare the returned \texttt{state}.
-\end{enumerate}
-\vspace{0.4em}
-\begin{block}{What to explain}
-At $t = 120$\,s the service returns sometimes Fill and sometimes HeatUp: every request samples new phase durations. The endpoint is stateless, so successive points do not belong to the same batch.
-\end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}[fragile]{Exercise 2: expected responses}
-\begin{columns}[T]
-\column{0.5\textwidth}
-\textbf{\footnotesize\texttt{GET /point?t=45}} {\scriptsize (status 200)}
-\begin{lstlisting}[basicstyle=\ttfamily\scriptsize, columns=fullflexible, keepspaces=true, frame=single, backgroundcolor=\color{codebg}, rulecolor=\color{courseblue!40}]
-{
-  "Kappa": 4.653,  "Mu": 2.229,
-  "P": 1.135,      "Q_in": 0.0,
-  "Q_out": 0.0,    "T": 10.033,
-  "Tau": 0.213,    "dTdt": -0.004,
-  "pH": 6.649,
-  "state": "Idle", "timestamp": 45.0
-}
-\end{lstlisting}
-\column{0.46\textwidth}
-\textbf{\footnotesize\texttt{GET /point?t=abc}} {\scriptsize (status 400)}
-\begin{lstlisting}[basicstyle=\ttfamily\scriptsize, columns=fullflexible, keepspaces=true, frame=single, backgroundcolor=\color{codebg}, rulecolor=\color{courseblue!40}]
-{
-  "error": "Invalid t parameter"
-}
-\end{lstlisting}
-\vspace{0.3em}
-\begin{itemize}\footnotesize
-\item \texttt{GET /batch} returns a JSON array of about 300--360 such objects, one per second of the batch, with an additional field \texttt{batch\_id}.
-\end{itemize}
-\end{columns}
-\vspace{0.4em}
-{\scriptsize Responses captured from \texttt{serving.py}; values rounded to three decimals and keys arranged in two columns for readability. Numerical values differ at every request.\par}
-\coursefooter
-\end{frame}
-
-\begin{frame}[fragile]{Serving a single point in the code}
-\begin{lstlisting}[style=coursepython]
-@app.route("/point")
-def point():
-    try:
-        t = float(request.args.get("t", 0))
-    except ValueError:
-        return jsonify({"error": "Invalid t parameter"}), 400
-
-    data = simulate_point(t)
-    return jsonify(data)
-\end{lstlisting}
-\begin{itemize}
-\item From \texttt{pasteurization/serving.py}: the input is validated, and an invalid value returns the status code 400 (Bad Request) with an error message instead of an exception.
-\item \texttt{simulate\_point} draws a new timeline at every call, which explains the behaviour observed in Exercise 2.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Exercise 3: consume the live stream}
-\begin{enumerate}
-\item With \texttt{serving.py} running, request \texttt{curl -N http://localhost:8001/stream}.
-\item Observe one JSON event per second in the Server-Sent Events (SSE) format: each event is a line \texttt{data: \{\dots\}} followed by a blank line.
-\item Alternatively, run \texttt{streamlit run streamlit/Main.py} and open the Pasteurization page, which consumes the same endpoint.
-\item Compare the raw output of \texttt{curl} with the plots of the dashboard.
-\end{enumerate}
-\coursefooter
-\end{frame}
-
-\begin{frame}[fragile]{The streaming endpoint in the code}
-\begin{lstlisting}[style=coursepython]
-@app.route("/stream")
-def stream():
-    df, _ = simulate_batch(BATCH_ID)
-
-    def generate():
-        for _, row in df.iterrows():
-            yield f"data: {json.dumps(row.to_dict())}\n\n"
-            time.sleep(STREAM_DT)
-
-    return Response(generate(), mimetype="text/event-stream")
-\end{lstlisting}
-\begin{itemize}
-\item From \texttt{pasteurization/serving.py}: a complete batch is simulated first and then replayed at one row per second as an event stream.
-\item Unlike \texttt{/point}, the stream is internally consistent: all events belong to one simulated batch.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}[fragile]{Writing your own stream client}
-\begin{lstlisting}[style=coursepython]
-import json, requests
-
-URL = "http://localhost:8001/stream"
-with requests.get(URL, stream=True, timeout=10) as r:
-    for line in r.iter_lines():
-        if line.startswith(b"data: "):
-            event = json.loads(line[len(b"data: "):])
-            print(event["timestamp"], event["state"], round(event["T"], 2))
-\end{lstlisting}
-\begin{itemize}
-\item \texttt{stream=True} keeps the connection open; \texttt{iter\_lines} yields each line as soon as it arrives.
-\item Each SSE event is a line starting with \texttt{data: }, followed by a blank separator line; the payload after the prefix is JSON.
-\item Expected output: one line per second, e.g.\ \texttt{0.0 Idle 8.74}, \texttt{1.0 Idle 8.7}, \dots
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{What to observe while streaming}
-\begin{itemize}
-\item The states follow the fixed order Idle, Fill, HeatUp, Hold, Cool, Discharge.
-\item \texttt{dTdt} is close to zero during Idle and Hold, positive during HeatUp, and negative during Cool.
-\item \texttt{Q\_in} is non-zero only during Fill; \texttt{Q\_out} only during Discharge.
-\item Every sensor remains within the fixed axis ranges of the Streamlit dashboard.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Common pitfalls in this lab}
-\begin{itemize}
-\item \textbf{Connection settings:} the IP address and port in the dashboard sidebar (default \texttt{127.0.0.1:8001}) must match the machine where \texttt{serving.py} runs.
-\item \textbf{Port conflicts:} check that no other process is already bound to port 8001.
-\item \textbf{Concurrency:} \texttt{serving.py} runs Flask with \texttt{threaded=True}; without it, an open \texttt{/stream} connection would block every other request.
-\item \textbf{Non-reproducible responses:} \texttt{/stream} simulates a new batch at every call, and \texttt{/point} a new timeline at every request; two clients never receive identical data.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}[fragile]{Exercise 4: detect an injected drift (Class 29)}
-\begin{lstlisting}[style=coursepython, basicstyle=\ttfamily\scriptsize]
-import requests, pandas as pd
-from river import linear_model, optim, preprocessing, drift
-
-URL = "http://localhost:8001/batch"
-frames = [pd.DataFrame(requests.get(URL).json()) for _ in range(30)]
-stream = pd.concat(frames, ignore_index=True)
-start = sum(len(f) for f in frames[:15])     # drift begins with batch 16
-
-model = preprocessing.StandardScaler() | linear_model.LinearRegression(
-    optimizer=optim.SGD(0.01))
-adwin = drift.ADWIN(delta=0.002)
-for i, e in stream.iterrows():
-    mu = e["Mu"] + (0.4 if i >= start else 0.0)   # injected product change
-    y_pred = model.predict_one({"T": e["T"]}) or 0.0
-    model.learn_one({"T": e["T"]}, mu)
-    adwin.update(abs(mu - y_pred))
-    if adwin.drift_detected:
-        print(f"drift detected at sample {i} (injected at {start})")
-\end{lstlisting}
-\begin{itemize}\footnotesize
-\item Thirty batches are requested from \texttt{/batch} (no waiting) and processed row by row as a stream; the viscosity is shifted by 0.4\,cP from batch 16 on.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Exercise 4: questions}
-\begingroup\small
-Report the detection delay and every alarm raised before the injection. In ten test runs, the drift was detected 28--54 samples after the injection; one or two alarms during the initial learning phase (roughly the first 1{,}500 samples) are expected.
-\par\endgroup
-\vspace{0.3em}
-\begin{enumerate}\small
-\item Why is \texttt{/batch} used instead of \texttt{/stream}? Estimate how long the same experiment would take through \texttt{/stream}.
-\item Why do alarms appear during the initial learning phase, and why should they be ignored?
-\item Reduce the shift to 0.1\,cP and then to 0.05\,cP: how do the detection delay and the detection rate change?
-\item Repeat the experiment with only four batches and the injection after batch 2. Explain why the drift is rarely detected (hint: compare with the learning curve of the online model).
-\item Replace the sudden shift by a gradual one (e.g.\ $+0.4\,$cP reached linearly over five batches) and compare the delay.
-\end{enumerate}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Repository connections}
-\repoactivity{
-\begin{itemize}
-\item \texttt{pasteurization/synth\_sensors.py} and \texttt{pasteurization/serving.py}: the generator and the service used throughout the lab.
-\item \texttt{streamlit/pages/App\_Pasteurization.py}: the client that consumes \texttt{/stream} and plots every sensor live.
-\end{itemize}
-}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Papers and materials}
-\readinglist{
-\fontsize{6.8}{8.2}\selectfont
-\begin{columns}[T]
-\column{0.5\textwidth}
-\begin{itemize}\setlength{\itemsep}{1pt}
-\item Fielding, R.\,T. (2000). \emph{Architectural Styles and the Design of Network-based Software Architectures}. PhD thesis, University of California, Irvine.
-\item WHATWG. \href{https://html.spec.whatwg.org/multipage/server-sent-events.html}{HTML Living Standard: Server-sent events}.
-\end{itemize}
-\column{0.5\textwidth}
-\begin{itemize}\setlength{\itemsep}{1pt}
-\item Documentation: \href{https://flask.palletsprojects.com/en/stable/}{Flask} (including the \href{https://flask.palletsprojects.com/en/stable/tutorial/}{tutorial}); \href{https://docs.streamlit.io/}{Streamlit}; \href{https://pandas.pydata.org/docs/}{pandas}.
-\end{itemize}
-\end{columns}
-}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Take-away message}
-\vfill
+% ------------------------------------------------------------------ where we are
+\begin{cframe}{Where the team stands}{\cterm{Milestone}{a checkpoint with a defined decision and a defined deliverable.}\cterm{Adaptive monitoring}{monitoring whose notion of normal behavior is learned from the data stream itself.}}
 \centering
 \begin{tikzpicture}
-\node[fill=courseice, draw=courseblue, thick, rounded corners=4pt, inner sep=10pt, text width=0.78\textwidth, align=center, font=\large] {Before trusting a data service, run it and probe it:\\[0.3em] validate its inputs, check its outputs against the expected\\ process, and know whether its responses are reproducible.};
+\node[chip, fill=courseblue, anchor=north west, minimum width=4.38cm, minimum height=0.36cm, font=\tiny\bfseries] at (0,0) {CLASS 26: SESSION 1};
+\node[chip, fill=courseblue!70, anchor=north west, minimum width=4.38cm, minimum height=0.36cm, font=\tiny\bfseries] at (4.5,0) {CLASS 28: SESSION 2};
+\node[chip, fill=coursegreen, anchor=north west, minimum width=4.38cm, minimum height=0.36cm, font=\tiny\bfseries] at (9.0,0) {CLASS 30: TODAY};
+\draw[line width=2pt, courseblue!25] (0.3,-0.85) -- (13.1,-0.85);
+\foreach \i/\col/\name/\tag/\txt in {0/courseblue/Discovery/DONE/{Stakeholders, question log, assumptions}, 1/courseblue/Baseline/DONE/{Backlog, SRS v1, acceptance criteria}, 2/courseblue/MVP/DONE/{Streamlit application and its code}, 3/courseblue/Validation/DONE/{Test record, traceability matrix}, 4/courseblue/Evolution/DONE/{Hold rule, SRS v2, release notes}, 5/coursegreen/Adaptation/TODAY/{Learn normal behavior; detect drift}} {
+  \pgfmathsetmacro{\x}{\i*2.25}
+  \node[circle, fill=\col, text=white, draw=white, line width=1.5pt, minimum size=0.62cm, inner sep=0, font=\scriptsize\bfseries] at (\x+1.05,-0.85) {M\the\numexpr\i+1\relax};
+  \ifnum\i<5
+    \node[tile, fill=white, draw=\col!60, anchor=north west, minimum width=2.1cm, minimum height=1.75cm] at (\x,-1.3) {};
+  \else
+    \node[tile, fill=white, draw=\col, very thick, anchor=north west, minimum width=2.1cm, minimum height=1.75cm] at (\x,-1.3) {};
+  \fi
+  \node[anchor=north west, font=\footnotesize\bfseries, text=\col!85!black, inner sep=0pt] at (\x+0.15,-1.43) {\name};
+  \node[anchor=north west, font=\tiny\bfseries, text=coursegray, inner sep=0pt] at (\x+0.15,-1.78) {\tag};
+  \node[anchor=north west, text width=1.85cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.15,-2.0) {\txt};
+}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,-3.3) {BRING TO THIS SESSION};
+\foreach \x/\ico/\t in {0/laptop-code/Application v2, 3.4/file-alt/SRS v2 and backlog, 6.8/route/Traceability matrix, 10.2/box-open/River installed} {
+  \node[chip, anchor=north west, minimum width=3.2cm, minimum height=0.5cm, font=\scriptsize\bfseries, align=left] at (\x,-3.5) {\faIcon{\ico}\ \t};
+}
+\keyidea{-4.25}{Sessions 1 and 2 taught the application what is forbidden; today it learns what is normal, and notices when normal changes.}
 \end{tikzpicture}
+\coursefooter
+\end{cframe}
 
-\vfill
-{\Large\bfseries\color{courseblue} Thank you for your attention.}
+% ------------------------------------------------------------------ change request
+\begin{cframe}{The second change request}{\cterm{Calibration drift}{a slow, systematic bias of a sensor with respect to the true value of the measured quantity.}\cterm{Drift event}{a recorded detection of a change in the distribution of a monitored signal.}}
+\centering
+\begin{tikzpicture}
+\node[chip, fill=coursegold, anchor=north west, minimum width=7.6cm, minimum height=0.55cm, font=\scriptsize\bfseries, align=left] at (0,0) {\faIcon{envelope-open-text}\ CHANGE REQUEST 2 \ from IT and Maintenance};
+\node[tile, fill=white, draw=coursegold, thick, anchor=north west, minimum width=7.6cm, minimum height=2.75cm, text width=7.2cm, align=left, font=\scriptsize] at (0,-0.6) {\itshape ``A temperature probe can lose its calibration slowly. A fixed limit reveals this only once the reading is already far from the truth, and during Discharge a biased reading still lies inside the cooling range. The application must learn the normal behavior of each steady state from the stream and raise a drift event, distinct from a threshold alert, so that Maintenance can tell a process fault from a sensor fault.''};
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (7.95,0.15) {WHAT THE REQUEST ADDS};
+\foreach \y/\ico/\col/\ttl/\txt in {0/graduation-cap/courseblue/Online learning/{A baseline per steady state.}, -0.86/chart-line/courseblue/Drift detection/{A test on the deviation from it.}, -1.72/tags/coursegold/A new record type/{The drift event.}, -2.58/stethoscope/coursegreen/A diagnosis/{Process fault or sensor fault?}} {
+  \node[tileblue, draw=\col!70, anchor=north west, minimum width=5.45cm, minimum height=0.78cm] at (7.95,\y) {};
+  \node[circle, fill=\col, text=white, minimum size=0.55cm, inner sep=0, font=\scriptsize] at (8.4,\y-0.39) {\faIcon{\ico}};
+  \node[anchor=west, font=\scriptsize\bfseries, text=courseblue, inner sep=0pt] at (8.85,\y-0.24) {\ttl};
+  \node[anchor=west, text width=4.4cm, align=left, font=\scriptsize, inner sep=0pt] at (8.85,\y-0.55) {\txt};
+}
+\keyidea{-4.3}{This is Class 29 in production form: an online model, a drift detector, and a decision about what the system does when drift is detected.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
 
-\vspace{0.4em}
-{\small\color{coursegray} Next: Class 31 --- model deployment and prediction serving.}
-\vfill
+% ================================================================== PART 1
+\sectiondivider{1}{Stream}{stream}{the application consumes the live stream and applies fixed, state-aware rules.}{$\bullet$\ The stream contract for this session: endpoints and fault scenarios\\[3pt]$\bullet$\ The batch the simulator repeats, and its steady states}
+
+\begin{cframe}{The stream contract for this session}{\cterm{Scenario}{a reproducible fault injected by the simulator into the shared base batch.}\cterm{Replay}{the complete batch returned at once, so that a test does not wait for real time.}}
+\centering
+\begin{tikzpicture}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,0.15) {ENDPOINTS OF \texttt{four40mi-pasteurization-simulator.onrender.com}};
+\foreach \y/\ep/\txt in {-0.3/{/stream?team=G01\&scenario=...}/{Live SSE stream on a shared clock, 8 readings per second.}, -0.98/{/replay?scenario=...}/{One complete batch as JSON, at once: use it for tests.}, -1.66/{/schema \ \ /health}/{Field definitions and units; service status and speed.}} {
+  \node[tile, fill=courseice, anchor=north west, minimum width=5.2cm, minimum height=0.58cm, inner sep=2pt, text width=5.0cm, align=left, font=\ttfamily\scriptsize] at (0,\y) {\ep};
+  \node[anchor=north west, text width=8.0cm, align=left, font=\scriptsize, inner sep=2pt] at (5.35,\y-0.08) {\txt};
+}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,-2.5) {FIVE SCENARIOS, EACH A MODIFICATION OF THE TEMPERATURE READING \textit{T}};
+\foreach \i/\col/\sc/\txt in {0/coursegreen/nominal/{The base batch, unchanged.}, 1/coursegold/slow\_heatup/{HeatUp ends at 64\,°C instead of 72\,°C.}, 2/coursered/hold\_undershoot/{T is 3.5\,°C lower during Hold.}, 3/coursegray/sensor\_dropout/{T, pH, and dTdt missing at intervals.}, 4/courseblue/sensor\_drift/{Bias growing from 0 to 3\,°C over each batch.}} {
+  \pgfmathsetmacro{\x}{\i*2.7}
+  \node[tile, fill=white, draw=\col, thick, anchor=north west, minimum width=2.55cm, minimum height=1.45cm] at (\x,-2.7) {};
+  \node[anchor=north west, font=\ttfamily\scriptsize\bfseries, text=\col!85!black, inner sep=0pt] at (\x+0.15,-2.82) {\sc};
+  \node[anchor=north west, text width=2.25cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.15,-3.2) {\txt};
+}
+\keyidea{-4.35}{Test with \texttt{/replay}, which is fast and reproducible; demonstrate with \texttt{/stream}. Reconnecting with another scenario reproduces the arrival of a fault.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{The batch the simulator repeats}{\cterm{Steady state}{a process state in which the temperature is stationary: its mean and variance do not change while the state lasts.}}
+\centering
+\begin{tikzpicture}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,0.15) {ONE BATCH = 329 READINGS (ONE READING PER SIMULATED SECOND; ABOUT 41\,s OF REAL TIME AT 8$\times$)};
+% bar proportional to the state durations: 65 53 39 19 42 111 (scale 13.4/329)
+\foreach \x/\w/\lab/\n/\col/\fg in {0/2.647/Idle/65/coursegreen/white, 2.647/2.159/Fill/53/courseice/coursegray, 4.806/1.588/HeatUp/39/courseice/coursegray, 6.394/0.774/Hold/19/coursered/white, 7.168/1.711/Cool/42/courseice/coursegray, 8.879/4.521/Discharge/111/courseblue/white} {
+  \node[rounded corners=2pt, fill=\col, draw=white, line width=1pt, anchor=north west, minimum width=\w cm, minimum height=0.85cm, inner sep=0pt] at (\x,-0.2) {};
+  \node[font=\scriptsize\bfseries, text=\fg, align=center] at (\x+\w/2,-0.62) {\lab\\[-1pt]{\tiny\n}};
+}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,-1.35) {TEMPERATURE IN THE STEADY STATES OF THE BASE BATCH (MEAN $\pm$ STANDARD DEVIATION)};
+\infotile{0}{-1.55}{4.35}{1.75}{tilegreen}{coursegreen}{pause}{Idle}{T = 10.8 $\pm$ 0.04\,°C over 65 readings.}
+\infotile{4.52}{-1.55}{4.35}{1.75}{tilered}{coursered}{thermometer-full}{Hold}{T = 72.0 $\pm$ 0.07\,°C over 19 readings.}
+\infotile{9.05}{-1.55}{4.35}{1.75}{tileblue}{courseblue}{snowflake}{Discharge}{T = 4.4 $\pm$ 0.05\,°C over 111 readings.}
+\node[tile, fill=courseice, anchor=north west, minimum width=13.4cm, minimum height=0.85cm, text width=13.0cm, align=left, font=\scriptsize] at (0,-3.42) {{\bfseries\color{courseblue}\faIcon{clock}\ Shared global clock.} Every client receives the same reading at the same instant; a client that connects in the middle of a batch starts in the current state, not in Idle.};
+\keyidea{-4.35}{In a steady state a single number summarizes normal behavior, and a deviation from it is meaningful. This is why the monitor of this session starts from the steady states.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ================================================================== PART 2
+\sectiondivider{2}{Learn and detect}{brain}{the stream contract is clear: five scenarios, one repeated batch, three steady states.}{$\bullet$\ An online baseline, learned test-then-train\\[3pt]$\bullet$\ ADWIN on the residual: drift event versus threshold alert\\[3pt]$\bullet$\ Evidence: the five scenarios against both mechanisms}
+
+\begin{cframe}{Learning the baseline online}{\cterm{Online baseline}{a model of normal behavior updated at every reading, with constant memory.}\cterm{Residual}{the difference between the observed reading and the value the baseline expects.}}
+\centering
+\begin{tikzpicture}
+% the loop
+\foreach \x/\ico/\ttl/\txt/\col in {0/satellite-dish/Reading/{$T_t$ in state $s_t$}/courseblue, 2.55/balance-scale/Test/{$r_t = T_t - \hat{\mu}_{s_t}$}/coursegold, 5.1/search/Detect/{$r_t$ to ADWIN$_{s_t}$}/coursered, 7.65/graduation-cap/Train/{$T_t$ updates $\hat{\mu}_{s_t}$}/coursegreen} {
+  \node[tile, fill=white, draw=\col, thick, anchor=north west, minimum width=2.3cm, minimum height=1.45cm] at (\x,0) {};
+  \node[text=\col, font=\large] at (\x+1.15,-0.38) {\faIcon{\ico}};
+  \node[font=\scriptsize\bfseries, text=courseblue] at (\x+1.15,-0.8) {\ttl};
+  \node[font=\scriptsize] at (\x+1.15,-1.15) {\txt};
+}
+\foreach \x in {2.3,4.85,7.4} {\draw[arrowgold] (\x,-0.72) -- (\x+0.25,-0.72);}
+\draw[arrowgray] (8.8,0) -- (8.8,0.25) -- (1.15,0.25) -- (1.15,0);
+\node[font=\tiny\itshape, text=coursegray, fill=white, inner sep=1pt] at (5.0,0.25) {next reading};
+% the update rule
+\node[tileblue, anchor=north west, minimum width=3.1cm, minimum height=1.45cm, text width=2.9cm, align=center, font=\scriptsize] at (10.3,0) {{\bfseries\color{courseblue}Running mean}\\[2pt]$\hat{\mu}_{s} \leftarrow \hat{\mu}_{s} + \dfrac{T_t - \hat{\mu}_{s}}{n_{s}}$};
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,-1.85) {FROM CLASS 29 TO THIS SESSION};
+\listrow{-2.35}{redo-alt}{Prequential evaluation}{The residual is computed \emph{before} the reading updates the baseline.}
+\listrow{-3.0}{tags}{No labels required}{No ground truth: the monitor detects a change of the input distribution (Class 29).}
+\listrow{-3.65}{hourglass-start}{Warm-up}{ADWIN starts after 20 readings of a state, also after each reconnection.}
+\keyidea{-4.25}{One running mean and one detector per steady state: a few lines with \texttt{river.stats.Mean} and \texttt{river.drift.ADWIN}, consuming the same events as the threshold rules.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{A drift event is not a threshold alert}{\cterm{Threshold alert}{a rule violation on a single signal, for the operator (Sessions 1 and 2).}}
+\centering
+\begin{tikzpicture}
+\foreach \x/\w/\lab in {0/3.0/, 3.15/5.05/THRESHOLD ALERT (SESSIONS 1--2), 8.35/5.05/DRIFT EVENT (TODAY)} {
+  \ifx\relax\lab\relax\else\node[chip, anchor=north west, minimum width=\w cm, minimum height=0.42cm, font=\tiny\bfseries] at (\x,0) {\lab};\fi
+}
+\foreach \y/\ico/\row/\a/\b in {-0.55/bolt/Trigger/{A reading outside a configured limit, with persistence.}/{A statistically significant change of the residual mean.}, -1.25/question/Question answered/{Is the process outside its specification now?}/{Has the signal stopped behaving as it used to?}, -1.95/user/Who acts/{The operator, during the shift.}/{Maintenance or Quality, after diagnosis.}, -2.65/exclamation-circle/Severity/{Warning or critical.}/{Informational: investigate, do not intervene.}, -3.35/file-alt/Record/{Batch, state, rule, value, time.}/{Batch, state, signal, detector, $\delta$, time.}} {
+  \node[chip, fill=courseice, text=courseblue, anchor=north west, minimum width=3.0cm, minimum height=0.6cm, font=\scriptsize\bfseries, align=left] at (0,\y) {\faIcon{\ico}\ \row};
+  \node[tile, fill=white, draw=coursegold!70, thick, anchor=north west, minimum width=5.05cm, minimum height=0.6cm, text width=4.8cm, align=left, font=\scriptsize, inner sep=2pt] at (3.15,\y) {\a};
+  \node[tile, fill=white, draw=courseblue!60, thick, anchor=north west, minimum width=5.05cm, minimum height=0.6cm, text width=4.8cm, align=left, font=\scriptsize, inner sep=2pt] at (8.35,\y) {\b};
+}
+\warning{-4.2}{ban}{Rule.}{A drift event never acts on the plant and never replaces a threshold alert: the application still supports human decisions only.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Evidence: the sensor drift scenario}{\cterm{ADWIN}{adaptive windowing: a change detector that compares the means of an older and a recent sub-window (Class 29).}\cterm{Drift masking}{an adaptive model absorbing a fault until the fault looks normal.}}
+\centering
+\begin{tikzpicture}
+\node[anchor=north west, inner sep=0pt] at (0,0.1) {\includegraphics[width=9.2cm]{images/class30_residuals.pdf}};
+\foreach \y/\col/\ttl/\txt in {0.1/courseblue/Discharge detects first/{After 248 readings (31\,s live). Its 2--2.5\,°C bias stays in the cooling range: no alert.}, -1.5/coursered/Hold detects last/{After 489 readings: with 19 readings per batch, ADWIN needs a second batch.}, -3.1/coursegold/The baseline absorbs the fault/{The Discharge residual falls from 2.5 to 2.0\,°C in three batches.}} {
+  \node[tile, fill=white, draw=\col, thick, anchor=north west, minimum width=3.95cm, minimum height=1.45cm, text width=3.7cm, align=left, font=\scriptsize] at (9.45,\y) {{\bfseries\color{courseblue}\ttl}\\[1pt]\txt};
+}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Five scenarios, two mechanisms}{\cterm{Coverage gap}{a fault that no rule and no detector of the application can observe.}}
+\centering
+\begin{tikzpicture}
+\foreach \x/\w/\lab in {0/2.7/SCENARIO, 2.85/3.35/{THRESHOLD RULE (HOLD, 72 $\pm$ 1\,°C, 3 READINGS)}, 6.35/3.5/{DRIFT EVENTS (FIRST, READINGS AFTER ONSET)}, 10.0/3.4/DIAGNOSIS} {
+  \node[chip, anchor=north west, minimum width=\w cm, minimum height=0.48cm, font=\tiny\bfseries, text width={(\w-0.15)*1cm}, align=center] at (\x,0) {\lab};
+}
+\foreach \y/\col/\sc/\a/\b/\c in {-0.6/coursegreen/nominal/{none}/{none, no false alarm}/{Normal operation.}, -1.27/coursegold/slow\_heatup/{none}/{none}/{{\bfseries Coverage gap}: needs a HeatUp rule.}, -1.94/coursered/hold\_undershoot/{critical in every batch, first after 159}/{Hold only, after 489}/{{\bfseries Process fault}: one state.}, -2.61/coursegray/sensor\_dropout/{none}/{none; 50 missing readings}/{{\bfseries Data quality}, not drift.}, -3.28/courseblue/sensor\_drift/{critical in every batch, first after 159}/{Discharge 248, Idle 338, Hold 489}/{{\bfseries Sensor fault}: every steady state.}} {
+  \node[tile, fill=white, draw=\col, thick, anchor=north west, minimum width=2.7cm, minimum height=0.6cm, font=\ttfamily\scriptsize\bfseries, text=\col!85!black, inner sep=2pt] at (0,\y) {\sc};
+  \foreach \x/\w/\t in {2.85/3.35/\a, 6.35/3.5/\b, 10.0/3.4/\c} {
+    \node[tile, fill=courseice, anchor=north west, minimum width=\w cm, minimum height=0.6cm, text width={(\w-0.2)*1cm}, align=left, font=\scriptsize, inner sep=2pt] at (\x,\y) {\t};
+  }
+}
+\node[anchor=north west, font=\tiny\itshape, text=coursegray] at (0,-3.95) {Ten nominal batches, then ten batches of the scenario; same monitor as on the previous slides. Reproduce with \texttt{presentations/generate\_class30\_figures.py}.};
+\keyidea{-4.3}{Where the drift appears is the diagnosis: in every steady state, the sensor; in one state, the process; nowhere, a gap in coverage.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ================================================================== PART 3
+\sectiondivider{3}{Evolve and close}{sync-alt}{an online baseline and ADWIN detect the sensor fault that the fixed limits miss, and the pattern of detections supports the diagnosis.}{$\bullet$\ The five steps of session 3\\[3pt]$\bullet$\ The design decisions the team must record\\[3pt]$\bullet$\ SRS v3 and one new traceability path}
+
+\begin{cframe}{Session 3: five steps}{\cterm{Test harness}{code that feeds recorded or replayed data to the application and checks its output automatically.}}
+\centering
+\begin{tikzpicture}
+\stepcard{0}{1}{plug}{coursegreen}{Replay and stream}{Add a \texttt{scenario} option; test on \texttt{/replay}, demonstrate on \texttt{/stream}.}
+\stepcard{2.71}{2}{graduation-cap}{coursegreen}{Learn the baseline}{One running mean per steady state, test-then-train, with warm-up.}
+\stepcard{5.42}{3}{search}{coursegreen}{Detect drift}{One ADWIN per steady state on the residual; record each drift event.}
+\stepcard{8.13}{4}{vial}{coursegold}{Run the scenarios}{All five, with a log line, a screenshot, and a test identifier each.}
+\stepcard{10.85}{5}{file-signature}{coursegold}{Update the artifacts}{SRS v3, backlog, traceability, operational guide.}
+\foreach \x in {2.55,5.26,7.97,10.68} {\draw[arrowgold] (\x,-0.42) -- (\x+0.16,-0.42);}
+\keyidea{-4.05}{The thin slice of today: one signal (T), three steady states, one detector type, and the scenario matrix as evidence.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Decisions the team must record}{\cterm{Design decision}{a choice among alternatives, recorded with its rationale so that it can be reviewed.}}
+\centering
+\begin{tikzpicture}
+\infotile{0}{0}{4.35}{1.95}{tilered}{coursered}{lock}{Keep learning or freeze?}{Learning masks the fault; a reset risks the reset loop of Class 29.}
+\infotile{4.52}{0}{4.35}{1.95}{tileblue}{courseblue}{sliders-h}{Sensitivity $\delta$}{Smaller $\delta$: fewer false alarms, longer delay. Measure both.}
+\infotile{9.05}{0}{4.35}{1.95}{tileblue}{courseblue}{plug}{Reconnection}{A restart loses the baseline: warm up again, or restore it?}
+\infotile{0}{-2.1}{4.35}{1.95}{tileblue}{courseblue}{check-double}{Acknowledgement}{Is a drift event acknowledged like an alert? Who closes it?}
+\infotile{4.52}{-2.1}{4.35}{1.95}{tilegold}{coursegold}{thermometer-half}{Coverage}{Which rule closes the \texttt{slow\_heatup} gap: final HeatUp T, or dTdt?}
+\infotile{9.05}{-2.1}{4.35}{1.95}{tilegreen}{coursegreen}{book-open}{Operator guidance}{What the guide says to do with a drift event, and what not.}
+\keyidea{-4.3}{There is no single correct answer: an explicit decision with its rationale and its test evidence is what will be assessed.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{SRS v3: one new traceability path}{\cterm{SRS v3}{the specification after the second change request has been analyzed and applied.}}
+\centering
+\begin{tikzpicture}
+\foreach \x/\w/\lab in {0/1.0/ID, 1.16/2.85/REQUIREMENT, 4.17/3.55/ACCEPTANCE CRITERION, 7.88/2.0/IMPLEMENTATION, 10.04/2.0/TEST EVIDENCE, 12.2/1.2/STATUS} {
+  \node[chip, anchor=north west, minimum width=\w cm, minimum height=0.4cm, font=\tiny\bfseries] at (\x,0) {\lab};
+}
+\foreach \x/\w/\txt in {0/1.0/{{\bfseries FR-12}}, 1.16/2.85/{The application shall raise a drift event when the T residual of a steady state changes.}, 4.17/3.55/{After ten nominal batches, \texttt{sensor\_drift} yields a drift event within two batches, with batch, state, signal, detector.}, 7.88/2.0/{Baseline and detector module}, 10.04/2.0/{TC-15: replay log and screenshot}} {
+  \node[tile, fill=white, draw=coursegreen!70, thick, anchor=north west, minimum width=\w cm, minimum height=1.95cm, text width={(\w-0.25)*1cm}, align=left, font=\scriptsize, inner sep=3pt] at (\x,-0.5) {\txt};
+}
+\node[tilegreen, anchor=north west, minimum width=1.2cm, minimum height=1.95cm, font=\scriptsize\bfseries, text=coursegreen] at (12.2,-0.5) {\faIcon{check}\ Passed};
+\foreach \x/\w/\txt in {0/1.0/{{\bfseries NFR-06}}, 1.16/2.85/{No drift event shall be raised on the nominal stream.}, 4.17/3.55/{Zero drift events in ten nominal batches after warm-up.}, 7.88/2.0/{Warm-up and $\delta = 0.002$}, 10.04/2.0/{TC-16: replay log}} {
+  \node[tile, fill=white, draw=coursegreen!70, thick, anchor=north west, minimum width=\w cm, minimum height=1.15cm, text width={(\w-0.25)*1cm}, align=left, font=\scriptsize, inner sep=3pt] at (\x,-2.6) {\txt};
+}
+\node[tilegreen, anchor=north west, minimum width=1.2cm, minimum height=1.15cm, font=\scriptsize\bfseries, text=coursegreen] at (12.2,-2.6) {\faIcon{check}\ Passed};
+\node[font=\tiny\itshape, text=coursegray, anchor=north west] at (0,-3.8) {example rows: identifiers and test numbers continue the team's own numbering from SRS v2};
+\keyidea{-4.2}{A detector needs two acceptance criteria: it detects the fault it is meant for, and it stays silent when nothing has changed.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ------------------------------------------------------------------ closing
+\section{Wrap-up}\gdef\currentsectionname{Wrap-up}
+\begin{frame}{From this class to the next}
+\centering
+\begin{tikzpicture}
+\foreach \i/\lab/\bg/\fg in {1/Problem/courseice/coursegray, 2/Data/courseice/coursegray, 3/Features/courseice/coursegray, 4/Model/courseblue/white, 5/Interface/courseice/coursegray, 6/Delivery/courseice/coursegray, 7/Monitor/courseblue/white, 8/Evolution/courseblue/white} {
+  \node[rounded corners=3pt, minimum width=1.55cm, minimum height=0.6cm, font=\scriptsize\bfseries, fill=\bg, text=\fg] at ({0.78+(\i-1)*1.68},0) {\lab};
+}
+\node[font=\tiny\bfseries, text=courseblue] at (6.7,-0.52) {THIS SESSION PUTS AN ONLINE MODEL INSIDE THE MONITORING LOOP};
+\foreach \x/\sty/\ico/\ttl/\txt in {0/tileblue/lightbulb/What stays with us/{$\bullet$\ Normal behavior can be learned online.\\[3pt]$\bullet$\ A drift event is evidence for diagnosis, not an alarm.\\[3pt]$\bullet$\ Where drift appears tells what failed.}, 4.55/tileblue/project-diagram/Use it in your project/{$\bullet$\ Test every detector on a replayed fault and on a nominal stream.\\[3pt]$\bullet$\ Decide, and record, what the model does after detection.}, 9.1/tilegold/arrow-right/Next: Classes 31--32/{\textbf{Deployment, serving, Docker, and CI/CD.}\\[3pt]A joint session with a guest lecturer: how an application like yours becomes a reproducible, deployable service.}} {
+  \node[\sty, anchor=north west, minimum width=4.3cm, minimum height=3.8cm] at (\x,-0.95) {};
+  \badge{\x+0.65}{-1.6}{courseblue}{\ico}
+  \node[anchor=west, text width=3.0cm, align=left, font=\small\bfseries, text=courseblue] at (\x+1.2,-1.6) {\ttl};
+  \node[anchor=north west, text width=3.9cm, align=left, font=\scriptsize] at (\x+0.2,-2.25) {\txt};
+}
+\node[tilegold, fill=white, anchor=north west, minimum width=13.4cm, minimum height=0.95cm, text width=12.6cm, align=left, font=\footnotesize] at (0,-5.0) {{\bfseries\goldink\faIcon{route}\ Course thread.} Requirements fix what must hold; online learning keeps track of what is normal; the evidence connects both.};
+\end{tikzpicture}
+\coursefooter
+\end{frame}
+
+% ------------------------------------------------------------------ references
+\begin{frame}{Papers and materials}
+\centering
+\begin{tikzpicture}
+\refrow{0}{2.05}{file-alt}{Drift and detection}{Bifet, A. and Gavald\`a, R. (2007). Learning from time-changing data with adaptive windowing. \emph{Proceedings of the SIAM International Conference on Data Mining}, 443--448.\\Gama, J., \v{Z}liobait\.{e}, I., Bifet, A., Pechenizkiy, M., and Bouchachia, A. (2014). A survey on concept drift adaptation. \emph{ACM Computing Surveys}, 46(4), 44:1--44:37.}
+\refrow{-2.05}{1.4}{stream}{Streaming learning}{Montiel, J. et al. (2021). River: machine learning for streaming data in Python. \emph{Journal of Machine Learning Research}, 22(110), 1--8.\\Welford, B. P. (1962). Note on a method for calculating corrected sums of squares and products. \emph{Technometrics}, 4(3), 419--420.}
+\refrow{-3.45}{1.0}{book}{Documentation}{\href{https://riverml.xyz/latest/api/drift/ADWIN/}{River: \texttt{drift.ADWIN}} and \href{https://riverml.xyz/latest/api/stats/Mean/}{\texttt{stats.Mean}}.\\WHATWG. \href{https://html.spec.whatwg.org/multipage/server-sent-events.html}{HTML Living Standard: Server-sent events}. \ \href{https://docs.streamlit.io/}{Streamlit documentation}.}
+\refrow{-4.45}{0.8}{folder-open}{Course materials}{\texttt{documents/Class26\_Pasteurization\_Monitoring\_Challenge.pdf}; \texttt{pasteurization/serving.py}; \texttt{streamlit/pages/App\_Stream.py}.}
+\end{tikzpicture}
 \coursefooter
 \end{frame}
 

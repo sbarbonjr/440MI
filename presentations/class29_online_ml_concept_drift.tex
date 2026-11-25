@@ -1,289 +1,306 @@
 \input{common}
+\input{common_visual}
 \usepackage{amssymb}
+\usetikzlibrary{decorations.pathreplacing}
+
+% Four parts; the progress strip on each divider uses these labels.
+\newcommand{\sectioncount}{4}
+\newcommand{\sectionlabels}{1/Online learning,2/Concept drift,3/Detection,4/Adaptation}
 
 \title{Class 29: Online Learning and Concept Drift}
 \author{\coursename}
 \date{}
 
+% ------------------------------------------------------------------ helpers
+% A gold strip with a labelled idea: y icon label text
+\newcommand{\callout}[4]{%
+  \node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=0.8cm, text width=12.6cm, align=left, font=\footnotesize] at (0,#1) {{\bfseries\goldink\faIcon{#2}\ #3}\ #4};
+}
+\newcommand{\keyidea}[2]{\callout{#1}{lightbulb}{Key idea.}{#2}}
+% A red strip: y icon label text
+\newcommand{\warning}[4]{%
+  \node[tilered, anchor=north west, minimum width=13.4cm, minimum height=0.8cm, text width=12.6cm, align=left, font=\footnotesize] at (0,#1) {{\bfseries\color{coursered}\faIcon{#2}\ #3}\ #4};
+}
+% An information tile: x y width height style colour icon title text
+\newcommand{\infotile}[9]{%
+  \node[#5, anchor=north west, minimum width=#3cm, minimum height=#4cm] at (#1,#2) {};
+  \badge{#1+0.55}{#2-0.55}{#6}{#7}
+  \node[anchor=west, text width={(#3-1.35)*1cm}, align=left, font=\footnotesize\bfseries, text=courseblue] at (#1+1.05,#2-0.55) {#8};
+  \node[anchor=north west, text width={(#3-0.4)*1cm}, align=left, font=\scriptsize, inner sep=0pt] at (#1+0.2,#2-1.0) {#9};
+}
+% One row of the repository map: y path text stage-colour stage
+\newcommand{\reporow}[5]{%
+  \node[tile, fill=courseice, anchor=north west, minimum width=4.6cm, minimum height=0.74cm, inner sep=2pt, text width=4.3cm, align=left, font=\ttfamily\scriptsize] at (0,#1) {#2};
+  \node[tile, fill=white, draw=courseblue!40, thick, anchor=north west, minimum width=6.3cm, minimum height=0.74cm, inner sep=2pt, text width=5.9cm, align=left, font=\scriptsize] at (4.75,#1) {#3};
+  \node[chip, fill=#4, anchor=north west, minimum width=2.15cm, minimum height=0.74cm, font=\scriptsize\bfseries] at (11.25,#1) {#5};
+}
+% A reference row: y height icon label text
+\newcommand{\refrow}[5]{%
+  \node[chip, anchor=west, minimum width=3.4cm, minimum height=0.68cm, font=\scriptsize\bfseries, align=left] at (0,#1-#2/2) {\faIcon{#3}\ #4};
+  \node[anchor=west, text width=9.8cm, font=\scriptsize, align=left] at (3.6,#1-#2/2) {#5};
+  \draw[courseice!70!courseblue, line width=0.5pt] (0,#1-#2) -- (13.7,#1-#2);
+}
+% A row of a two-alternative comparison: y icon criterion text-left text-right
+\newcommand{\comparerow}[5]{%
+  \node[chip, fill=courseice, text=courseblue, anchor=north west, minimum width=3.0cm, minimum height=0.7cm, font=\scriptsize\bfseries, align=left] at (0,#1) {\faIcon{#2}\ #3};
+  \node[tile, fill=white, draw=courseblue!60, thick, anchor=north west, minimum width=5.05cm, minimum height=0.7cm, text width=4.8cm, align=left, font=\scriptsize, inner sep=2pt] at (3.15,#1) {#4};
+  \node[tile, fill=white, draw=coursegreen!70, thick, anchor=north west, minimum width=5.05cm, minimum height=0.7cm, text width=4.8cm, align=left, font=\scriptsize, inner sep=2pt] at (8.35,#1) {#5};
+}
+
 \begin{document}
 
+% ------------------------------------------------------------------ title
 \frame{\titlepage \coursefooter}
 
-\begin{frame}{Agenda}
-\begin{itemize}
-\item Why a validated model can become obsolete.
-\item Offline (batch) versus online (incremental) learning.
-\item River: learning one observation at a time, with prequential evaluation.
-\item Concept drift: definition, types, and detection with ADWIN.
-\item Monitoring a streaming model with River and Evidently.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Offline versus online learning}
-\begin{columns}[T]
-\column{0.48\textwidth}
-\textbf{Offline (batch)}
-\begin{itemize}
-\item Trained once on a fixed dataset $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{n}$.
-\item Straightforward benchmarking on a held-out test set.
-\item Adapts only through periodic retraining.
-\end{itemize}
-\column{0.48\textwidth}
-\textbf{Online (incremental)}
-\begin{itemize}
-\item Updated after each observation $(\mathbf{x}_t, y_t)$ of a stream, with constant memory.
-\item Operates directly on unbounded data streams.
-\item Adapts continuously to change.
-\end{itemize}
-\end{columns}
-\vspace{0.6em}
-\begin{itemize}
-\item \textbf{Prequential evaluation} (test-then-train): each observation is first used to test the model, $\hat{y}_t = f_{t-1}(\mathbf{x}_t)$, and only then to update it, so every prediction is made on unseen data.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Why adaptation becomes necessary}
-\begin{itemize}
-\item User behaviour changes.
-\item Sensors degrade or are recalibrated.
-\item Business policies or regulations change.
-\item New error types appear only after deployment.
-\end{itemize}
-\begin{block}{Key point}
-Adaptation does not indicate that the initial model was wrong; it acknowledges that the data-generating process evolves over time.
-\end{block}
-\coursefooter
-\end{frame}
-
-\begin{frame}[fragile]{River example: incremental regression}
-\begin{lstlisting}[style=coursepython]
-model = preprocessing.StandardScaler() | linear_model.LinearRegression(
-    optimizer=optim.SGD(0.01)
-)
-mae = metrics.MAE()
-
-y_pred = model.predict_one(x)
-model.learn_one(x, y)
-mae.update(y, y_pred)
-\end{lstlisting}
-\begin{itemize}
-\item From \texttt{notebooks/Class8\_Model\_Incremental\_learning.ipynb}: the model predicts the current temperature in Paris from the wind speed (\texttt{x = \{"wind": wind\}}), obtained from the Open-Meteo API, which refreshes these values every 15 minutes; polling faster only repeats the same observation.
-\item \texttt{predict\_one} precedes \texttt{learn\_one} (prequential evaluation); the mean absolute error (MAE) and the parameters, by stochastic gradient descent (SGD), are updated at every observation.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{What is concept drift?}
-\begin{itemize}
-\item Concept drift is a change over time of the joint distribution, $P_t(\mathbf{x}, y) \neq P_{t+\Delta}(\mathbf{x}, y)$; it is a change of the data-generating process, not noise in individual readings.
-\item Since $P(\mathbf{x}, y) = P(\mathbf{x})\,P(y \mid \mathbf{x})$, two cases are distinguished:
-\begin{itemize}
-\item \textbf{virtual drift} (covariate shift): $P(\mathbf{x})$ changes, $P(y \mid \mathbf{x})$ does not;
-\item \textbf{real drift}: $P(y \mid \mathbf{x})$ changes, so the learned decision function becomes incorrect.
-\end{itemize}
-\item A model trained before a real drift may still produce confident predictions that are systematically wrong.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Virtual versus real drift}
-\centering
-\includegraphics[width=\textwidth,height=0.48\textheight,keepaspectratio]{images/class19_virtual_real_drift.pdf}
-
-\vspace{0.3em}
-\begin{itemize}\footnotesize
-\item \textbf{Virtual drift:} the inputs move to a different region of $\mathcal{X}$, but the class of each point is unchanged; the learned boundary remains correct, although the model may now operate where it saw little training data.
-\item \textbf{Real drift:} the same inputs now belong to the other class; the boundary itself is wrong and the model must be updated.
-\item Monitoring the inputs alone (e.g.\ a data drift report) detects virtual drift; detecting real drift requires the labels, i.e.\ the error stream.
-\end{itemize}
-{\tiny Illustrative synthetic data.\par}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Temporal patterns of drift}
-\centering
-\includegraphics[width=\textwidth]{images/class19_drift_types.pdf}
-
-\vspace{0.4em}
-\begin{itemize}\footnotesize
-\item \textbf{Sudden:} the concept is replaced at once, e.g.\ a sensor recalibration or a change of product.
-\item \textbf{Gradual:} samples from the old and the new concept alternate, with the new one becoming more frequent.
-\item \textbf{Incremental:} the concept moves continuously through intermediate states, e.g.\ wear of heating equipment.
-\item \textbf{Recurring:} previous concepts return, e.g.\ seasonal patterns; a model can reuse what it learned before.
-\end{itemize}
-{\tiny Illustrative synthetic data; dots are observations, lines the underlying concept.\par}
-\coursefooter
-\end{frame}
-
-\begin{frame}{The streaming learning loop}
-\centering
-\begin{tikzpicture}[node distance=1cm and 0.9cm]
-\node[flowbox] (source) {Sensor /\\API};
-\node[flowbox, right=of source] (predict) {predict\_one};
-\node[flowbox, right=of predict] (learn) {learn\_one};
-\node[flowbox, below=of learn] (metric) {Update\\metric};
-\node[accentbox, left=of metric] (drift) {Drift\\check};
-\draw[arrow] (source) -- (predict);
-\draw[arrow] (predict) -- (learn);
-\draw[arrow] (learn) -- (metric);
-\draw[arrow] (metric) -- (drift);
-\draw[arrow, bend right=20] (drift.west) to node[below, font=\scriptsize] {next reading} (source.south);
-\end{tikzpicture}
-\coursefooter
-\end{frame}
-
-\begin{frame}[fragile]{River example: ADWIN drift detection}
-\begin{lstlisting}[style=coursepython]
-adwin = drift.ADWIN(delta=0.002)
-...
-error = abs(y - (y_pred or 0))
-adwin.update(error)
-
-if adwin.drift_detected:
-    print("Resetting model due to detected drift...")
-    model = preprocessing.StandardScaler() | linear_model.LinearRegression(
-        optimizer=optim.SGD(0.01)
-    )
-    adwin = drift.ADWIN(delta=0.002)
-\end{lstlisting}
-\begin{itemize}
-\item From \texttt{notebooks/Class8\_Model\_Incremental\_learning.ipynb}: the adaptive windowing detector (ADWIN) monitors the absolute errors and signals a significant change; the notebook then resets both the model and the detector, a strategy examined experimentally below.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{How ADWIN works}
-\begin{itemize}
-\item ADWIN (Bifet and Gavald\`a, 2007) maintains a window $W$ of the most recent values (here, absolute errors) and examines every split of $W$ into an older part $W_0$ and a recent part $W_1$, of sizes $n_0$ and $n_1$.
-\item A change is detected, and $W_0$ is dropped, when the two means differ by more than a threshold derived from the Hoeffding bound:
-\[
-|\hat{\mu}_{W_0} - \hat{\mu}_{W_1}| \ge \varepsilon_{\mathrm{cut}}, \qquad
-\varepsilon_{\mathrm{cut}} = \sqrt{\frac{1}{2m}\ln\frac{4}{\delta'}}, \quad
-m = \frac{1}{1/n_0 + 1/n_1}, \quad \delta' = \frac{\delta}{n}.
-\]
-\item The confidence parameter $\delta$ (here $0.002$) controls the false-alarm rate: the window grows while the stream is stable and shrinks as soon as its mean changes.
-\item This provides a statistically grounded trigger for retraining or resetting, instead of a fixed retraining schedule.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{ADWIN on the pasteurization stream}
-\begingroup\small
-\textbf{Experiment:} an online soft sensor estimates the viscosity $\eta$ from the temperature $T$ (60 batches, 19{,}530 samples at 1\,Hz). After batch 30, a product change raises $\eta$ by 0.4\,cP at every temperature: a sudden real drift.
-\par\endgroup
-\vspace{0.3em}
-\centering
-\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{images/class19_adwin_detection.pdf}
-
-\vspace{0.2em}
-\begin{itemize}\footnotesize
-\item The ADWIN window grows linearly while the error stream is stationary and collapses when the drift is detected, 51 samples (51\,s) after it occurred.
-\item Apart from one alarm during the initial learning phase, no false alarm is raised in 19{,}530 samples ($\delta = 0.002$).
-\end{itemize}
-{\tiny Data from \texttt{pasteurization/synth\_sensors.py} with an injected drift; River 0.22, \texttt{LinearRegression} with SGD, \texttt{ADWIN(delta=0.002)}.\par}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Adaptation strategies compared}
-\centering
-\includegraphics[width=\textwidth,height=0.45\textheight,keepaspectratio]{images/class19_adaptation_strategies.pdf}
-
-\vspace{0.2em}
-\begingroup\footnotesize
-\begin{tabular}{l c c l}
-Strategy & MAE before & MAE after & \\
-\toprule
-Batch model, frozen after 10 batches & 0.041 & 0.398 & does not adapt \\
-Online, no reset & 0.052 & 0.043 & recovers in about 200 samples (3.5 min) \\
-Online, reset at every detection & 0.599 & 0.820 & 159 resets: reset loop \\
-\bottomrule
-\end{tabular}
-\par\endgroup
-\vspace{0.3em}
-\begin{itemize}\footnotesize
-\item A reset replaces the model by an untrained one, whose large and decreasing error is itself a change that ADWIN detects: the model never stabilizes. Safer responses are to warm-start from the current model, retrain on the recent window $W_1$, or only raise an alert.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Monitoring beyond a single detector}
-\begin{itemize}
-\item \texttt{notebooks/Class8\_Model\_Incremental\_learning.ipynb} also produces Evidently reports (\texttt{DataDriftPreset}, \texttt{DataQualityPreset}) alongside River.
-\item ADWIN on the error stream is a fast, targeted signal that detects degradation of performance; a drift report tests the distribution of every input column and can reveal virtual drift before performance degrades.
-\item Combining a lightweight online detector with periodic, more comprehensive reports is a common production pattern.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Batch retraining versus online learning}
-\begin{tabularx}{\textwidth}{>{\bfseries}l X}
-Latency of adaptation & Online learning adapts immediately; batch retraining waits for the next cycle. \\
-\addlinespace[0.3em]
-Auditability & Batch models are fixed snapshots that can be reviewed and versioned; the state of an online model changes continuously. \\
-\addlinespace[0.3em]
-Stability & Online models may overreact to noise if the detector or the learning rate is too sensitive. \\
-\addlinespace[0.3em]
-Infrastructure & Online learning avoids large periodic training jobs but requires an always-on service. \\
-\bottomrule
-\end{tabularx}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Drift in the two running cases}
-\begin{itemize}
-\item \textbf{Fraud:} seasonal spending patterns and new merchant categories (virtual drift); fraudsters adopting new tactics (real drift).
-\item \textbf{Pasteurization:} sensor recalibration (sudden), raw-material variability, or wear of heating and cooling equipment (gradual).
-\item In both cases, drift detection turns ``the model has become worse'' from an unexplained observation into a specific, timestamped event.
-\end{itemize}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Repository connections}
-\repoactivity{
-\begin{itemize}
-\item \texttt{notebooks/Class8\_Model\_Incremental\_learning.ipynb}: River regression, ADWIN, and Evidently reports.
-\item \texttt{streamlit/pages/App\_Stream.py}: the same River and ADWIN pattern as a live dashboard, plotting detected change points on the MAE curve.
-\end{itemize}
-}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Papers and materials}
-\readinglist{
-\fontsize{6.8}{8.2}\selectfont
-\begin{columns}[T]
-\column{0.5\textwidth}
-\begin{itemize}\setlength{\itemsep}{1pt}
-\item Gama, J., \v{Z}liobait\.{e}, I., Bifet, A., Pechenizkiy, M., Bouchachia, A. (2014). A survey on concept drift adaptation. \emph{ACM Computing Surveys}, 46(4), 44:1--44:37.
-\item Bifet, A., Gavald\`a, R. (2007). Learning from time-changing data with adaptive windowing. \emph{Proceedings of the SIAM International Conference on Data Mining}, 443--448.
-\item Lu, J., Liu, A., Dong, F., Gu, F., Gama, J., Zhang, G. (2019). Learning under concept drift: A review. \emph{IEEE Transactions on Knowledge and Data Engineering}, 31(12), 2346--2363.
-\end{itemize}
-\column{0.5\textwidth}
-\begin{itemize}\setlength{\itemsep}{1pt}
-\item Montiel, J., et al.\ (2021). River: machine learning for streaming data in Python. \emph{Journal of Machine Learning Research}, 22(110), 1--8.
-\item Gama, J., Sebasti\~ao, R., Rodrigues, P.\,P. (2013). On evaluating stream learning algorithms. \emph{Machine Learning}, 90(3), 317--346.
-\item Documentation: \href{https://riverml.xyz/latest/}{River}; \href{https://docs.evidentlyai.com/}{Evidently}.
-\end{itemize}
-\end{columns}
-}
-\coursefooter
-\end{frame}
-
-\begin{frame}{Take-away message}
-\vfill
+% ------------------------------------------------------------------ roadmap
+\begin{cframe}{Roadmap and goals}{\cterm{Online learning}{updating a model one observation at a time, as the data arrive.}\cterm{Concept drift}{a change over time of the data-generating process.}}
 \centering
 \begin{tikzpicture}
-\node[fill=courseice, draw=courseblue, thick, rounded corners=4pt, inner sep=10pt, text width=0.78\textwidth, align=center, font=\large] {The data-generating process changes over time:\\[0.3em] evaluate models prequentially, detect drift\\ with a statistical test, and define in advance\\ how the model is updated when drift is detected.};
+\foreach \i/\col/\ico/\ttl/\txt in {0/courseblue/stream/Online learning/{Batch versus incremental models; prequential evaluation.}, 1/courseblue/random/Concept drift/{Virtual and real drift; four temporal patterns.}, 2/coursered/search/Detection/{ADWIN on the error stream, and drift reports.}, 3/coursegreen/sync-alt/Adaptation/{What the model does once drift is detected.}} {
+  \pgfmathsetmacro{\x}{\i*3.4}
+  \node[tile, fill=white, draw=\col, thick, anchor=north west, minimum width=3.2cm, minimum height=2.55cm] at (\x,0) {};
+  \node[circle, fill=\col, text=white, minimum size=0.5cm, inner sep=0, font=\small\bfseries] at (\x+0.4,-0.45) {\the\numexpr\i+1\relax};
+  \node[anchor=west, text width=1.7cm, align=left, font=\footnotesize\bfseries, text=courseblue, inner sep=0pt] at (\x+0.8,-0.45) {\ttl};
+  \node[text=\col!70, font=\Large] at (\x+2.8,-0.45) {\faIcon{\ico}};
+  \node[anchor=north west, text width=2.8cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.2,-1.0) {\txt};
+}
+\node[anchor=west, font=\tiny\bfseries, text=coursegold!65!black] at (0,-2.85) {WHAT YOU WILL BE ABLE TO DO};
+\foreach \x/\y/\ico/\t in {0/-3.0/balance-scale/{Choose between batch retraining and online learning for a given system.}, 6.8/-3.0/redo-alt/{Evaluate a streaming model prequentially, without a held-out set.}, 0/-3.75/random/{Distinguish virtual from real drift, and the four temporal patterns.}, 6.8/-3.75/search/{Explain how ADWIN decides that the mean of a stream has changed.}, 0/-4.5/chart-line/{Read a detection delay and a false-alarm count from an experiment.}, 6.8/-4.5/sync-alt/{Select an adaptation strategy, and avoid the reset loop.}} {
+  \node[circle, fill=courseblue, text=white, minimum size=0.45cm, inner sep=0, font=\scriptsize] at (\x+0.3,\y-0.3) {\faIcon{\ico}};
+  \node[anchor=west, text width=5.8cm, align=left, font=\scriptsize, inner sep=0pt] at (\x+0.7,\y-0.3) {\t};
+}
 \end{tikzpicture}
+\coursefooter
+\end{cframe}
 
-\vfill
-{\Large\bfseries\color{courseblue} Thank you for your attention.}
+% ------------------------------------------------------------------ course context
+\begin{cframe}{Where this class sits in the course}{\cterm{Running case}{one of two examples, fraud scoring and pasteurization monitoring, that return in every class.}}
+\centering
+\begin{tikzpicture}
+\foreach \i/\lab/\bg/\fg in {0/Problem/courseice/coursegray, 1/Data/courseice/coursegray, 2/Features/courseice/coursegray, 3/Model/courseblue/white, 4/Interface/courseice/coursegray, 5/Delivery/courseice/coursegray, 6/Monitor/courseblue/white, 7/Evolution/courseblue/white} {
+  \pgfmathsetmacro{\x}{\i*1.68}
+  \node[rounded corners=3pt, fill=\bg, text=\fg, anchor=north west, minimum width=1.55cm, minimum height=0.6cm, font=\scriptsize\bfseries] at (\x,0) {\lab};
+}
+\node[tilegold, anchor=north west, minimum width=6.6cm, minimum height=1.3cm, text width=6.2cm, align=left] at (0,-0.9) {{\bfseries\goldink\faIcon{bullseye}\ Focus.} Models that keep learning after deployment, and the statistical detection of change.};
+\node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=1.3cm, text width=6.2cm, align=left] at (6.8,-0.9) {{\bfseries\color{courseblue}\faIcon{link}\ Bridge.} Class 27 named drift as a trigger for retraining; this class opens the trigger, and Class 30 builds it into the challenge.};
+\node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=1.5cm, text width=6.2cm, align=left, font=\scriptsize] at (0,-2.5) {{\bfseries\color{courseblue}\faIcon{credit-card}\ Fraud case.} Seasonal spending and new merchant categories shift the inputs; new fraud tactics change the relation between inputs and label.};
+\node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=1.5cm, text width=6.2cm, align=left, font=\scriptsize] at (6.8,-2.5) {{\bfseries\color{courseblue}\faIcon{industry}\ Pasteurization case.} Sensor recalibration is sudden; raw-material variability and equipment wear are gradual or incremental.};
+\keyidea{-4.2}{A validated model is valid for the process that generated its data. When the process changes, validity must be re-established, preferably as soon as the change occurs.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
 
-\vspace{0.4em}
-{\small\color{coursegray} Next: Class 30 --- practical lab: online learning, concept drift, and streaming sensors.}
-\vfill
+% ================================================================== PART 1
+\sectiondivider{1}{Online learning}{stream}{}{$\bullet$\ Why a validated model becomes obsolete\\[3pt]$\bullet$\ Offline versus online learning, and prequential evaluation\\[3pt]$\bullet$\ The streaming learning loop in River}
+
+\begin{cframe}{Why a validated model becomes obsolete}{\cterm{Data-generating process}{the mechanism, physical or social, that produces the observations and their labels.}}
+\centering
+\begin{tikzpicture}
+\infotile{0}{0}{6.6}{1.6}{tileblue}{courseblue}{users}{Behavior changes}{Customers, fraudsters, and operators adapt to new conditions and to the model itself.}
+\infotile{6.8}{0}{6.6}{1.6}{tileblue}{courseblue}{thermometer-half}{Sensors degrade}{Probes lose calibration, are replaced, or are recalibrated with a different offset.}
+\infotile{0}{-1.75}{6.6}{1.6}{tileblue}{courseblue}{gavel}{Rules change}{Business policies, regulations, and product formulations change the target itself.}
+\infotile{6.8}{-1.75}{6.6}{1.6}{tileblue}{courseblue}{bug}{New errors appear}{Situations absent from the training data occur only after deployment.}
+\keyidea{-3.65}{Adaptation does not indicate that the initial model was wrong: it acknowledges that the data-generating process evolves over time.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Offline versus online learning}{\cterm{Prequential evaluation}{test-then-train: each observation first tests the model and only then updates it.}}
+\centering
+\begin{tikzpicture}
+\node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=2.65cm] at (0,0) {};
+\badge{0.6}{-0.55}{courseblue}{database}
+\node[anchor=west, font=\small\bfseries, text=courseblue] at (1.15,-0.55) {Offline (batch)};
+\node[anchor=north west, text width=6.1cm, align=left, font=\scriptsize, inner sep=0pt] at (0.25,-1.05) {$\bullet$\ Trained once on a fixed dataset $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{n}$.\\[3pt]$\bullet$\ Benchmarked on a held-out test set.\\[3pt]$\bullet$\ Adapts only through periodic retraining.};
+\node[tilegreen, anchor=north west, minimum width=6.6cm, minimum height=2.65cm] at (6.8,0) {};
+\badge{7.4}{-0.55}{coursegreen}{stream}
+\node[anchor=west, font=\small\bfseries, text=courseblue] at (7.95,-0.55) {Online (incremental)};
+\node[anchor=north west, text width=6.1cm, align=left, font=\scriptsize, inner sep=0pt] at (7.05,-1.05) {$\bullet$\ Updated after each observation $(\mathbf{x}_t, y_t)$, with constant memory.\\[3pt]$\bullet$\ Operates directly on unbounded data streams.\\[3pt]$\bullet$\ Adapts continuously to change.};
+\node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=1.35cm, text width=12.8cm, align=left, font=\footnotesize] at (0,-2.85) {{\bfseries\goldink\faIcon{redo-alt}\ Prequential evaluation.} At time $t$ the model $f_{t-1}$ predicts $\hat{y}_t = f_{t-1}(\mathbf{x}_t)$, the loss $\ell(y_t, \hat{y}_t)$ is accumulated, and only then is $f_t$ obtained from $(\mathbf{x}_t, y_t)$. Every prediction is therefore made on an unseen observation, and no held-out set is required.};
+\keyidea{-4.35}{The stream is both the training set and the test set; their order in time is what keeps the evaluation honest.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{The streaming learning loop}{\cterm{River}{a Python library for online machine learning: every estimator learns one observation at a time.}\cterm{SGD}{stochastic gradient descent: a parameter update from the loss of a single observation.}}
+\centering
+\begin{tikzpicture}
+\foreach \x/\ico/\ttl/\txt/\col in {0/satellite-dish/Observe/{$\mathbf{x}_t$ arrives}/courseblue, 2.55/eye/Predict/{\texttt{predict\_one}}/coursegold, 5.1/chart-line/Evaluate/{\texttt{metric.update}}/coursegold, 7.65/graduation-cap/Learn/{\texttt{learn\_one}}/coursegreen, 10.2/search/Check drift/{\texttt{detector.update}}/coursered} {
+  \node[tile, fill=white, draw=\col, thick, anchor=north west, minimum width=2.3cm, minimum height=1.5cm] at (\x,0) {};
+  \node[text=\col, font=\large] at (\x+1.15,-0.4) {\faIcon{\ico}};
+  \node[font=\scriptsize\bfseries, text=courseblue] at (\x+1.15,-0.85) {\ttl};
+  \node[font=\scriptsize] at (\x+1.15,-1.2) {\txt};
+}
+\foreach \x in {2.3,4.85,7.4,9.95} {\draw[arrowgold] (\x,-0.75) -- (\x+0.25,-0.75);}
+\draw[arrowgray] (11.35,0) -- (11.35,0.25) -- (1.15,0.25) -- (1.15,0);
+\node[font=\tiny\itshape, text=coursegray, fill=white, inner sep=1pt] at (6.25,0.25) {next observation, $y_t$ available after the prediction};
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,-1.85) {THE REPOSITORY EXAMPLE: \texttt{notebooks/Class8\_Model\_Incremental\_learning.ipynb}};
+\node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=1.95cm, text width=6.2cm, align=left, font=\scriptsize] at (0,-2.05) {{\bfseries\color{courseblue}\faIcon{cloud-sun}\ The stream.} The current temperature in Paris is predicted from the wind speed, both obtained from the Open-Meteo service. The service refreshes its values every 15 minutes, so faster polling only repeats the same observation.};
+\node[tileblue, anchor=north west, minimum width=6.6cm, minimum height=1.95cm, text width=6.2cm, align=left, font=\scriptsize] at (6.8,-2.05) {{\bfseries\color{courseblue}\faIcon{project-diagram}\ The model.} A pipeline \texttt{StandardScaler | LinearRegression}, whose scaler statistics and weights (SGD, learning rate 0.01) are updated at every observation; the metric is the mean absolute error (MAE).};
+\keyidea{-4.2}{\texttt{predict\_one} always precedes \texttt{learn\_one}: this ordering is prequential evaluation, written as code.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ================================================================== PART 2
+\sectiondivider{2}{Concept drift}{random}{an online model learns from every observation, and is evaluated prequentially on the same stream.}{$\bullet$\ Definition: virtual and real drift\\[3pt]$\bullet$\ Four temporal patterns of drift\\[3pt]$\bullet$\ Drift in the two running cases}
+
+\begin{cframe}{What is concept drift?}{\cterm{Covariate shift}{a change of the input distribution $P(\mathbf{x})$ only.}}
+\centering
+\begin{tikzpicture}
+\node[tileblue, anchor=north west, minimum width=13.4cm, minimum height=1.35cm, text width=12.8cm, align=center] at (0,0) {{\bfseries\color{courseblue}Concept drift} is a change over time of the joint distribution:\quad $P_t(\mathbf{x}, y) \neq P_{t+\Delta}(\mathbf{x}, y)$, \quad with \quad $P(\mathbf{x}, y) = P(\mathbf{x})\,P(y \mid \mathbf{x})$.};
+\infotile{0}{-1.55}{6.6}{2.1}{tilegold}{coursegold}{arrows-alt}{Virtual drift}{$P(\mathbf{x})$ changes, $P(y \mid \mathbf{x})$ does not (covariate shift). The boundary stays correct, but is used where training samples were scarce.}
+\infotile{6.8}{-1.55}{6.6}{2.1}{tilered}{coursered}{exchange-alt}{Real drift}{$P(y \mid \mathbf{x})$ changes. The learned decision function becomes incorrect, whether or not the inputs change.}
+\warning{-3.85}{exclamation-triangle}{Caution.}{A model trained before a real drift may still produce confident predictions that are systematically wrong. Drift is a change of the process, not noise in individual readings.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Virtual versus real drift}{\cterm{Error stream}{the sequence of prediction errors, available once the labels arrive.}}
+\centering
+\begin{tikzpicture}
+\node[anchor=north west, inner sep=0pt] at (0.6,0.1) {\includegraphics[width=12.2cm]{images/class19_virtual_real_drift.pdf}};
+\node[anchor=north west, font=\tiny\itshape, text=coursegray] at (0.6,-3.7) {illustrative synthetic data};
+\node[tilegold, anchor=north west, minimum width=4.35cm, minimum height=1.25cm, text width=4.05cm, align=left, font=\scriptsize] at (0,-4.0) {{\bfseries\color{courseblue}Virtual.} The inputs move; the class of each point is unchanged, and so is the boundary.};
+\node[tilered, anchor=north west, minimum width=4.35cm, minimum height=1.25cm, text width=4.05cm, align=left, font=\scriptsize] at (4.52,-4.0) {{\bfseries\color{courseblue}Real.} The same inputs now belong to the other class: the boundary itself is wrong.};
+\node[tileblue, anchor=north west, minimum width=4.35cm, minimum height=1.25cm, text width=4.05cm, align=left, font=\scriptsize] at (9.05,-4.0) {{\bfseries\color{courseblue}Consequence.} Input monitoring detects virtual drift; real drift requires the labels.};
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Temporal patterns of drift}{\cterm{Recurring drift}{a previous concept returns, for example with the seasons.}}
+\centering
+\begin{tikzpicture}
+\node[anchor=north west, inner sep=0pt] at (0,0.1) {\includegraphics[width=13.4cm]{images/class19_drift_types.pdf}};
+\node[anchor=north west, font=\tiny\itshape, text=coursegray] at (0,-2.95) {illustrative synthetic data; dots are observations, lines the underlying concept};
+\foreach \i/\col/\ttl/\txt in {0/coursered/Sudden/{The concept is replaced at once: a sensor recalibration, a change of product.}, 1/coursegold/Gradual/{Old and new concepts alternate; the new one becomes more frequent.}, 2/courseblue/Incremental/{The concept moves through intermediate states: wear of heating equipment.}, 3/coursegreen/Recurring/{A previous concept returns: seasonal patterns that can reuse earlier knowledge.}} {
+  \pgfmathsetmacro{\x}{\i*3.4}
+  \node[tile, fill=white, draw=\col, thick, anchor=north west, minimum width=3.25cm, minimum height=1.55cm, text width=3.0cm, align=left, font=\scriptsize] at (\x,-3.3) {{\bfseries\color{courseblue}\ttl}\\[1pt]\txt};
+}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ================================================================== PART 3
+\sectiondivider{3}{Detection}{search}{drift is a change of $P(\mathbf{x})$, of $P(y \mid \mathbf{x})$, or of both, and it unfolds suddenly, gradually, incrementally, or recurrently.}{$\bullet$\ How ADWIN decides that a mean has changed\\[3pt]$\bullet$\ ADWIN on the pasteurization stream\\[3pt]$\bullet$\ Detectors and drift reports together}
+
+\begin{cframe}{How ADWIN works}{\cterm{ADWIN}{adaptive windowing (Bifet and Gavald\`a, 2007): a change detector with a window of variable length.}\cterm{Hoeffding bound}{a bound on how far a sample mean can lie from its expectation, with a given confidence.}}
+\centering
+\begin{tikzpicture}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,0.15) {THE WINDOW $W$ OF RECENT VALUES (HERE, ABSOLUTE ERRORS), SPLIT AT EVERY POSITION};
+\foreach \k in {0,...,21} {
+  \pgfmathsetmacro{\x}{\k*0.42}
+  \ifnum\k<13 \def\wcol{courseblue!55}\else \def\wcol{coursered!70}\fi
+  \node[rounded corners=1pt, fill=\wcol, minimum width=0.36cm, minimum height=0.5cm, inner sep=0pt, anchor=north west] at (\x,-0.15) {};
+}
+\draw[coursegold, line width=1.6pt] (5.44,0.0) -- (5.44,-0.85);
+\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, courseblue] (0,-0.75) -- (5.38,-0.75) node[midway, below=5pt, font=\scriptsize] {$W_0$: older, $n_0$ values, mean $\hat{\mu}_{W_0}$};
+\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick, coursered] (5.5,-0.75) -- (9.18,-0.75) node[midway, below=5pt, font=\scriptsize] {$W_1$: recent, $n_1$ values, $\hat{\mu}_{W_1}$};
+\node[tileblue, anchor=north west, minimum width=3.95cm, minimum height=1.45cm, text width=3.7cm, align=left, font=\scriptsize] at (9.45,0.05) {{\bfseries\color{courseblue}Decision.} If the two means differ by at least $\varepsilon_{\mathrm{cut}}$, a change is detected and $W_0$ is dropped.};
+\node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=1.25cm, text width=12.8cm, align=center] at (0,-1.6) {$|\hat{\mu}_{W_0} - \hat{\mu}_{W_1}| \ge \varepsilon_{\mathrm{cut}}, \qquad \varepsilon_{\mathrm{cut}} = \sqrt{\frac{1}{2m}\ln\frac{4}{\delta'}}, \qquad m = \frac{1}{1/n_0 + 1/n_1}, \qquad \delta' = \frac{\delta}{n}$};
+\infotile{0}{-3.0}{6.6}{1.6}{tileblue}{courseblue}{sliders-h}{The confidence parameter $\delta$}{It controls the false-alarm rate; here $\delta = 0.002$.}
+\infotile{6.8}{-3.0}{6.6}{1.6}{tilegreen}{coursegreen}{expand-alt}{An adaptive window}{It grows while the stream is stable; it shrinks at a change.}
+\keyidea{-4.75}{A statistically grounded trigger for retraining or resetting, instead of a fixed schedule.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{ADWIN on the pasteurization stream}{\cterm{Soft sensor}{a model that estimates a quantity from other, more easily measured quantities.}\cterm{Detection delay}{the number of samples between the occurrence of a drift and its detection.}}
+\centering
+\begin{tikzpicture}
+\node[tileblue, anchor=north west, minimum width=13.4cm, minimum height=1.05cm, text width=12.8cm, align=left, font=\scriptsize] at (0,0.1) {{\bfseries\color{courseblue}\faIcon{flask}\ Experiment.} An online soft sensor estimates the viscosity $\eta$ from the temperature $T$ (60 batches, 19{,}530 samples at 1\,Hz). After batch 30 a product change raises $\eta$ by 0.4\,cP at every temperature: a sudden real drift.};
+\node[anchor=north west, inner sep=0pt] at (0,-1.15) {\includegraphics[width=9.0cm]{images/class19_adwin_detection.pdf}};
+\node[tilegreen, anchor=north west, minimum width=4.2cm, minimum height=1.45cm, text width=3.95cm, align=left, font=\scriptsize] at (9.2,-1.15) {{\bfseries\color{courseblue}Delay: 51 samples.}\\[1pt]The window grows while the error stream is stationary and collapses 51\,s after the drift.};
+\node[tileblue, anchor=north west, minimum width=4.2cm, minimum height=1.45cm, text width=3.95cm, align=left, font=\scriptsize] at (9.2,-2.75) {{\bfseries\color{courseblue}One early alarm.}\\[1pt]Apart from the initial learning phase, no false alarm in 19{,}530 samples.};
+\node[anchor=north west, font=\tiny\itshape, text=coursegray, text width=13.4cm] at (0,-4.3) {Data from \texttt{pasteurization/synth\_sensors.py} with an injected drift; River 0.22, \texttt{LinearRegression} with SGD, \texttt{ADWIN(delta=0.002)}.};
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Monitoring beyond a single detector}{\cterm{Drift report}{a periodic statistical comparison of every input feature against a reference distribution.}}
+\centering
+\begin{tikzpicture}
+\infotile{0}{0}{6.6}{2.5}{tilered}{coursered}{search}{ADWIN on the error stream}{Fast and targeted: it detects a degradation of performance as soon as the labels arrive. It sees real drift and the virtual drift that hurts the model.}
+\infotile{6.8}{0}{6.6}{2.5}{tileblue}{courseblue}{file-medical-alt}{Drift report on the inputs}{Comprehensive: it tests the distribution of every feature (Evidently \texttt{DataDriftPreset}, \texttt{DataQualityPreset}) and can reveal virtual drift before performance degrades.}
+\node[tile, fill=courseice, anchor=north west, minimum width=13.4cm, minimum height=0.95cm, text width=13.0cm, align=left, font=\scriptsize] at (0,-2.7) {{\bfseries\color{courseblue}\faIcon{book}\ In the repository.} \texttt{notebooks/Class8\_Model\_Incremental\_learning.ipynb} produces both: River with ADWIN on the error stream, and Evidently reports on the inputs.};
+\keyidea{-3.85}{A common production pattern combines a lightweight online detector with periodic, more comprehensive reports.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ================================================================== PART 4
+\sectiondivider{4}{Adaptation}{sync-alt}{ADWIN detects a change of the mean of the error stream with a controlled false-alarm rate.}{$\bullet$\ Three adaptation strategies, compared on the same stream\\[3pt]$\bullet$\ Batch retraining versus online learning\\[3pt]$\bullet$\ Where to find all of this in the repository}
+
+\begin{cframe}{Adaptation strategies compared}{\cterm{Reset loop}{a sequence of resets in which each untrained model triggers the next detection.}\cterm{Warm start}{continuing to train the current model instead of starting from scratch.}}
+\centering
+\begin{tikzpicture}
+\node[anchor=north west, inner sep=0pt] at (0,0.1) {\includegraphics[width=8.4cm]{images/class19_adaptation_strategies.pdf}};
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (8.65,0.0) {MAE BEFORE $\to$ AFTER THE DRIFT};
+\foreach \y/\col/\ttl/\txt in {-0.25/coursegray/{Batch model, frozen}/{0.041 $\to$ 0.398: no adaptation.}, -1.25/coursegreen/{Online, no reset}/{0.052 $\to$ 0.043: recovers in 200 samples.}, -2.25/coursered/{Online, reset at detection}/{0.599 $\to$ 0.820: 159 resets.}} {
+  \node[tile, fill=white, draw=\col, thick, anchor=north west, minimum width=4.75cm, minimum height=0.92cm, text width=4.5cm, align=left, font=\scriptsize, inner sep=3pt] at (8.65,\y) {{\bfseries\color{courseblue}\ttl}\\\txt};
+}
+\warning{-3.4}{redo}{Why the reset fails.}{An untrained model has a large and decreasing error, which is itself a change that ADWIN detects: the model never stabilizes. Safer responses are to warm-start from the current model, retrain on the recent window $W_1$, or only raise an alert.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Batch retraining versus online learning}{\cterm{Auditability}{the possibility of reviewing, afterwards, which model made a decision and why.}}
+\centering
+\begin{tikzpicture}
+\node[chip, anchor=north west, minimum width=5.05cm, minimum height=0.42cm, font=\tiny\bfseries] at (3.15,0) {BATCH RETRAINING};
+\node[chip, fill=coursegreen, anchor=north west, minimum width=5.05cm, minimum height=0.42cm, font=\tiny\bfseries] at (8.35,0) {ONLINE LEARNING};
+\comparerow{-0.55}{stopwatch}{Adaptation}{Waits for the next retraining cycle.}{Adapts at every observation.}
+\comparerow{-1.35}{clipboard-check}{Auditability}{Fixed snapshots that can be reviewed and versioned.}{The model state changes continuously.}
+\comparerow{-2.15}{balance-scale}{Stability}{Stable between cycles.}{May overreact to noise if the detector or learning rate is too sensitive.}
+\comparerow{-2.95}{server}{Infrastructure}{Large periodic training jobs.}{An always-on service, with small updates.}
+\keyidea{-3.95}{The choice is a trade-off between the speed of adaptation and the control over what is deployed; many systems combine both.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Where to find it in the repository}{\cterm{Scenario}{a reproducible fault injected by the classroom simulator.}}
+\centering
+\begin{tikzpicture}
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (0,0.15) {WHERE TO LOOK};
+\node[anchor=west, font=\tiny\bfseries, text=coursegold!65!black] at (4.75,0.15) {WHAT IT SHOWS};
+\node[anchor=west, font=\tiny\bfseries, text=coursegray] at (11.25,0.15) {USED IN};
+\reporow{-0.3}{notebooks/Class8\_Model\_\\Incremental\_learning.ipynb}{River, ADWIN, and Evidently on a weather stream.}{courseblue}{Class 29}
+\reporow{-1.12}{streamlit/pages/App\_Stream.py}{The same pattern as a live dashboard.}{courseblue}{Class 29}
+\reporow{-1.94}{pasteurization/serving.py}{The simulator; \texttt{sensor\_drift} injects a calibration drift.}{coursegreen}{Class 30}
+\reporow{-2.76}{presentations/generate\_\\class30\_figures.py}{An online baseline and ADWIN on five fault scenarios.}{coursegreen}{Class 30}
+\keyidea{-3.8}{Class 30 turns this class into a feature of the challenge application: learn normal behavior online and record drift events.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ------------------------------------------------------------------ closing
+\section{Wrap-up}\gdef\currentsectionname{Wrap-up}
+\begin{frame}{From this class to the next}
+\centering
+\begin{tikzpicture}
+\foreach \i/\lab/\bg/\fg in {1/Problem/courseice/coursegray, 2/Data/courseice/coursegray, 3/Features/courseice/coursegray, 4/Model/courseblue/white, 5/Interface/courseice/coursegray, 6/Delivery/courseice/coursegray, 7/Monitor/courseblue/white, 8/Evolution/courseblue/white} {
+  \node[rounded corners=3pt, minimum width=1.55cm, minimum height=0.6cm, font=\scriptsize\bfseries, fill=\bg, text=\fg] at ({0.78+(\i-1)*1.68},0) {\lab};
+}
+\node[font=\tiny\bfseries, text=courseblue] at (6.7,-0.52) {THIS CLASS CONNECTS THE MODEL TO MONITORING AND EVOLUTION};
+\foreach \x/\sty/\ico/\ttl/\txt in {0/tileblue/lightbulb/What stays with us/{$\bullet$\ Evaluate prequentially.\\[3pt]$\bullet$\ Detect drift with a statistical test.\\[3pt]$\bullet$\ Define in advance how the model is updated after detection.}, 4.55/tileblue/project-diagram/Use it in your project/{$\bullet$\ Say which drift your system can observe: virtual, real, or both.\\[3pt]$\bullet$\ Report detection delay and false alarms, not only accuracy.}, 9.1/tilegold/arrow-right/Next: Class 30/{\textbf{Pasteurization Challenge, Session 3.}\\[3pt]A second change request: the application learns normal behavior online and records drift events.}} {
+  \node[\sty, anchor=north west, minimum width=4.3cm, minimum height=3.8cm] at (\x,-0.95) {};
+  \badge{\x+0.65}{-1.6}{courseblue}{\ico}
+  \node[anchor=west, text width=3.0cm, align=left, font=\small\bfseries, text=courseblue] at (\x+1.2,-1.6) {\ttl};
+  \node[anchor=north west, text width=3.9cm, align=left, font=\scriptsize] at (\x+0.2,-2.25) {\txt};
+}
+\node[tilegold, fill=white, anchor=north west, minimum width=13.4cm, minimum height=0.95cm, text width=12.6cm, align=left, font=\footnotesize] at (0,-5.0) {{\bfseries\goldink\faIcon{route}\ Course thread.} The data-generating process changes over time; a deployed model needs a statistical way of noticing it.};
+\end{tikzpicture}
+\coursefooter
+\end{frame}
+
+% ------------------------------------------------------------------ references
+\begin{frame}{Papers and materials}
+\centering
+\begin{tikzpicture}
+\refrow{0}{2.35}{random}{Concept drift}{Gama, J., \v{Z}liobait\.{e}, I., Bifet, A., Pechenizkiy, M., and Bouchachia, A. (2014). A survey on concept drift adaptation. \emph{ACM Computing Surveys}, 46(4), 44:1--44:37.\\Lu, J., Liu, A., Dong, F., Gu, F., Gama, J., and Zhang, G. (2019). Learning under concept drift: a review. \emph{IEEE Transactions on Knowledge and Data Engineering}, 31(12), 2346--2363.}
+\refrow{-2.35}{2.05}{search}{Detection}{Bifet, A. and Gavald\`a, R. (2007). Learning from time-changing data with adaptive windowing. \emph{Proceedings of the SIAM International Conference on Data Mining}, 443--448.\\Gama, J., Sebasti\~ao, R., and Rodrigues, P. P. (2013). On evaluating stream learning algorithms. \emph{Machine Learning}, 90(3), 317--346.}
+\refrow{-4.4}{1.15}{stream}{Software}{Montiel, J. et al. (2021). River: machine learning for streaming data in Python. \emph{Journal of Machine Learning Research}, 22(110), 1--8.\\Documentation: \href{https://riverml.xyz/latest/}{River}; \href{https://docs.evidentlyai.com/}{Evidently}.}
+\end{tikzpicture}
 \coursefooter
 \end{frame}
 

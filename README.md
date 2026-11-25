@@ -61,9 +61,9 @@ The materials in this repository follow a 36-class sequence organized in three m
 27. MLOps foundations and continuous training
 28. Agile toolkit practice: pasteurization monitoring challenge, session 2
 29. Online machine learning and concept drift
-30. Online learning, concept drift, and streaming practice
-31. Model deployment and prediction serving
-32. Good practices (Docker, CI/CD)
+30. Agile toolkit practice: pasteurization monitoring challenge, session 3 (online learning, concept drift, and streaming)
+31. Model deployment and prediction serving (merged with 32: one session taught by Motognon)
+32. Good practices (Docker, CI/CD) (merged with 31)
 33. Continuous monitoring and scalability
 34. Practical project — brainstorm and definitions
 35. Project requirements and development plan
