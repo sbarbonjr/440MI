@@ -2,19 +2,29 @@
 
 Run from anywhere with the project environment:  python presentations/generate_class28_figures.py
 
-The figure is SCHEMATIC. The readings are invented to show the three kinds of evidence a team should
-collect from the live stream; it is not data from the simulator, and the figure says so on its face.
+The data are SYNTHETIC: one batch computed by the course simulator (pasteurization/serving.py, the same
+values its /replay endpoint returns when run from this code). Nothing here is measured on a real plant.
+The temperature limits are the placeholder rules BR-01 to BR-03 of the example SRS
+(documents/Class28_SRS_Pasteurization_Monitoring.tex); they are not food-safety limits.
 
 Figures
 -------
-class28_evidence_stream.pdf  Schematic sensor signal in three stretches: (1) normal behavior, (2) a configured
-                             limit crossed by three consecutive readings, which raises one alert, and
-                             (3) a disconnection that leaves a gap in the data.
+class28_evidence_stream.pdf  Top: temperature over a whole nominal batch, with the process states and the
+                             limits drawn only where they apply (Hold). Bottom: zoom on Hold, comparing
+                             nominal with hold_undershoot, marking the critical alert in SRS 1.0 (first
+                             violating reading) and 2.0 (third), and the reading that sensor_dropout loses.
+                             Drawn at the size it appears on the slide (7.3 cm wide).
 """
+import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(ROOT / "pasteurization"))
+from serving import simulate_scenario  # noqa: E402
 
 OUT = Path(__file__).resolve().parent / "images"
 OUT.mkdir(exist_ok=True)
@@ -25,65 +35,94 @@ RED = "#A23B2A"
 INK, GRAY, MUTED = "#12355B", "#4B5563", "#6B7280"
 ICE, HAIR = "#EEF3F8", "#CBD5E1"
 
+# Placeholder limits of the example SRS, valid during Hold only.
+CRITICAL_LOW, WARNING_LOW, WARNING_HIGH = 71.0, 71.5, 73.0
+
 plt.rcParams.update({
     "font.family": "DejaVu Sans",
-    "font.size": 9,
+    "font.size": 6.2,
     "axes.labelcolor": INK,
     "text.color": INK,
     "axes.edgecolor": HAIR,
     "xtick.color": GRAY,
     "ytick.color": GRAY,
+    "xtick.labelsize": 5.6,
+    "ytick.labelsize": 5.6,
     "pdf.fonttype": 42,
 })
 
 
-def stamp(ax, text, x=1.0, y=1.0, ha="right", va="bottom"):
-    """The honesty label: says on the figure that nothing here is measured."""
-    ax.text(x, y, text, transform=ax.transAxes, ha=ha, va=va, fontsize=7.4, color=MUTED, style="italic")
-
-
 def draw_evidence():
-    rng = np.random.default_rng(7)
-    t = np.arange(0, 31)
-    limit = 0.62
-    y = 0.50 + rng.normal(0, 0.018, t.size)
-    # stretch 2: a ramp that crosses the limit for three consecutive readings (t = 13, 14, 15)
-    y[11:19] = [0.55, 0.59, 0.66, 0.70, 0.68, 0.60, 0.55, 0.52]
-    # stretch 3: disconnection, no readings from t = 21 to t = 26
-    gap = (t >= 21) & (t <= 26)
-    y_plot = np.where(gap, np.nan, y)
+    nominal = simulate_scenario("nominal").reset_index(drop=True)
+    under = simulate_scenario("hold_undershoot").reset_index(drop=True)
+    dropout = simulate_scenario("sensor_dropout").reset_index(drop=True)
 
-    fig, ax = plt.subplots(figsize=(4.4, 2.55))
-    ax.axvspan(-0.5, 9.5, color=GREEN, alpha=0.08, linewidth=0, zorder=0)
-    ax.axvspan(9.5, 19.5, color=GOLD, alpha=0.10, linewidth=0, zorder=0)
-    ax.axvspan(19.5, 30.5, color=GRAY, alpha=0.10, linewidth=0, zorder=0)
-    for x, label in ((4.5, "1  normal"), (14.5, "2  threshold crossing"), (25.0, "3  disconnection")):
-        ax.text(x, 0.800, label, ha="center", va="center", fontsize=8, fontweight="bold", color=INK)
+    hold = nominal.index[nominal["state"] == "Hold"]
+    first, last = int(hold.min()), int(hold.max())
+    low = [i for i in hold if under.at[i, "T"] < CRITICAL_LOW]
+    alert_v1, alert_v2 = low[0], low[2]          # persistence 1, then persistence 3
+    missing = [i for i in hold if np.isnan(dropout.at[i, "T"])]
 
-    ax.axhline(limit, color=GOLD, lw=1.6, ls="--", zorder=2)
-    ax.text(0.0, limit + 0.012, "configured limit", fontsize=7.6, color=INK, ha="left", va="bottom")
+    fig, (top, zoom) = plt.subplots(2, 1, figsize=(2.87, 1.76), gridspec_kw={"height_ratios": [0.8, 1.5]})
 
-    ax.plot(t, y_plot, color=BLUE, lw=1.8, marker="o", ms=3.4, mfc="white", mew=1.2, zorder=3)
-    # the three consecutive readings above the limit
-    ax.plot(t[13:16], y[13:16], "o", ms=5, color=RED, zorder=4)
-    ax.annotate("3 consecutive readings\nabove the limit: one alert", xy=(15, y[15]), xytext=(20.5, 0.705),
-                fontsize=7.6, color=INK, ha="left", va="center", linespacing=1.1,
-                arrowprops=dict(arrowstyle="-", color=GRAY, lw=0.8, shrinkA=2, shrinkB=3))
-    ax.text(23.5, 0.50, "no data", ha="center", va="center", fontsize=8, color=MUTED, style="italic")
+    # ---- top: the whole batch
+    top.plot(nominal.index, nominal["T"], color=BLUE, lw=1.1, zorder=3)
+    for k, (state, part) in enumerate(nominal.groupby("state", sort=False)):
+        a, b = part.index.min(), part.index.max() + 1
+        top.axvspan(a, b, color=GOLD if state == "Hold" else (ICE if k % 2 == 0 else "white"),
+                    alpha=0.28 if state == "Hold" else 1.0, lw=0, zorder=0)
+        if state != "Hold":
+            top.text((a + b) / 2 - (7 if state == "HeatUp" else 0), 90, state,
+                     ha="center", va="center", fontsize=5.0, color=GRAY)
+    top.text((first + last) / 2, 90, "Hold", ha="center", va="center", fontsize=5.4, fontweight="bold")
+    for y in (CRITICAL_LOW, WARNING_HIGH):
+        top.hlines(y, first, last, color=RED if y == CRITICAL_LOW else GOLD, lw=0.9, zorder=4)
+    top.set_xlim(0, len(nominal))
+    top.set_ylim(0, 99)
+    top.set_yticks([0, 40, 72])
+    top.set_xticks([])
+    top.set_title("Temperature (°C), one nominal batch", fontsize=6.4, fontweight="bold", loc="left", pad=2)
+    top.spines[["top", "right"]].set_visible(False)
 
-    ax.set_xlim(-0.5, 30.5)
-    ax.set_ylim(0.40, 0.84)
-    ax.set_yticks([])
-    ax.set_xticks([0, 10, 20, 30])
-    ax.set_xlabel("time (successive readings)")
-    ax.set_ylabel("sensor value")
-    ax.spines[["top", "right"]].set_visible(False)
-    stamp(ax, "schematic: invented data", y=1.01)
-    fig.tight_layout(pad=0.4)
+    # ---- bottom: zoom on Hold
+    x0, x1 = first - 5, last + 10
+    zoom.axvspan(first - 0.5, last + 0.5, color=GOLD, alpha=0.10, lw=0, zorder=0)
+    for y, color, label in ((WARNING_HIGH, GOLD, "73.0"), (WARNING_LOW, GOLD, "71.5"), (CRITICAL_LOW, RED, "71.0")):
+        zoom.hlines(y, first - 0.5, last + 0.5, color=color, lw=0.9, ls="--", zorder=2)
+        zoom.text(last + 3.7, y + {"73.0": 0, "71.5": 0.28, "71.0": -0.22}[label], label,
+                  ha="left", va="center", fontsize=5.4)
+    zoom.plot(nominal.index, nominal["T"], color=GREEN, lw=1.2, marker="o", ms=1.8, zorder=3)
+    zoom.plot(under.index, under["T"], color=BLUE, lw=1.2, marker="o", ms=1.8, zorder=3)
+    for i in missing:
+        zoom.axvline(i, color=GRAY, lw=3.2, alpha=0.30, zorder=1)
+        zoom.annotate(f"{i} missing in\ndropout run", xy=(i, 70.8), xytext=(i + 1.4, 70.25),
+                      fontsize=5.2, ha="left", va="center", linespacing=1.1,
+                      arrowprops=dict(arrowstyle="-", color=GRAY, lw=0.6, shrinkA=1, shrinkB=1))
+    zoom.plot([alert_v1], [under.at[alert_v1, "T"]], "o", ms=4.6, color=RED, zorder=5)
+    zoom.plot([alert_v2], [under.at[alert_v2, "T"]], "D", ms=3.8, color=GOLD, mec=INK, mew=0.6, zorder=5)
+    zoom.annotate(f"v1 alert: {alert_v1}", xy=(alert_v1, under.at[alert_v1, "T"]), xytext=(first + 0.6, 67.55),
+                  fontsize=5.2, ha="left", va="center",
+                  arrowprops=dict(arrowstyle="-", color=GRAY, lw=0.6, shrinkA=1, shrinkB=2))
+    zoom.annotate(f"v2 alert (3rd): {alert_v2}", xy=(alert_v2, under.at[alert_v2, "T"]), xytext=(first + 8.5, 67.55),
+                  fontsize=5.2, ha="left", va="center",
+                  arrowprops=dict(arrowstyle="-", color=GRAY, lw=0.6, shrinkA=1, shrinkB=2))
+    zoom.text(first + 2.0, 72.55, "1  nominal", fontsize=5.8, fontweight="bold", color=INK, va="center")
+    zoom.text(first + 3.0, 68.95, "2  hold_undershoot", fontsize=5.8, fontweight="bold", color=INK, va="bottom")
+    zoom.set_xlim(x0, x1)
+    zoom.set_ylim(67.2, 73.7)
+    zoom.set_yticks([68, 70, 72])
+    zoom.set_xticks([first, 165, last])
+    zoom.set_xlabel("reading number (zoom on Hold)", fontsize=5.8, labelpad=1)
+    zoom.spines[["top", "right"]].set_visible(False)
+
+    fig.text(0.995, 0.008, "synthetic simulator data; limits are assumptions", fontsize=5.0, color=MUTED,
+             style="italic", ha="right", va="bottom")
+    fig.tight_layout(pad=0.3, h_pad=0.4, rect=(0, 0.035, 1, 1))
     fig.savefig(OUT / "class28_evidence_stream.pdf")
     plt.close(fig)
+    return alert_v1, alert_v2, missing
 
 
 if __name__ == "__main__":
-    draw_evidence()
-    print("figure written to", OUT)
+    v1, v2, missing = draw_evidence()
+    print("figure written to", OUT, "| v1 alert", v1, "| v2 alert", v2, "| missing in Hold", missing)

@@ -1,0 +1,295 @@
+% Illustrative Software Requirements Specification for the Class 26 / Class 28 challenge.
+% Structure after IEEE Std 830-1998 (superseded by ISO/IEC/IEEE 29148:2018).
+\documentclass[10pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage[margin=22mm,headheight=14pt]{geometry}
+\usepackage{longtable,booktabs,array,xcolor,fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\definecolor{courseblue}{HTML}{12355B}
+\definecolor{coursegold}{HTML}{C98A2E}
+\definecolor{courseice}{HTML}{EEF3F8}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\renewcommand{\arraystretch}{1.25}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small NorthRiver Dairy Pasteurization Monitor: SRS 1.0}
+\rhead{\small Illustrative example}
+\cfoot{\small\thepage}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\head}[1]{\textbf{\color{courseblue}#1}}
+\newcommand{\field}[1]{\texttt{#1}}
+
+\begin{document}
+\begin{titlepage}
+\vspace*{3cm}
+{\color{courseblue}\Huge\bfseries Software Requirements Specification\par}
+\vspace{6mm}
+{\LARGE NorthRiver Dairy Pasteurization Monitor\par}
+\vspace{4mm}
+{\large Version 1.0 (baseline), with the version 2.0 change in Appendix~\ref{app:change}\par}
+\vspace{12mm}
+\fcolorbox{coursegold}{courseice}{\parbox{0.93\linewidth}{\textbf{Illustrative example for teaching.} This is a simulated specification showing what a team could deliver. The stakeholders and the company are fictional. The numerical limits are team assumptions chosen to fit the synthetic simulator; they are \textbf{not} food-safety limits. No test in this document has been executed on a real application, so every status reads ``Planned''.}}
+\vspace{12mm}
+
+Structure after IEEE Std 830-1998, \emph{Recommended Practice for Software Requirements Specifications}, since superseded by ISO/IEC/IEEE 29148:2018.
+
+\vfill
+Data-driven Systems Engineering, 440MI / 305SM\\ Class 26 and Class 28 activity
+
+\vspace{8mm}
+\begin{tabular}{@{}L{18mm}L{25mm}L{100mm}@{}}
+\toprule
+\head{Version} & \head{Milestone} & \head{Change}\\
+\midrule
+1.0 & M2 & Baseline agreed for the first increment.\\
+2.0 & M5 & Change request from Quality Management (Appendix~\ref{app:change}).\\
+\bottomrule
+\end{tabular}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+\subsection{Purpose}
+This document specifies the first release of a web application that monitors a simulated pasteurization line and raises alerts. It is written for the development team, testers, and the NorthRiver Dairy stakeholders who accept the release.
+
+\subsection{Scope}
+The product, the \emph{Pasteurization Monitor}, receives live sensor readings, shows the process status, evaluates alert rules, and keeps a session history of alerts that an operator can acknowledge. It supports human decisions. It \textbf{does not control} pumps, valves, heaters, or any other equipment, and it is not a certified safety system.
+
+Out of scope for this release: user authentication, storage beyond the user session, notifications outside the browser, and any predictive model.
+
+\subsection{Definitions, acronyms, and abbreviations}
+\begin{longtable}{@{}L{35mm}L{125mm}@{}}
+\toprule \head{Term} & \head{Meaning}\\ \midrule \endhead
+SSE & Server-Sent Events: a one-way stream of messages from a server to a client over HTTP.\\
+Reading & One \field{sensor-reading} event with the values of all sensors at one instant.\\
+Batch / state & One production cycle, and its current stage: Idle, Fill, HeatUp, Hold, Cool, Discharge.\\
+Rule & A condition on a sensor value, with the states where it applies, a severity, and a persistence.\\
+Persistence & Number of consecutive valid readings that must violate a rule before an alert is raised.\\
+Active alert & An alert whose condition has not yet cleared, acknowledged or not.\\
+Acknowledge & The operator records that the alert has been seen. It does not clear the condition.\\
+Stale data & No new reading received for more than 3 seconds.\\
+\bottomrule
+\end{longtable}
+
+\subsection{References}
+\begin{enumerate}
+\item NorthRiver Dairy Pasteurization Monitoring Challenge, student case brief.
+\item Simulator data contract: \url{https://four40mi-pasteurization-simulator.onrender.com/schema}
+\item IEEE Std 830-1998; ISO/IEC/IEEE 29148:2018.
+\end{enumerate}
+
+\subsection{Overview}
+Section~2 describes the product and its context. Sections~3 to~6 state the functional requirements, the non-functional requirements, the domain and business rules, and the operational requirements. Section~7 covers validation and traceability. The appendices are supplementary material.
+
+\section{Overall description}
+\subsection{Product perspective}
+The monitor is a new, self-contained client of an existing simulation service. The data flows in one direction:
+\begin{center}
+\fbox{Simulator (SSE)} $\;\rightarrow\;$ \fbox{Ingest and validate} $\;\rightarrow\;$ \fbox{Rule evaluator} $\;\rightarrow\;$ \fbox{Dashboard and history} $\;\rightarrow\;$ Operator
+\end{center}
+
+\subsection{Product functions}
+Connect to the stream; show status; configure rules; detect and classify violations; record, explain, and acknowledge alerts; report connection and data-quality problems.
+
+\subsection{User classes and characteristics}
+\begin{tabular}{@{}L{38mm}L{72mm}L{45mm}@{}}
+\toprule \head{User} & \head{Needs} & \head{Skills}\\ \midrule
+Plant operator & Know what needs attention now; acknowledge alerts. & No programming.\\
+Quality user & Explain what happened in a batch; adjust rules. & Process knowledge.\\
+IT / maintenance & Start, configure, and recover the application. & Basic Python and web.\\
+\bottomrule
+\end{tabular}
+
+\subsection{External interface}
+The application reads the simulator's Server-Sent Events stream, \field{/stream?team=<id>\&scenario=<name>}, and processes the events named \field{sensor-reading}. Each reading identifies the batch and process state and carries the sensor values, which may be \field{null}. The operator uses a web page in a browser. Field details are in Appendix~\ref{app:if}.
+
+\subsection{Constraints}
+The application is implemented in Streamlit; runs in a web browser; uses the existing simulator without changing its contract; and sends no command to production equipment.
+
+\subsection{Assumptions and dependencies}
+\begin{longtable}{@{}L{14mm}L{112mm}L{30mm}@{}}
+\toprule \head{ID} & \head{Assumption or dependency} & \head{To confirm}\\ \midrule \endhead
+A-01 & The first release alerts on temperature, pH, and pressure. \field{dTdt} is displayed but has no rule. & Operations\\
+A-02 & The limits in Section~\ref{sec:rules} are placeholders fitted to the synthetic data. & Quality\\
+A-03 & One user session at a time configures rules; there is no authentication. & IT\\
+A-04 & The simulator sends about 8 readings per second; one batch has 329 readings (about 41~s), and Hold lasts 19 readings (about 2.4~s). & Check \field{/schema}\\
+A-05 & The simulator does not resend events missed while disconnected. & Known limitation\\
+\bottomrule
+\end{longtable}
+
+\section{Functional requirements}
+``Shall'' marks a binding requirement. Priority follows MoSCoW: \textbf{M}ust, \textbf{S}hould, \textbf{C}ould.
+
+\begin{longtable}{@{}L{15mm}L{92mm}L{8mm}L{38mm}@{}}
+\toprule \head{ID} & \head{Requirement} & \head{Pr.} & \head{Source}\\ \midrule \endhead
+FR-01 & The application shall connect to the stream of the team identifier and scenario selected by the user. & M & Daniel\\
+FR-02 & The application shall display the connection status as one of: Connecting, Live, Stale, Disconnected. & M & Sofia\\
+FR-03 & The application shall display the batch identifier, process state, \field{T}, \field{pH}, and \field{P} of the latest reading. & M & Sofia\\
+FR-04 & A designated user shall be able to set the limits of a rule; the new limits shall apply to all subsequent readings. & M & Brief\\
+FR-05 & The application shall raise an alert when a rule is violated for its persistence number of consecutive valid readings, and shall assign the severity Warning or Critical defined by that rule. & M & Elena\\
+FR-06 & The application shall keep at most one active alert for each rule and batch. & M & Team\\
+FR-07 & Each alert shall record: identifier, batch, process state, measurement, rule and limits in force, observed value, \field{event\_id}, severity, and time raised. & M & Marco\\
+FR-08 & The operator shall be able to acknowledge an alert; the application shall record the time and keep the alert active until its condition clears. & M & Sofia\\
+FR-09 & The application shall list the alerts of the current user session, newest first, with their status. & M & Marco\\
+FR-10 & When a reading lacks a value needed by a rule, the application shall show a data-quality condition naming the sensor and shall not treat the value as normal. & M & Marco\\
+FR-11 & The user shall be able to restore the default rules. & S & Team\\
+FR-12 & The user shall be able to download the session history as a CSV file. & C & Team\\
+\bottomrule
+\end{longtable}
+
+\section{Non-functional requirements}\label{sec:nfr}
+\begin{longtable}{@{}L{17mm}L{22mm}L{76mm}L{38mm}@{}}
+\toprule \head{ID} & \head{Quality} & \head{Requirement (measurable)} & \head{Verification}\\ \midrule \endhead
+NFR-01 & Performance & An alert shall be visible within 2~s of the receipt of the reading that completes its persistence, in at least 95\% of 40 trials. & Timestamps in the log\\
+NFR-02 & Performance & The displayed status shall refresh at least once per second while readings arrive. & 5-minute timed run\\
+NFR-03 & Reliability & The application shall process a 30-minute stream without crashing and without skipping a received reading in rule evaluation. & Soak test; count of \field{event\_id}\\
+NFR-04 & Usability & At least 4 of 5 first-time users shall identify and acknowledge a Critical alert within 20~s, without help. & Task test\\
+NFR-05 & Accessibility & Severity and connection status shall be shown with text, not by colour alone. & Inspection in greyscale\\
+NFR-06 & Maintainability & Rule evaluation shall be independent of Streamlit code and covered by automated tests for every rule. & Code review; test run\\
+NFR-07 & Security & The application shall make no write request to the simulator or to equipment and shall store no personal data. & Code review; network log\\
+\bottomrule
+\end{longtable}
+
+\newpage
+\section{Domain and business rules}\label{sec:rules}
+Placeholder limits (assumption A-02). A value equal to a limit is not a violation unless the interval says so.
+
+\begin{longtable}{@{}L{15mm}L{58mm}L{25mm}L{19mm}L{30mm}@{}}
+\toprule \head{ID} & \head{Violation} & \head{States} & \head{Severity} & \head{Persistence}\\ \midrule \endhead
+BR-01 & $T < 71.0$ $^\circ$C & Hold & Critical & 1 reading\\
+BR-02 & $71.0 \le T < 71.5$ $^\circ$C & Hold & Warning & 3 readings\\
+BR-03 & $T > 73.0$ $^\circ$C & Hold & Warning & 3 readings\\
+BR-04 & Last valid $T$ of HeatUp below 70.0 $^\circ$C & on leaving HeatUp & Warning & 1 transition\\
+BR-05 & pH $< 6.50$ or pH $> 6.80$ & all & Warning & 3 readings\\
+BR-06 & $P < 0.80$ or $P > 1.60$ bar & all & Warning & 3 readings\\
+\bottomrule
+\end{longtable}
+
+BR-07: a \field{null} value neither increments nor resets the persistence count. BR-08: leaving the states of a rule resets its count. BR-09: an alert clears after 3 consecutive valid readings without violation, or when the batch changes.
+
+\section{Operational requirements}
+\begin{longtable}{@{}L{15mm}L{25mm}L{113mm}@{}}
+\toprule \head{ID} & \head{Concern} & \head{Requirement}\\ \midrule \endhead
+OR-01 & Start-up & A new user shall be able to start the application with one documented command after installing the listed dependencies.\\
+OR-02 & Configuration & Stream address, team identifier, and default rules shall be changeable without editing source code.\\
+OR-03 & Stale data & After more than 3~s without a reading, the status shall read Stale and the values shall be marked as old.\\
+OR-04 & Recovery & After a connection loss, the application shall retry at least every 5~s without a restart and show Connecting until a reading arrives. A hosted simulator may need longer to wake up.\\
+OR-05 & Gap record & A jump in \field{event\_id} shall be recorded in the session history with its first and last missing identifiers.\\
+OR-06 & Invalid message & A message that does not match the data contract shall be logged and counted, and shall not stop the application.\\
+OR-07 & Logging & Connection changes, rule changes, alerts, and acknowledgements shall be logged with time.\\
+OR-08 & Support and limits & The operational guide shall state the recovery steps, that history is lost when the session ends, that there is no authentication, and that the application controls no equipment.\\
+\bottomrule
+\end{longtable}
+
+\newpage
+\section{Validation and traceability}
+\subsection{Verification}
+A requirement is accepted when its test passes and the evidence (log, screenshot, or test report) is linked in the matrix.
+
+\begin{longtable}{@{}L{14mm}L{67mm}L{72mm}@{}}
+\toprule \head{Test} & \head{Procedure} & \head{Acceptance criterion}\\ \midrule \endhead
+TC-01 & Start with team G01, scenario \field{nominal}. & Status becomes Live; batch, state, and values update.\\
+TC-02 & Observe one complete \field{nominal} batch with default rules. & No alert is raised.\\
+TC-03 & Keep a rule violated for a whole Hold stage. & Only one active alert exists for that rule and batch.\\
+TC-04 & Open the alert detail and download the CSV file. & All the fields of FR-07 are present in both.\\
+TC-05 & Run \field{hold\_undershoot}. & One Critical BR-01 alert, on the first Hold reading.\\
+TC-06 & Run \field{sensor\_drift}. & One Warning BR-03 alert, on the third consecutive Hold reading above 73.0.\\
+TC-07 & Run \field{slow\_heatup}. & One Warning BR-04 alert when HeatUp ends.\\
+TC-08 & Change a temperature limit during a run, then restore the defaults. & The new limit is used for subsequent readings and stored in later alerts; restoring brings back the default.\\
+TC-09 & Acknowledge an active alert. & Time is recorded; the alert stays active until the condition clears.\\
+TC-10 & Run \field{sensor\_dropout}. & A data-quality condition names the sensor; nothing is shown as normal for it.\\
+TC-11 & Cut the network for 20~s, then restore it. & Stale or Disconnected is shown; reconnection is automatic; the gap is recorded.\\
+TC-12 & Inject a malformed message in an automated test. & It is logged and counted; processing continues.\\
+TC-13 & Trigger 40 alerts and compare log timestamps. & NFR-01 is met.\\
+\bottomrule
+\end{longtable}
+
+\subsection{Requirements traceability matrix}
+\begin{longtable}{@{}L{28mm}L{28mm}L{40mm}L{30mm}L{20mm}@{}}
+\toprule \head{Requirement} & \head{Source} & \head{Planned component} & \head{Evidence} & \head{Status}\\ \midrule \endhead
+FR-01, FR-02, FR-03 & Daniel, Sofia & Stream client; status panel & TC-01 & Planned\\
+FR-04, FR-11 & Brief, team & Rule form & TC-08 & Planned\\
+FR-05, FR-06 & Elena, team & Rule evaluator & TC-02, 03, 05--07 & Planned\\
+FR-07, FR-09, FR-12 & Marco, team & Alert history & TC-04 & Planned\\
+FR-08 & Sofia & Alert list & TC-09 & Planned\\
+FR-10 & Marco & Input validation & TC-10 & Planned\\
+NFR-01 & Elena & Evaluator and page refresh & TC-13 & Planned\\
+NFR-02 to NFR-07 & Team, Daniel & Whole application & Section~\ref{sec:nfr} & Planned\\
+OR-03 to OR-06 & Daniel, team & Stream client & TC-11, TC-12 & Planned\\
+OR-01, 02, 07, 08 & Daniel & Configuration and guide & Inspection & Planned\\
+\bottomrule
+\end{longtable}
+
+\appendix
+\clearpage
+\addcontentsline{toc}{section}{Supplementary material}
+{\Large\bfseries\color{courseblue} Supplementary material\par}
+
+\section{External interface details}\label{app:if}
+\textbf{IF-01 (software).} The application shall subscribe to \field{GET /stream?team=<id>\&scenario=<name>} and process events named \field{sensor-reading}.
+
+\textbf{IF-02 (data).} Each reading provides \field{event\_id}, \field{timestamp}, \field{cycle\_time}, \field{batch\_id}, \field{state}, and the sensors \field{T}, \field{pH}, \field{Kappa}, \field{Mu}, \field{Tau}, \field{Q\_in}, \field{Q\_out}, \field{P}, \field{dTdt}. Sensor values may be \field{null}.
+
+\textbf{IF-03 (user).} The main page shall show, without navigation: connection status, batch, state, selected sensor values, and active alerts.
+
+\textbf{Hardware interfaces.} None.
+
+\section{From stakeholder voice to requirement}
+\begin{longtable}{@{}L{22mm}L{80mm}L{50mm}@{}}
+\toprule \head{Voice} & \head{What was said (excerpt from the brief)} & \head{Became}\\ \midrule \endhead
+Elena Rossi, Operations & ``Operators need to know what needs attention now.'' & FR-05, NFR-01, NFR-04\\
+Marco Bianchi, Quality & ``We must be able to explain what happened during a batch.'' & FR-07, FR-09, OR-07\\
+Sofia Conti, Operator & ``Do not make the application too complicated.'' & FR-02, FR-03, FR-08, NFR-04\\
+Daniel Weber, IT & ``It should run as a small web application.'' & OR-01, OR-02, NFR-07\\
+\bottomrule
+\end{longtable}
+
+\section{Version 2.0: change request}\label{app:change}
+\textbf{Request (Quality Management).} During \emph{Hold}, a critical temperature alert must be raised only when the configured limit is violated for a configurable number of consecutive readings. The alert history must record the process state in which the alert was created.
+
+\subsection{Requirement changes}
+\begin{longtable}{@{}L{18mm}L{135mm}@{}}
+\toprule \head{ID} & \head{Version 2.0}\\ \midrule \endhead
+BR-01 (changed) & $T < 71.0$ $^\circ$C in Hold is Critical after $N$ consecutive valid readings; $N$ is configurable, default 3.\\
+FR-04 (changed) & The designated user shall also be able to set $N$, an integer from 1 to 10. Hold has only 19 readings, so a large $N$ delays or hides an alert.\\
+FR-07 (unchanged) & The process state is already recorded since 1.0. The test must now assert it explicitly.\\
+FR-13 (new) & Each alert shall record the value of $N$ in force and the identifier of the first violating reading.\\
+\bottomrule
+\end{longtable}
+
+\subsection{Impact analysis}
+\begin{tabular}{@{}L{35mm}L{118mm}@{}}
+\toprule \head{Artifact} & \head{Impact}\\ \midrule
+Backlog & One new item for configurable persistence; raise its priority to Must.\\
+Evaluator & BR-01 uses the configurable count; BR-07 and BR-08 apply to it.\\
+Interface & New input for $N$; $N$ shown in the alert detail.\\
+Tests & Update TC-05; add TC-14 and TC-15.\\
+Operational guide & Explain $N$, its range, and the delay it introduces.\\
+\bottomrule
+\end{tabular}
+
+\subsection{New and changed tests}
+\textbf{TC-05 (changed).} With $N=3$, \field{hold\_undershoot} raises the Critical alert on the \emph{third} Hold reading, not the first. \textbf{TC-14.} With $N=1$ it is raised on the first. \textbf{TC-15.} Automated test: two violations, one \field{null}, one violation raise the alert for $N=3$; two violations, one normal value, one violation do not.
+
+\section{Expected behaviour on the simulator}
+Computed by applying the rules above to one batch returned by \field{/replay} (readings numbered from 0; Hold is readings 157 to 175). These are \emph{expected results} to test against, not results of an application.
+
+\begin{tabular}{@{}L{35mm}L{58mm}L{58mm}@{}}
+\toprule \head{Scenario} & \head{Version 1.0} & \head{Version 2.0, $N=3$}\\ \midrule
+\field{nominal} & No alert & No alert\\
+\field{slow\_heatup} & BR-04 Warning at 157 & BR-04 Warning at 157\\
+\field{hold\_undershoot} & BR-01 Critical at 157 & BR-01 Critical at 159\\
+\field{sensor\_dropout} & No alert; 5 readings with missing values & Same\\
+\field{sensor\_drift} & BR-03 Warning at 159 & BR-03 Warning at 159\\
+\bottomrule
+\end{tabular}
+
+\medskip
+Note the \field{sensor\_drift} case: the process is healthy and only the measurement is biased. A limit rule reports the symptom but cannot tell the two apart.
+\end{document}

@@ -1,9 +1,9 @@
 \input{common}
 \input{common_visual}
 
-% Two parts; the progress strip on each divider uses these labels.
-\newcommand{\sectioncount}{2}
-\newcommand{\sectionlabels}{1/Validate,2/Evolve}
+% Three parts; the progress strip on each divider uses these labels.
+\newcommand{\sectioncount}{3}
+\newcommand{\sectionlabels}{1/Specify,2/Validate,3/Evolve}
 
 \title{Class 28: Pasteurization Monitoring Challenge, Session 2}
 \author{\coursename}
@@ -29,6 +29,19 @@
   \node[text=#4!70, font=\Large] at (#1+2.1,-0.42) {\faIcon{#3}};
   \node[anchor=north west, text width=2.2cm, align=left, font=\footnotesize\bfseries, text=courseblue, inner sep=0pt] at (#1+0.2,-0.88) {#5};
   \node[anchor=north west, text width=2.2cm, align=left, font=\scriptsize, inner sep=0pt] at (#1+0.2,-1.7) {#6};
+}
+
+% One example requirement (13.4 x 1.0 cm): y id source requirement check colour
+\newcommand{\reqrow}[6]{%
+  \node[chip, fill=#6, anchor=north west, minimum width=1.65cm, minimum height=1.08cm, font=\scriptsize\bfseries] at (0,#1) {#2\\{\tiny #3}};
+  \node[tile, fill=white, draw=#6!70, thick, anchor=north west, minimum width=6.7cm, minimum height=1.08cm, text width=6.35cm, align=left, font=\scriptsize, inner sep=3pt] at (1.8,#1) {#4};
+  \node[tile, fill=courseice, anchor=north west, minimum width=4.75cm, minimum height=1.08cm, text width=4.4cm, align=left, font=\scriptsize, inner sep=3pt] at (8.65,#1) {#5};
+}
+% Column titles of the example slides: label of the third column
+\newcommand{\reqhead}[1]{%
+  \foreach \x/\t in {0/ID, 1.8/REQUIREMENT, 8.65/#1} {
+    \node[anchor=west, font=\tiny\bfseries, text=coursegray, inner sep=0pt] at (\x,-0.15) {\t};
+  }
 }
 
 \begin{document}
@@ -66,7 +79,62 @@
 \end{cframe}
 
 % ================================================================== PART 1
-\sectiondivider{1}{Validate}{clipboard-check}{session 1 produced the questions, the backlog, and SRS v1; between sessions the team built a thin slice.}{$\bullet$\ The five steps of session 2\\[3pt]$\bullet$\ Evidence from the live stream\\[3pt]$\bullet$\ One traceability path from need to test result}
+\sectiondivider{1}{Specify}{file-alt}{session 1 turned an incomplete brief into questions, a backlog, and SRS v1.}{$\bullet$\ From stakeholder voices to three kinds of requirement\\[3pt]$\bullet$\ Functional, non-functional, and operational examples\\[3pt]$\bullet$\ A complete example SRS to compare with yours}
+
+\begin{cframe}{From stakeholder voices to requirements}{\cterm{ISO/IEC/IEEE 29148}{the current standard for requirements engineering; it superseded IEEE 830.}\cterm{Source}{the person, document, or assumption a requirement comes from.}}
+\centering
+\begin{tikzpicture}
+\foreach \y/\who/\quote/\kind/\col/\ids in {0/Sofia Conti{,} operator/{``I also need to \textbf{acknowledge} that I have seen an alert.''}/FUNCTIONAL/courseblue/FR-08, -0.9/Elena Rossi{,} operations/{``Operators need to know what needs \textbf{attention now}.''}/NON-FUNCTIONAL/coursegold/NFR-01, -1.8/Daniel Weber{,} IT/{``It should run as a \textbf{small web application}.''}/OPERATIONAL/coursegreen/OR-01} {
+  \node[tile, fill=white, draw=\col!70, thick, anchor=north west, minimum width=8.3cm, minimum height=0.78cm, text width=7.95cm, align=left, font=\scriptsize, inner sep=3pt] at (0,\y) {{\bfseries\color{courseblue}\who.} \quote};
+  \draw[arrowgold, line width=1.4pt] (8.4,\y-0.39) -- (9.0,\y-0.39);
+  \node[chip, fill=\col, anchor=north west, minimum width=4.3cm, minimum height=0.78cm, font=\scriptsize\bfseries] at (9.1,\y) {\kind: \ids};
+}
+\foreach \x/\col/\ttl/\txt in {0/courseblue/Functional/{What the system \textbf{does}.}, 4.55/coursegold/Non-functional/{\textbf{How well} it does it, with a \textbf{number}.}, 9.1/coursegreen/Operational/{How it is \textbf{started}, \textbf{configured}, and \textbf{recovered}.}} {
+  \node[tile, fill=white, draw=\col, very thick, anchor=north west, minimum width=4.3cm, minimum height=0.95cm, text width=3.95cm, align=left, font=\scriptsize, inner sep=3pt] at (\x,-2.85) {{\bfseries\color{courseblue}\ttl}\\\txt};
+}
+\node[tilegold, anchor=north west, minimum width=13.4cm, minimum height=0.8cm, text width=12.8cm, align=left, font=\scriptsize] at (0,-4.1) {{\bfseries\goldink\faIcon{file-pdf}\ Example SRS:} \href{https://github.com/sbarbonjr/440MI/blob/main/documents/Class28_SRS_Pasteurization_Monitoring.pdf}{\texttt{documents/Class28\_SRS\_Pasteurization\_Monitoring.pdf}}};
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Functional requirements: examples}{\cterm{MoSCoW}{a priority scale: must, should, could, and will not have this time.}\cterm{Severity}{how serious an alert is, here warning or critical.}}
+\centering
+\begin{tikzpicture}
+\reqhead{ACCEPTANCE CRITERION}
+\reqrow{-0.4}{FR-04}{Brief $\cdot$ Must}{A designated user shall be able to \textbf{set the limits} of a rule; the new limits shall apply to all \textbf{subsequent readings}.}{A limit \textbf{changed during a run} is used from the \textbf{next reading} on.}{courseblue}
+\reqrow{-1.62}{FR-05}{Elena $\cdot$ Must}{The application shall \textbf{raise an alert}, with the \textbf{severity} of the rule, when the rule is violated for its number of \textbf{consecutive valid readings}.}{Scenario \texttt{hold\_undershoot} raises \textbf{one critical alert}.}{courseblue}
+\reqrow{-2.84}{FR-10}{Marco $\cdot$ Must}{When a needed value is \textbf{missing}, the application shall \textbf{name the sensor} and shall \textbf{not treat the value as normal}.}{Scenario \texttt{sensor\_dropout} shows a \textbf{data-quality condition}.}{courseblue}
+\keyidea{-4.0}{A functional requirement states one behavior that a tester can trigger and observe.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Non-functional requirements: examples}{\cterm{Fit criterion}{the measure and threshold that decide whether a quality requirement is met.}\cterm{Soak test}{a long run that looks for failures that appear only over time.}}
+\centering
+\begin{tikzpicture}
+\reqhead{HOW TO VERIFY}
+\reqrow{-0.4}{NFR-01}{Performance}{An alert shall be visible \textbf{within 2\,s} of the reading that triggers it, in at least \textbf{95\% of 40 trials}.}{Compare \textbf{reading and display times} in the log.}{coursegold}
+\reqrow{-1.62}{NFR-03}{Reliability}{The application shall process a \textbf{30-minute stream} \textbf{without crashing} and \textbf{without skipping} a received reading.}{\textbf{Soak test}; count the \textbf{event identifiers}.}{coursegold}
+\reqrow{-2.84}{NFR-04}{Usability}{At least \textbf{4 of 5} first-time users shall identify and acknowledge a critical alert \textbf{within 20\,s}, \textbf{without help}.}{\textbf{Timed task} with five users.}{coursegold}
+\keyidea{-4.0}{``Fast'' and ``easy'' cannot be tested. Give each quality a measure, a threshold, and a way to check it.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+\begin{cframe}{Operational requirements: examples}{\cterm{Stale data}{values that are still on screen although no new reading has arrived in time.}\cterm{Data gap}{a stretch of events that the application never received.}}
+\centering
+\begin{tikzpicture}
+\reqhead{EVIDENCE}
+\reqrow{-0.4}{OR-03}{Stale data}{After \textbf{more than 3\,s} without a reading, the status shall read \textbf{Stale} and the values shall be \textbf{marked as old}.}{\textbf{Cut the network} and take a \textbf{screenshot}.}{coursegreen}
+\reqrow{-1.62}{OR-04}{Recovery}{After a \textbf{connection loss}, the application shall retry at least \textbf{every 5\,s}, \textbf{without a restart}.}{Restore the network; the \textbf{log} shows the \textbf{reconnection}.}{coursegreen}
+\reqrow{-2.84}{OR-05}{Gap record}{A \textbf{jump} in the event identifier shall be recorded with the \textbf{first and last missing identifiers}.}{The \textbf{session history} shows the \textbf{gap}.}{coursegreen}
+\keyidea{-4.0}{The simulator does not resend missed events, so a recovered connection still leaves a hole that must be visible.}
+\end{tikzpicture}
+\coursefooter
+\end{cframe}
+
+% ================================================================== PART 2
+\sectiondivider{2}{Validate}{clipboard-check}{the specification says what to build; between sessions the team built a thin slice of it.}{$\bullet$\ The five steps of session 2\\[3pt]$\bullet$\ Evidence from the live stream\\[3pt]$\bullet$\ One traceability path from need to test result}
 
 \begin{cframe}{Session 2: five steps}{\cterm{Validation evidence}{test records, logs, and screenshots showing whether a criterion was met.}\cterm{Defect}{a place where the behavior differs from the requirement.}}
 \centering
@@ -86,13 +154,13 @@
 \centering
 \begin{tikzpicture}
 \node[anchor=north west, inner sep=0pt] at (0,0.1) {\includegraphics[width=7.3cm]{images/class28_evidence_stream.pdf}};
-\foreach \y/\n/\ico/\col/\ttl/\txt in {0/1/check-circle/coursegreen/Normal behavior/{The application stays quiet and shows connection, batch, and state.}, -1.4/2/exclamation-triangle/coursegold/Threshold crossing/{A configured rule is violated; the alert appears with its fields.}, -2.8/3/unlink/coursered/Disconnection/{The stream stops: show what the operator sees and what is recorded.}} {
+\foreach \y/\n/\ico/\col/\ttl/\txt in {0/1/check-circle/coursegreen/Normal behavior/{\texttt{nominal}: no alert; show connection, batch, and state.}, -1.4/2/exclamation-triangle/coursegold/Threshold crossing/{\texttt{hold\_undershoot}: below 71.0\,°C in Hold, one critical alert.}, -2.8/3/unlink/coursered/Disconnection/{Cut the network (not in the figure): show the screen and the record.}} {
   \node[tile, fill=white, draw=\col, very thick, anchor=north west, minimum width=5.8cm, minimum height=1.3cm] at (7.6,\y) {};
   \node[circle, fill=\col, text=white, minimum size=0.55cm, inner sep=0, font=\small\bfseries] at (8.0,\y-0.65) {\n};
   \node[anchor=west, font=\footnotesize\bfseries, text=courseblue] at (8.45,\y-0.22) {\faIcon{\ico}\ \ttl};
   \node[anchor=north west, text width=4.7cm, align=left, font=\scriptsize, inner sep=0pt] at (8.45,\y-0.45) {\txt};
 }
-\keyidea{-4.4}{Collect the evidence as you go: a log line, a screenshot, and a test identifier for every claim you make.}
+\keyidea{-4.65}{Collect the evidence as you go: a log line, a screenshot, and a test identifier for every claim you make.}
 \end{tikzpicture}
 \coursefooter
 \end{cframe}
@@ -126,8 +194,8 @@
 \coursefooter
 \end{cframe}
 
-% ================================================================== PART 2
-\sectiondivider{2}{Evolve and close}{sync-alt}{validation shows where the product stands; a change request tests how well the work can evolve.}{$\bullet$\ The change request and its impact\\[3pt]$\bullet$\ Retrospective: how the team worked}
+% ================================================================== PART 3
+\sectiondivider{3}{Evolve and close}{sync-alt}{validation shows where the product stands; a change request tests how well the work can evolve.}{$\bullet$\ The change request and its impact\\[3pt]$\bullet$\ Retrospective: how the team worked}
 
 \begin{cframe}{The change request}{\cterm{Release notes}{a short account of what changed in a release.}\cterm{SRS v2}{the specification after the change request has been analyzed and applied.}}
 \centering
